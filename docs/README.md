@@ -17,6 +17,7 @@ Documentación de arquitectura, diseño y plan de implementación.
 | 08 | [Contratos de API](08-contratos-api.md) | Gateway, sync, `bff-pos`, `bff-app`, eventos |
 | 09 | [Plan de implementación](09-plan-implementacion.md) | Fases, entregables, estructura del repositorio, DoD |
 | 10 | [Roles, planes y licenciamiento](10-roles-planes-licenciamiento.md) | Super admin / dueño / cajero, planes y precios, avisos de mora y bloqueo, Edición Local de pago único |
+| **11** | **[Backlog completo de Historias de Usuario](11-backlog-historias-usuario.md)** | **505 Historias de Usuario** en formato Gherkin por Épica, Feature e Hito (`HU-001` a `HU-505`) |
 
 Esquemas SQL:
 
