@@ -4,6 +4,7 @@ Repositorio de arquitectura, esquemas de base de datos, guía de implementación
 
 - Índice general de documentación: [docs/README.md](docs/README.md)
 - Guía de inicio de desarrollo (qué construir primero y paso a paso): [docs/00-guia-inicio-desarrollo.md](docs/00-guia-inicio-desarrollo.md)
-- Product Backlog completo (505 Historias de Usuario en formato Gherkin): [docs/11-backlog-historias-usuario.md](docs/11-backlog-historias-usuario.md)
+- Product Backlog completo en un solo archivo largo (505 Historias de Usuario en formato Gherkin): [docs/11-backlog-historias-usuario.md](docs/11-backlog-historias-usuario.md)
+- Product Backlog separado en carpetas por Épicas y Features (15 Épicas / 42 Features): [docs/backlog/README.md](docs/backlog/README.md)
 - Esquemas SQL de microservicios en la nube (PostgreSQL 16 + RLS): [db/cloud/](db/cloud/)
 - Esquemas SQL locales de la caja y Edición Local (SQLite/SQLCipher): [db/local/](db/local/)
