@@ -65,36 +65,43 @@ TienditaOnline/
 
 ### Requisitos Previos
 - **Node.js**: v20+ o v22+ LTS
-- **pnpm**: v9+ o v10+
+- **pnpm**: v9+ o v10+ (o v12)
 - **Rust Toolchain**: `stable` (para el núcleo de `apps/pos`)
 
-### 1. Instalación de Dependencias
-```bash
-cd repos
-pnpm install
-```
+### 1. Comandos de la Raíz del Proyecto
 
-### 2. Ejecución de Pruebas Unitarias e Integración (100 % pasando)
+Puedes ejecutar todos los comandos del ciclo de vida directamente desde la raíz del repositorio:
+
 ```bash
-# Ejecutar todas las pruebas del monorepo con Turborepo
+# Ejecutar todas las pruebas del monorepo con Turborepo (36 tareas)
 pnpm test
 
-# Ejecutar pruebas del núcleo nativo de Rust
-cargo test --manifest-path apps/pos/src-tauri/Cargo.toml
-```
+# Ejecutar pruebas End-to-End en navegador con Playwright (Chromium Desktop y Mobile)
+pnpm run test:e2e
 
-### 3. Compilación y Typecheck de Todo el Workspace
-```bash
-# Compilar TypeScript en todos los paquetes y generar bundles Web/iOS/Android
-pnpm build
+# Ejecutar pruebas unitarias del núcleo nativo de Rust (POS y Paridad Fiscal)
+pnpm run test:rust
 
-# Verificación de tipos estricta sin emitir archivos
-pnpm lint
-```
+# Iniciar el servidor HTTP del BFF en http://localhost:3000
+pnpm run start:bff
 
-### 4. Consultar el Estado del Backlog (505/505 HUs)
-```bash
-node tools/mark-hu/index.mjs status
+# Ejecutar la simulación masiva de 5.000 cajas POS y reconexión (HU-132)
+pnpm run simulate
+
+# Verificar esquemas y políticas RLS en PostgreSQL real (PGlite en memoria)
+pnpm run db:verify
+
+# Aplicar migraciones de base de datos
+pnpm run db:migrate
+
+# Compilar TypeScript en todos los paquetes y generar bundles Expo Web/iOS/Android
+pnpm run build
+
+# Verificación de tipos estricta sin emitir archivos (35 paquetes)
+pnpm run lint
+
+# Consultar el estado del backlog oficial (505 / 505 HUs)
+node repos/tools/mark-hu/index.mjs status
 ```
 
 ---
