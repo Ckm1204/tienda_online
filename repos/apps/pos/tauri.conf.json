@@ -3,6 +3,10 @@
   "productName": "TienditaOnline Caja",
   "version": "1.0.0",
   "identifier": "co.tienditaonline.pos",
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "./ui"
+  },
   "app": {
     "windows": [
       {
@@ -14,7 +18,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.tienditaonline.co; object-src 'none'; frame-ancestors 'none'",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.tienditaonline.co; object-src 'none'; frame-ancestors 'none'",
       "capabilities": [
         {
           "identifier": "pos-core-ipc-only",
