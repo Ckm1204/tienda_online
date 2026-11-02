@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "pnpm -C repos build",
+    "start:bff": "pnpm -C repos/services/bff-app start",
     "test": "pnpm -C repos test",
     "lint": "pnpm -C repos lint",
     "test:e2e": "pnpm -C repos/apps/management exec playwright test",

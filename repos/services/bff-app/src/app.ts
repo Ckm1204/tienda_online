@@ -130,8 +130,8 @@ export class BffApp {
       return payloadError;
     }
 
-    // Healthcheck /health/ready
-    if (req.path === "/health/ready") {
+    // Healthcheck /health/ready y /health/live
+    if (req.path === "/health/ready" || req.path === "/health/live") {
       if (this.isShuttingDown) {
         return {
           status: 503,

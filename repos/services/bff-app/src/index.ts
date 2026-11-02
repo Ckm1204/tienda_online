@@ -19,3 +19,4 @@ export * from "./controllers/sales.controller.js";
 export * from "./controllers/customers.controller.js";
 export * from "./router.js";
 export * from "./app.js";
+export * from "./server.js";
