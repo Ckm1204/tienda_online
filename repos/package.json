@@ -1,0 +1,31 @@
+{
+  "name": "tienditaonline-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "dev:infra": "docker compose -f infra/local/docker-compose.yml up -d",
+    "db:migrate": "pnpm --filter @tiendita/db-migrations run migrate",
+    "db:verify": "pnpm --filter @tiendita/db-migrations run test",
+    "contracts:codegen": "pnpm --filter @tiendita/contracts run codegen",
+    "contracts:check": "pnpm --filter @tiendita/contracts run check",
+    "contracts:openapi": "pnpm --filter @tiendita/contracts run openapi",
+    "gen:service": "node tools/gen-service/index.mjs",
+    "license:check": "pnpm --filter @tiendita/config run license-check",
+    "smoke:test": "pnpm --filter @tiendita/config run smoke-test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "zod": "^3.24.1"
+  }
+}

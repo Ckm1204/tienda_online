@@ -1,0 +1,7527 @@
+[
+  {
+    "id": "GOLDEN-001",
+    "description": "Tax=IVA19 qty_milli=2000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-1",
+          "qty_milli": 2000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 84034,
+      "discount_cents": 0,
+      "tax_cents": 15966,
+      "rounding_cents": 0,
+      "total_cents": 100000
+    }
+  },
+  {
+    "id": "GOLDEN-002",
+    "description": "Tax=IVA19 qty_milli=375 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-2",
+          "qty_milli": 375,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 15756,
+      "discount_cents": 0,
+      "tax_cents": 2994,
+      "rounding_cents": -3750,
+      "total_cents": 15000
+    }
+  },
+  {
+    "id": "GOLDEN-003",
+    "description": "Tax=IVA19 qty_milli=1250 price_cents=50000 disc=3125 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-3",
+          "qty_milli": 1250,
+          "unit_price_cents": 50000,
+          "discount_cents": 3125,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 49895,
+      "discount_cents": 3125,
+      "tax_cents": 9480,
+      "rounding_cents": 0,
+      "total_cents": 59375
+    }
+  },
+  {
+    "id": "GOLDEN-004",
+    "description": "Tax=IVA19 qty_milli=12000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-4",
+          "qty_milli": 12000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 504202,
+      "discount_cents": 0,
+      "tax_cents": 95798,
+      "rounding_cents": 0,
+      "total_cents": 600000
+    }
+  },
+  {
+    "id": "GOLDEN-005",
+    "description": "Tax=IVA19 qty_milli=2000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-5",
+          "qty_milli": 2000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 84034,
+      "discount_cents": 0,
+      "tax_cents": 15966,
+      "rounding_cents": 0,
+      "total_cents": 100000
+    }
+  },
+  {
+    "id": "GOLDEN-006",
+    "description": "Tax=IVA19 qty_milli=6000 price_cents=120000 disc=36000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-6",
+          "qty_milli": 6000,
+          "unit_price_cents": 120000,
+          "discount_cents": 36000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 574790,
+      "discount_cents": 36000,
+      "tax_cents": 109210,
+      "rounding_cents": -4000,
+      "total_cents": 680000
+    }
+  },
+  {
+    "id": "GOLDEN-007",
+    "description": "Tax=IVA19 qty_milli=1000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-7",
+          "qty_milli": 1000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 100840,
+      "discount_cents": 0,
+      "tax_cents": 19160,
+      "rounding_cents": 0,
+      "total_cents": 120000
+    }
+  },
+  {
+    "id": "GOLDEN-008",
+    "description": "Tax=IVA19 qty_milli=3000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-8",
+          "qty_milli": 3000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 302521,
+      "discount_cents": 0,
+      "tax_cents": 57479,
+      "rounding_cents": 0,
+      "total_cents": 360000
+    }
+  },
+  {
+    "id": "GOLDEN-009",
+    "description": "Tax=IVA19 qty_milli=640 price_cents=120000 disc=3840 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-9",
+          "qty_milli": 640,
+          "unit_price_cents": 120000,
+          "discount_cents": 3840,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 61311,
+      "discount_cents": 3840,
+      "tax_cents": 11649,
+      "rounding_cents": 0,
+      "total_cents": 72960
+    }
+  },
+  {
+    "id": "GOLDEN-010",
+    "description": "Tax=IVA19 qty_milli=6000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-10",
+          "qty_milli": 6000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 605042,
+      "discount_cents": 0,
+      "tax_cents": 114958,
+      "rounding_cents": 0,
+      "total_cents": 720000
+    }
+  },
+  {
+    "id": "GOLDEN-011",
+    "description": "Tax=IVA19 qty_milli=375 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-11",
+          "qty_milli": 375,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 78782,
+      "discount_cents": 0,
+      "tax_cents": 14968,
+      "rounding_cents": 0,
+      "total_cents": 93750
+    }
+  },
+  {
+    "id": "GOLDEN-012",
+    "description": "Tax=IVA19 qty_milli=1250 price_cents=250000 disc=15625 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-12",
+          "qty_milli": 1250,
+          "unit_price_cents": 250000,
+          "discount_cents": 15625,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 249475,
+      "discount_cents": 15625,
+      "tax_cents": 47400,
+      "rounding_cents": -1875,
+      "total_cents": 295000
+    }
+  },
+  {
+    "id": "GOLDEN-013",
+    "description": "Tax=IVA19 qty_milli=12000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-13",
+          "qty_milli": 12000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2521008,
+      "discount_cents": 0,
+      "tax_cents": 478992,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-014",
+    "description": "Tax=IVA19 qty_milli=2000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-14",
+          "qty_milli": 2000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 420168,
+      "discount_cents": 0,
+      "tax_cents": 79832,
+      "rounding_cents": 0,
+      "total_cents": 500000
+    }
+  },
+  {
+    "id": "GOLDEN-015",
+    "description": "Tax=IVA19 qty_milli=375 price_cents=250000 disc=4687 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-15",
+          "qty_milli": 375,
+          "unit_price_cents": 250000,
+          "discount_cents": 4687,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 74843,
+      "discount_cents": 4687,
+      "tax_cents": 14220,
+      "rounding_cents": 0,
+      "total_cents": 89063
+    }
+  },
+  {
+    "id": "GOLDEN-016",
+    "description": "Tax=IVA19 qty_milli=1000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-16",
+          "qty_milli": 1000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 323529,
+      "discount_cents": 0,
+      "tax_cents": 61471,
+      "rounding_cents": 0,
+      "total_cents": 385000
+    }
+  },
+  {
+    "id": "GOLDEN-017",
+    "description": "Tax=IVA19 qty_milli=3000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-17",
+          "qty_milli": 3000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 970588,
+      "discount_cents": 0,
+      "tax_cents": 184412,
+      "rounding_cents": 0,
+      "total_cents": 1155000
+    }
+  },
+  {
+    "id": "GOLDEN-018",
+    "description": "Tax=IVA19 qty_milli=640 price_cents=385000 disc=12320 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-18",
+          "qty_milli": 640,
+          "unit_price_cents": 385000,
+          "discount_cents": 12320,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 196706,
+      "discount_cents": 12320,
+      "tax_cents": 37374,
+      "rounding_cents": -4080,
+      "total_cents": 230000
+    }
+  },
+  {
+    "id": "GOLDEN-019",
+    "description": "Tax=IVA19 qty_milli=6000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-19",
+          "qty_milli": 6000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1941176,
+      "discount_cents": 0,
+      "tax_cents": 368824,
+      "rounding_cents": 0,
+      "total_cents": 2310000
+    }
+  },
+  {
+    "id": "GOLDEN-020",
+    "description": "Tax=IVA19 qty_milli=1000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-20",
+          "qty_milli": 1000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 323529,
+      "discount_cents": 0,
+      "tax_cents": 61471,
+      "rounding_cents": 0,
+      "total_cents": 385000
+    }
+  },
+  {
+    "id": "GOLDEN-021",
+    "description": "Tax=IVA19 qty_milli=1250 price_cents=483200 disc=30200 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-21",
+          "qty_milli": 1250,
+          "unit_price_cents": 483200,
+          "discount_cents": 30200,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 482185,
+      "discount_cents": 30200,
+      "tax_cents": 91615,
+      "rounding_cents": 0,
+      "total_cents": 573800
+    }
+  },
+  {
+    "id": "GOLDEN-022",
+    "description": "Tax=IVA19 qty_milli=12000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-22",
+          "qty_milli": 12000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4872605,
+      "discount_cents": 0,
+      "tax_cents": 925795,
+      "rounding_cents": -3400,
+      "total_cents": 5795000
+    }
+  },
+  {
+    "id": "GOLDEN-023",
+    "description": "Tax=IVA19 qty_milli=2000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-23",
+          "qty_milli": 2000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 812101,
+      "discount_cents": 0,
+      "tax_cents": 154299,
+      "rounding_cents": 0,
+      "total_cents": 966400
+    }
+  },
+  {
+    "id": "GOLDEN-024",
+    "description": "Tax=IVA19 qty_milli=375 price_cents=483200 disc=9060 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-24",
+          "qty_milli": 375,
+          "unit_price_cents": 483200,
+          "discount_cents": 9060,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 144655,
+      "discount_cents": 9060,
+      "tax_cents": 27485,
+      "rounding_cents": -2140,
+      "total_cents": 170000
+    }
+  },
+  {
+    "id": "GOLDEN-025",
+    "description": "Tax=IVA19 qty_milli=1250 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-25",
+          "qty_milli": 1250,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 507563,
+      "discount_cents": 0,
+      "tax_cents": 96437,
+      "rounding_cents": 0,
+      "total_cents": 604000
+    }
+  },
+  {
+    "id": "GOLDEN-026",
+    "description": "Tax=IVA19 qty_milli=3000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-26",
+          "qty_milli": 3000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 3151261,
+      "discount_cents": 0,
+      "tax_cents": 598739,
+      "rounding_cents": 0,
+      "total_cents": 3750000
+    }
+  },
+  {
+    "id": "GOLDEN-027",
+    "description": "Tax=IVA19 qty_milli=640 price_cents=1250000 disc=40000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-27",
+          "qty_milli": 640,
+          "unit_price_cents": 1250000,
+          "discount_cents": 40000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 638655,
+      "discount_cents": 40000,
+      "tax_cents": 121345,
+      "rounding_cents": 0,
+      "total_cents": 760000
+    }
+  },
+  {
+    "id": "GOLDEN-028",
+    "description": "Tax=IVA19 qty_milli=6000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-28",
+          "qty_milli": 6000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 6302521,
+      "discount_cents": 0,
+      "tax_cents": 1197479,
+      "rounding_cents": 0,
+      "total_cents": 7500000
+    }
+  },
+  {
+    "id": "GOLDEN-029",
+    "description": "Tax=IVA19 qty_milli=1000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-29",
+          "qty_milli": 1000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1050420,
+      "discount_cents": 0,
+      "tax_cents": 199580,
+      "rounding_cents": 0,
+      "total_cents": 1250000
+    }
+  },
+  {
+    "id": "GOLDEN-030",
+    "description": "Tax=IVA19 qty_milli=3000 price_cents=1250000 disc=187500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-30",
+          "qty_milli": 3000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 187500,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2993697,
+      "discount_cents": 187500,
+      "tax_cents": 568803,
+      "rounding_cents": -2500,
+      "total_cents": 3560000
+    }
+  },
+  {
+    "id": "GOLDEN-031",
+    "description": "Tax=IVA19 qty_milli=12000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-31",
+          "qty_milli": 12000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 24201681,
+      "discount_cents": 0,
+      "tax_cents": 4598319,
+      "rounding_cents": 0,
+      "total_cents": 28800000
+    }
+  },
+  {
+    "id": "GOLDEN-032",
+    "description": "Tax=IVA19 qty_milli=2000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-32",
+          "qty_milli": 2000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4033613,
+      "discount_cents": 0,
+      "tax_cents": 766387,
+      "rounding_cents": 0,
+      "total_cents": 4800000
+    }
+  },
+  {
+    "id": "GOLDEN-033",
+    "description": "Tax=IVA19 qty_milli=375 price_cents=2400000 disc=45000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-33",
+          "qty_milli": 375,
+          "unit_price_cents": 2400000,
+          "discount_cents": 45000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 718487,
+      "discount_cents": 45000,
+      "tax_cents": 136513,
+      "rounding_cents": 0,
+      "total_cents": 855000
+    }
+  },
+  {
+    "id": "GOLDEN-034",
+    "description": "Tax=IVA19 qty_milli=1250 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-34",
+          "qty_milli": 1250,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2521008,
+      "discount_cents": 0,
+      "tax_cents": 478992,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-035",
+    "description": "Tax=IVA19 qty_milli=12000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-35",
+          "qty_milli": 12000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 24201681,
+      "discount_cents": 0,
+      "tax_cents": 4598319,
+      "rounding_cents": 0,
+      "total_cents": 28800000
+    }
+  },
+  {
+    "id": "GOLDEN-036",
+    "description": "Tax=IVA5 qty_milli=640 price_cents=50000 disc=1600 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-36",
+          "qty_milli": 640,
+          "unit_price_cents": 50000,
+          "discount_cents": 1600,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 28952,
+      "discount_cents": 1600,
+      "tax_cents": 1448,
+      "rounding_cents": -400,
+      "total_cents": 30000
+    }
+  },
+  {
+    "id": "GOLDEN-037",
+    "description": "Tax=IVA5 qty_milli=6000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-37",
+          "qty_milli": 6000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 285714,
+      "discount_cents": 0,
+      "tax_cents": 14286,
+      "rounding_cents": 0,
+      "total_cents": 300000
+    }
+  },
+  {
+    "id": "GOLDEN-038",
+    "description": "Tax=IVA5 qty_milli=1000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-38",
+          "qty_milli": 1000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 47619,
+      "discount_cents": 0,
+      "tax_cents": 2381,
+      "rounding_cents": 0,
+      "total_cents": 50000
+    }
+  },
+  {
+    "id": "GOLDEN-039",
+    "description": "Tax=IVA5 qty_milli=3000 price_cents=50000 disc=7500 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-39",
+          "qty_milli": 3000,
+          "unit_price_cents": 50000,
+          "discount_cents": 7500,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 135714,
+      "discount_cents": 7500,
+      "tax_cents": 6786,
+      "rounding_cents": 0,
+      "total_cents": 142500
+    }
+  },
+  {
+    "id": "GOLDEN-040",
+    "description": "Tax=IVA5 qty_milli=640 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-40",
+          "qty_milli": 640,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 30476,
+      "discount_cents": 0,
+      "tax_cents": 1524,
+      "rounding_cents": -2000,
+      "total_cents": 30000
+    }
+  },
+  {
+    "id": "GOLDEN-041",
+    "description": "Tax=IVA5 qty_milli=2000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-41",
+          "qty_milli": 2000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 228571,
+      "discount_cents": 0,
+      "tax_cents": 11429,
+      "rounding_cents": 0,
+      "total_cents": 240000
+    }
+  },
+  {
+    "id": "GOLDEN-042",
+    "description": "Tax=IVA5 qty_milli=375 price_cents=120000 disc=2250 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-42",
+          "qty_milli": 375,
+          "unit_price_cents": 120000,
+          "discount_cents": 2250,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 40714,
+      "discount_cents": 2250,
+      "tax_cents": 2036,
+      "rounding_cents": -2750,
+      "total_cents": 40000
+    }
+  },
+  {
+    "id": "GOLDEN-043",
+    "description": "Tax=IVA5 qty_milli=1250 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-43",
+          "qty_milli": 1250,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 142857,
+      "discount_cents": 0,
+      "tax_cents": 7143,
+      "rounding_cents": 0,
+      "total_cents": 150000
+    }
+  },
+  {
+    "id": "GOLDEN-044",
+    "description": "Tax=IVA5 qty_milli=12000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-44",
+          "qty_milli": 12000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1371429,
+      "discount_cents": 0,
+      "tax_cents": 68571,
+      "rounding_cents": 0,
+      "total_cents": 1440000
+    }
+  },
+  {
+    "id": "GOLDEN-045",
+    "description": "Tax=IVA5 qty_milli=2000 price_cents=120000 disc=12000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-45",
+          "qty_milli": 2000,
+          "unit_price_cents": 120000,
+          "discount_cents": 12000,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 217143,
+      "discount_cents": 12000,
+      "tax_cents": 10857,
+      "rounding_cents": 0,
+      "total_cents": 228000
+    }
+  },
+  {
+    "id": "GOLDEN-046",
+    "description": "Tax=IVA5 qty_milli=6000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-46",
+          "qty_milli": 6000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1428571,
+      "discount_cents": 0,
+      "tax_cents": 71429,
+      "rounding_cents": 0,
+      "total_cents": 1500000
+    }
+  },
+  {
+    "id": "GOLDEN-047",
+    "description": "Tax=IVA5 qty_milli=1000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-47",
+          "qty_milli": 1000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 238095,
+      "discount_cents": 0,
+      "tax_cents": 11905,
+      "rounding_cents": 0,
+      "total_cents": 250000
+    }
+  },
+  {
+    "id": "GOLDEN-048",
+    "description": "Tax=IVA5 qty_milli=3000 price_cents=250000 disc=37500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-48",
+          "qty_milli": 3000,
+          "unit_price_cents": 250000,
+          "discount_cents": 37500,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 678571,
+      "discount_cents": 37500,
+      "tax_cents": 33929,
+      "rounding_cents": -2500,
+      "total_cents": 710000
+    }
+  },
+  {
+    "id": "GOLDEN-049",
+    "description": "Tax=IVA5 qty_milli=640 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-49",
+          "qty_milli": 640,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 152381,
+      "discount_cents": 0,
+      "tax_cents": 7619,
+      "rounding_cents": 0,
+      "total_cents": 160000
+    }
+  },
+  {
+    "id": "GOLDEN-050",
+    "description": "Tax=IVA5 qty_milli=6000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-50",
+          "qty_milli": 6000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1428571,
+      "discount_cents": 0,
+      "tax_cents": 71429,
+      "rounding_cents": 0,
+      "total_cents": 1500000
+    }
+  },
+  {
+    "id": "GOLDEN-051",
+    "description": "Tax=IVA5 qty_milli=375 price_cents=385000 disc=7218 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-51",
+          "qty_milli": 375,
+          "unit_price_cents": 385000,
+          "discount_cents": 7218,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 130626,
+      "discount_cents": 7218,
+      "tax_cents": 6531,
+      "rounding_cents": 0,
+      "total_cents": 137157
+    }
+  },
+  {
+    "id": "GOLDEN-052",
+    "description": "Tax=IVA5 qty_milli=1250 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-52",
+          "qty_milli": 1250,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 458333,
+      "discount_cents": 0,
+      "tax_cents": 22917,
+      "rounding_cents": -1250,
+      "total_cents": 480000
+    }
+  },
+  {
+    "id": "GOLDEN-053",
+    "description": "Tax=IVA5 qty_milli=12000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-53",
+          "qty_milli": 12000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4400000,
+      "discount_cents": 0,
+      "tax_cents": 220000,
+      "rounding_cents": 0,
+      "total_cents": 4620000
+    }
+  },
+  {
+    "id": "GOLDEN-054",
+    "description": "Tax=IVA5 qty_milli=2000 price_cents=385000 disc=38500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-54",
+          "qty_milli": 2000,
+          "unit_price_cents": 385000,
+          "discount_cents": 38500,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 696667,
+      "discount_cents": 38500,
+      "tax_cents": 34833,
+      "rounding_cents": -1500,
+      "total_cents": 730000
+    }
+  },
+  {
+    "id": "GOLDEN-055",
+    "description": "Tax=IVA5 qty_milli=375 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-55",
+          "qty_milli": 375,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 137500,
+      "discount_cents": 0,
+      "tax_cents": 6875,
+      "rounding_cents": 0,
+      "total_cents": 144375
+    }
+  },
+  {
+    "id": "GOLDEN-056",
+    "description": "Tax=IVA5 qty_milli=1000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-56",
+          "qty_milli": 1000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 460190,
+      "discount_cents": 0,
+      "tax_cents": 23010,
+      "rounding_cents": -3200,
+      "total_cents": 480000
+    }
+  },
+  {
+    "id": "GOLDEN-057",
+    "description": "Tax=IVA5 qty_milli=3000 price_cents=483200 disc=72480 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-57",
+          "qty_milli": 3000,
+          "unit_price_cents": 483200,
+          "discount_cents": 72480,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1311543,
+      "discount_cents": 72480,
+      "tax_cents": 65577,
+      "rounding_cents": 0,
+      "total_cents": 1377120
+    }
+  },
+  {
+    "id": "GOLDEN-058",
+    "description": "Tax=IVA5 qty_milli=640 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-58",
+          "qty_milli": 640,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 294522,
+      "discount_cents": 0,
+      "tax_cents": 14726,
+      "rounding_cents": -4248,
+      "total_cents": 305000
+    }
+  },
+  {
+    "id": "GOLDEN-059",
+    "description": "Tax=IVA5 qty_milli=6000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-59",
+          "qty_milli": 6000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2761143,
+      "discount_cents": 0,
+      "tax_cents": 138057,
+      "rounding_cents": 0,
+      "total_cents": 2899200
+    }
+  },
+  {
+    "id": "GOLDEN-060",
+    "description": "Tax=IVA5 qty_milli=1000 price_cents=483200 disc=24160 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-60",
+          "qty_milli": 1000,
+          "unit_price_cents": 483200,
+          "discount_cents": 24160,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 437181,
+      "discount_cents": 24160,
+      "tax_cents": 21859,
+      "rounding_cents": -4040,
+      "total_cents": 455000
+    }
+  },
+  {
+    "id": "GOLDEN-061",
+    "description": "Tax=IVA5 qty_milli=1250 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-61",
+          "qty_milli": 1250,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1488095,
+      "discount_cents": 0,
+      "tax_cents": 74405,
+      "rounding_cents": 0,
+      "total_cents": 1562500
+    }
+  },
+  {
+    "id": "GOLDEN-062",
+    "description": "Tax=IVA5 qty_milli=12000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-62",
+          "qty_milli": 12000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 14285714,
+      "discount_cents": 0,
+      "tax_cents": 714286,
+      "rounding_cents": 0,
+      "total_cents": 15000000
+    }
+  },
+  {
+    "id": "GOLDEN-063",
+    "description": "Tax=IVA5 qty_milli=2000 price_cents=1250000 disc=125000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-63",
+          "qty_milli": 2000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 125000,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2261905,
+      "discount_cents": 125000,
+      "tax_cents": 113095,
+      "rounding_cents": 0,
+      "total_cents": 2375000
+    }
+  },
+  {
+    "id": "GOLDEN-064",
+    "description": "Tax=IVA5 qty_milli=375 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-64",
+          "qty_milli": 375,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 446429,
+      "discount_cents": 0,
+      "tax_cents": 22321,
+      "rounding_cents": -3750,
+      "total_cents": 465000
+    }
+  },
+  {
+    "id": "GOLDEN-065",
+    "description": "Tax=IVA5 qty_milli=1250 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-65",
+          "qty_milli": 1250,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1488095,
+      "discount_cents": 0,
+      "tax_cents": 74405,
+      "rounding_cents": 0,
+      "total_cents": 1562500
+    }
+  },
+  {
+    "id": "GOLDEN-066",
+    "description": "Tax=IVA5 qty_milli=3000 price_cents=2400000 disc=360000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-66",
+          "qty_milli": 3000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 360000,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 6514286,
+      "discount_cents": 360000,
+      "tax_cents": 325714,
+      "rounding_cents": 0,
+      "total_cents": 6840000
+    }
+  },
+  {
+    "id": "GOLDEN-067",
+    "description": "Tax=IVA5 qty_milli=640 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-67",
+          "qty_milli": 640,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1462857,
+      "discount_cents": 0,
+      "tax_cents": 73143,
+      "rounding_cents": 0,
+      "total_cents": 1536000
+    }
+  },
+  {
+    "id": "GOLDEN-068",
+    "description": "Tax=IVA5 qty_milli=6000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-68",
+          "qty_milli": 6000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 13714286,
+      "discount_cents": 0,
+      "tax_cents": 685714,
+      "rounding_cents": 0,
+      "total_cents": 14400000
+    }
+  },
+  {
+    "id": "GOLDEN-069",
+    "description": "Tax=IVA5 qty_milli=1000 price_cents=2400000 disc=120000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-69",
+          "qty_milli": 1000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 120000,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2171429,
+      "discount_cents": 120000,
+      "tax_cents": 108571,
+      "rounding_cents": 0,
+      "total_cents": 2280000
+    }
+  },
+  {
+    "id": "GOLDEN-070",
+    "description": "Tax=IVA5 qty_milli=3000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-70",
+          "qty_milli": 3000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA5",
+              "kind": "PERCENT",
+              "rate_bp": 500
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 6857143,
+      "discount_cents": 0,
+      "tax_cents": 342857,
+      "rounding_cents": 0,
+      "total_cents": 7200000
+    }
+  },
+  {
+    "id": "GOLDEN-071",
+    "description": "Tax=EXENTO qty_milli=12000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-71",
+          "qty_milli": 12000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 600000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 600000
+    }
+  },
+  {
+    "id": "GOLDEN-072",
+    "description": "Tax=EXENTO qty_milli=2000 price_cents=50000 disc=5000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-72",
+          "qty_milli": 2000,
+          "unit_price_cents": 50000,
+          "discount_cents": 5000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 95000,
+      "discount_cents": 5000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 95000
+    }
+  },
+  {
+    "id": "GOLDEN-073",
+    "description": "Tax=EXENTO qty_milli=375 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-73",
+          "qty_milli": 375,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 18750,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 18750
+    }
+  },
+  {
+    "id": "GOLDEN-074",
+    "description": "Tax=EXENTO qty_milli=1250 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-74",
+          "qty_milli": 1250,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 62500,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -2500,
+      "total_cents": 60000
+    }
+  },
+  {
+    "id": "GOLDEN-075",
+    "description": "Tax=EXENTO qty_milli=12000 price_cents=50000 disc=30000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-75",
+          "qty_milli": 12000,
+          "unit_price_cents": 50000,
+          "discount_cents": 30000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 570000,
+      "discount_cents": 30000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 570000
+    }
+  },
+  {
+    "id": "GOLDEN-076",
+    "description": "Tax=EXENTO qty_milli=640 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-76",
+          "qty_milli": 640,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 76800,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -1800,
+      "total_cents": 75000
+    }
+  },
+  {
+    "id": "GOLDEN-077",
+    "description": "Tax=EXENTO qty_milli=6000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-77",
+          "qty_milli": 6000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 720000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 720000
+    }
+  },
+  {
+    "id": "GOLDEN-078",
+    "description": "Tax=EXENTO qty_milli=1000 price_cents=120000 disc=6000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-78",
+          "qty_milli": 1000,
+          "unit_price_cents": 120000,
+          "discount_cents": 6000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 114000,
+      "discount_cents": 6000,
+      "tax_cents": 0,
+      "rounding_cents": -4000,
+      "total_cents": 110000
+    }
+  },
+  {
+    "id": "GOLDEN-079",
+    "description": "Tax=EXENTO qty_milli=3000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-79",
+          "qty_milli": 3000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 360000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 360000
+    }
+  },
+  {
+    "id": "GOLDEN-080",
+    "description": "Tax=EXENTO qty_milli=640 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-80",
+          "qty_milli": 640,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 76800,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -1800,
+      "total_cents": 75000
+    }
+  },
+  {
+    "id": "GOLDEN-081",
+    "description": "Tax=EXENTO qty_milli=2000 price_cents=250000 disc=25000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-81",
+          "qty_milli": 2000,
+          "unit_price_cents": 250000,
+          "discount_cents": 25000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 475000,
+      "discount_cents": 25000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 475000
+    }
+  },
+  {
+    "id": "GOLDEN-082",
+    "description": "Tax=EXENTO qty_milli=375 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-82",
+          "qty_milli": 375,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 93750,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -3750,
+      "total_cents": 90000
+    }
+  },
+  {
+    "id": "GOLDEN-083",
+    "description": "Tax=EXENTO qty_milli=1250 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-83",
+          "qty_milli": 1250,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 312500,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 312500
+    }
+  },
+  {
+    "id": "GOLDEN-084",
+    "description": "Tax=EXENTO qty_milli=12000 price_cents=250000 disc=150000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-84",
+          "qty_milli": 12000,
+          "unit_price_cents": 250000,
+          "discount_cents": 150000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2850000,
+      "discount_cents": 150000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2850000
+    }
+  },
+  {
+    "id": "GOLDEN-085",
+    "description": "Tax=EXENTO qty_milli=2000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-85",
+          "qty_milli": 2000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 500000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 500000
+    }
+  },
+  {
+    "id": "GOLDEN-086",
+    "description": "Tax=EXENTO qty_milli=6000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-86",
+          "qty_milli": 6000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2310000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2310000
+    }
+  },
+  {
+    "id": "GOLDEN-087",
+    "description": "Tax=EXENTO qty_milli=1000 price_cents=385000 disc=19250 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-87",
+          "qty_milli": 1000,
+          "unit_price_cents": 385000,
+          "discount_cents": 19250,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 365750,
+      "discount_cents": 19250,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 365750
+    }
+  },
+  {
+    "id": "GOLDEN-088",
+    "description": "Tax=EXENTO qty_milli=3000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-88",
+          "qty_milli": 3000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1155000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 1155000
+    }
+  },
+  {
+    "id": "GOLDEN-089",
+    "description": "Tax=EXENTO qty_milli=640 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-89",
+          "qty_milli": 640,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 246400,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 246400
+    }
+  },
+  {
+    "id": "GOLDEN-090",
+    "description": "Tax=EXENTO qty_milli=6000 price_cents=385000 disc=115500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-90",
+          "qty_milli": 6000,
+          "unit_price_cents": 385000,
+          "discount_cents": 115500,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2194500,
+      "discount_cents": 115500,
+      "tax_cents": 0,
+      "rounding_cents": -4500,
+      "total_cents": 2190000
+    }
+  },
+  {
+    "id": "GOLDEN-091",
+    "description": "Tax=EXENTO qty_milli=375 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-91",
+          "qty_milli": 375,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 181200,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 181200
+    }
+  },
+  {
+    "id": "GOLDEN-092",
+    "description": "Tax=EXENTO qty_milli=1250 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-92",
+          "qty_milli": 1250,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 604000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -4000,
+      "total_cents": 600000
+    }
+  },
+  {
+    "id": "GOLDEN-093",
+    "description": "Tax=EXENTO qty_milli=12000 price_cents=483200 disc=289920 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-93",
+          "qty_milli": 12000,
+          "unit_price_cents": 483200,
+          "discount_cents": 289920,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 5508480,
+      "discount_cents": 289920,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 5508480
+    }
+  },
+  {
+    "id": "GOLDEN-094",
+    "description": "Tax=EXENTO qty_milli=2000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-94",
+          "qty_milli": 2000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 966400,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -1400,
+      "total_cents": 965000
+    }
+  },
+  {
+    "id": "GOLDEN-095",
+    "description": "Tax=EXENTO qty_milli=375 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-95",
+          "qty_milli": 375,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 181200,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 181200
+    }
+  },
+  {
+    "id": "GOLDEN-096",
+    "description": "Tax=EXENTO qty_milli=1000 price_cents=1250000 disc=62500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-96",
+          "qty_milli": 1000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 62500,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1187500,
+      "discount_cents": 62500,
+      "tax_cents": 0,
+      "rounding_cents": -2500,
+      "total_cents": 1185000
+    }
+  },
+  {
+    "id": "GOLDEN-097",
+    "description": "Tax=EXENTO qty_milli=3000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-97",
+          "qty_milli": 3000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 3750000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 3750000
+    }
+  },
+  {
+    "id": "GOLDEN-098",
+    "description": "Tax=EXENTO qty_milli=640 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-98",
+          "qty_milli": 640,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 800000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 800000
+    }
+  },
+  {
+    "id": "GOLDEN-099",
+    "description": "Tax=EXENTO qty_milli=6000 price_cents=1250000 disc=375000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-99",
+          "qty_milli": 6000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 375000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 7125000,
+      "discount_cents": 375000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 7125000
+    }
+  },
+  {
+    "id": "GOLDEN-100",
+    "description": "Tax=EXENTO qty_milli=1000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-100",
+          "qty_milli": 1000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1250000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 1250000
+    }
+  },
+  {
+    "id": "GOLDEN-101",
+    "description": "Tax=EXENTO qty_milli=1250 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-101",
+          "qty_milli": 1250,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 3000000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-102",
+    "description": "Tax=EXENTO qty_milli=12000 price_cents=2400000 disc=1440000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-102",
+          "qty_milli": 12000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 1440000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 27360000,
+      "discount_cents": 1440000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 27360000
+    }
+  },
+  {
+    "id": "GOLDEN-103",
+    "description": "Tax=EXENTO qty_milli=2000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-103",
+          "qty_milli": 2000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4800000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 4800000
+    }
+  },
+  {
+    "id": "GOLDEN-104",
+    "description": "Tax=EXENTO qty_milli=375 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-104",
+          "qty_milli": 375,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 900000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 900000
+    }
+  },
+  {
+    "id": "GOLDEN-105",
+    "description": "Tax=EXENTO qty_milli=1250 price_cents=2400000 disc=150000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-105",
+          "qty_milli": 1250,
+          "unit_price_cents": 2400000,
+          "discount_cents": 150000,
+          "taxes": [
+            {
+              "code": "EXENTO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2850000,
+      "discount_cents": 150000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2850000
+    }
+  },
+  {
+    "id": "GOLDEN-106",
+    "description": "Tax=EXCLUIDO qty_milli=3000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-106",
+          "qty_milli": 3000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 150000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 150000
+    }
+  },
+  {
+    "id": "GOLDEN-107",
+    "description": "Tax=EXCLUIDO qty_milli=640 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-107",
+          "qty_milli": 640,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 32000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 32000
+    }
+  },
+  {
+    "id": "GOLDEN-108",
+    "description": "Tax=EXCLUIDO qty_milli=6000 price_cents=50000 disc=15000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-108",
+          "qty_milli": 6000,
+          "unit_price_cents": 50000,
+          "discount_cents": 15000,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 285000,
+      "discount_cents": 15000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 285000
+    }
+  },
+  {
+    "id": "GOLDEN-109",
+    "description": "Tax=EXCLUIDO qty_milli=1000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-109",
+          "qty_milli": 1000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 50000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 50000
+    }
+  },
+  {
+    "id": "GOLDEN-110",
+    "description": "Tax=EXCLUIDO qty_milli=3000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-110",
+          "qty_milli": 3000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 150000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 150000
+    }
+  },
+  {
+    "id": "GOLDEN-111",
+    "description": "Tax=EXCLUIDO qty_milli=12000 price_cents=120000 disc=72000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-111",
+          "qty_milli": 12000,
+          "unit_price_cents": 120000,
+          "discount_cents": 72000,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1368000,
+      "discount_cents": 72000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 1368000
+    }
+  },
+  {
+    "id": "GOLDEN-112",
+    "description": "Tax=EXCLUIDO qty_milli=2000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-112",
+          "qty_milli": 2000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 240000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 240000
+    }
+  },
+  {
+    "id": "GOLDEN-113",
+    "description": "Tax=EXCLUIDO qty_milli=375 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-113",
+          "qty_milli": 375,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 45000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 45000
+    }
+  },
+  {
+    "id": "GOLDEN-114",
+    "description": "Tax=EXCLUIDO qty_milli=1250 price_cents=120000 disc=7500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-114",
+          "qty_milli": 1250,
+          "unit_price_cents": 120000,
+          "discount_cents": 7500,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 142500,
+      "discount_cents": 7500,
+      "tax_cents": 0,
+      "rounding_cents": -2500,
+      "total_cents": 140000
+    }
+  },
+  {
+    "id": "GOLDEN-115",
+    "description": "Tax=EXCLUIDO qty_milli=12000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-115",
+          "qty_milli": 12000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1440000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 1440000
+    }
+  },
+  {
+    "id": "GOLDEN-116",
+    "description": "Tax=EXCLUIDO qty_milli=640 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-116",
+          "qty_milli": 640,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 160000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 160000
+    }
+  },
+  {
+    "id": "GOLDEN-117",
+    "description": "Tax=EXCLUIDO qty_milli=6000 price_cents=250000 disc=75000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-117",
+          "qty_milli": 6000,
+          "unit_price_cents": 250000,
+          "discount_cents": 75000,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1425000,
+      "discount_cents": 75000,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 1425000
+    }
+  },
+  {
+    "id": "GOLDEN-118",
+    "description": "Tax=EXCLUIDO qty_milli=1000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-118",
+          "qty_milli": 1000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 250000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 250000
+    }
+  },
+  {
+    "id": "GOLDEN-119",
+    "description": "Tax=EXCLUIDO qty_milli=3000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-119",
+          "qty_milli": 3000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 750000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 750000
+    }
+  },
+  {
+    "id": "GOLDEN-120",
+    "description": "Tax=EXCLUIDO qty_milli=640 price_cents=250000 disc=8000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-120",
+          "qty_milli": 640,
+          "unit_price_cents": 250000,
+          "discount_cents": 8000,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 152000,
+      "discount_cents": 8000,
+      "tax_cents": 0,
+      "rounding_cents": -2000,
+      "total_cents": 150000
+    }
+  },
+  {
+    "id": "GOLDEN-121",
+    "description": "Tax=EXCLUIDO qty_milli=2000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-121",
+          "qty_milli": 2000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 770000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 770000
+    }
+  },
+  {
+    "id": "GOLDEN-122",
+    "description": "Tax=EXCLUIDO qty_milli=375 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-122",
+          "qty_milli": 375,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 144375,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -4375,
+      "total_cents": 140000
+    }
+  },
+  {
+    "id": "GOLDEN-123",
+    "description": "Tax=EXCLUIDO qty_milli=1250 price_cents=385000 disc=24062 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-123",
+          "qty_milli": 1250,
+          "unit_price_cents": 385000,
+          "discount_cents": 24062,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 457188,
+      "discount_cents": 24062,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 457188
+    }
+  },
+  {
+    "id": "GOLDEN-124",
+    "description": "Tax=EXCLUIDO qty_milli=12000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-124",
+          "qty_milli": 12000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4620000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 4620000
+    }
+  },
+  {
+    "id": "GOLDEN-125",
+    "description": "Tax=EXCLUIDO qty_milli=2000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-125",
+          "qty_milli": 2000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 770000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 770000
+    }
+  },
+  {
+    "id": "GOLDEN-126",
+    "description": "Tax=EXCLUIDO qty_milli=6000 price_cents=483200 disc=144960 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-126",
+          "qty_milli": 6000,
+          "unit_price_cents": 483200,
+          "discount_cents": 144960,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2754240,
+      "discount_cents": 144960,
+      "tax_cents": 0,
+      "rounding_cents": -4240,
+      "total_cents": 2750000
+    }
+  },
+  {
+    "id": "GOLDEN-127",
+    "description": "Tax=EXCLUIDO qty_milli=1000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-127",
+          "qty_milli": 1000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 483200,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 483200
+    }
+  },
+  {
+    "id": "GOLDEN-128",
+    "description": "Tax=EXCLUIDO qty_milli=3000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-128",
+          "qty_milli": 3000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1449600,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -4600,
+      "total_cents": 1445000
+    }
+  },
+  {
+    "id": "GOLDEN-129",
+    "description": "Tax=EXCLUIDO qty_milli=640 price_cents=483200 disc=15462 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-129",
+          "qty_milli": 640,
+          "unit_price_cents": 483200,
+          "discount_cents": 15462,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 293786,
+      "discount_cents": 15462,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 293786
+    }
+  },
+  {
+    "id": "GOLDEN-130",
+    "description": "Tax=EXCLUIDO qty_milli=6000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-130",
+          "qty_milli": 6000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2899200,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": -4200,
+      "total_cents": 2895000
+    }
+  },
+  {
+    "id": "GOLDEN-131",
+    "description": "Tax=EXCLUIDO qty_milli=375 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-131",
+          "qty_milli": 375,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 468750,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 468750
+    }
+  },
+  {
+    "id": "GOLDEN-132",
+    "description": "Tax=EXCLUIDO qty_milli=1250 price_cents=1250000 disc=78125 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-132",
+          "qty_milli": 1250,
+          "unit_price_cents": 1250000,
+          "discount_cents": 78125,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1484375,
+      "discount_cents": 78125,
+      "tax_cents": 0,
+      "rounding_cents": -4375,
+      "total_cents": 1480000
+    }
+  },
+  {
+    "id": "GOLDEN-133",
+    "description": "Tax=EXCLUIDO qty_milli=12000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-133",
+          "qty_milli": 12000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 15000000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 15000000
+    }
+  },
+  {
+    "id": "GOLDEN-134",
+    "description": "Tax=EXCLUIDO qty_milli=2000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-134",
+          "qty_milli": 2000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2500000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2500000
+    }
+  },
+  {
+    "id": "GOLDEN-135",
+    "description": "Tax=EXCLUIDO qty_milli=375 price_cents=1250000 disc=23437 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-135",
+          "qty_milli": 375,
+          "unit_price_cents": 1250000,
+          "discount_cents": 23437,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 445313,
+      "discount_cents": 23437,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 445313
+    }
+  },
+  {
+    "id": "GOLDEN-136",
+    "description": "Tax=EXCLUIDO qty_milli=1000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-136",
+          "qty_milli": 1000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2400000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2400000
+    }
+  },
+  {
+    "id": "GOLDEN-137",
+    "description": "Tax=EXCLUIDO qty_milli=3000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-137",
+          "qty_milli": 3000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 7200000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 7200000
+    }
+  },
+  {
+    "id": "GOLDEN-138",
+    "description": "Tax=EXCLUIDO qty_milli=640 price_cents=2400000 disc=76800 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-138",
+          "qty_milli": 640,
+          "unit_price_cents": 2400000,
+          "discount_cents": 76800,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1459200,
+      "discount_cents": 76800,
+      "tax_cents": 0,
+      "rounding_cents": -4200,
+      "total_cents": 1455000
+    }
+  },
+  {
+    "id": "GOLDEN-139",
+    "description": "Tax=EXCLUIDO qty_milli=6000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-139",
+          "qty_milli": 6000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 14400000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 14400000
+    }
+  },
+  {
+    "id": "GOLDEN-140",
+    "description": "Tax=EXCLUIDO qty_milli=1000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-140",
+          "qty_milli": 1000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "EXCLUIDO",
+              "kind": "PERCENT",
+              "rate_bp": 0
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2400000,
+      "discount_cents": 0,
+      "tax_cents": 0,
+      "rounding_cents": 0,
+      "total_cents": 2400000
+    }
+  },
+  {
+    "id": "GOLDEN-141",
+    "description": "Tax=INC8 qty_milli=1250 price_cents=50000 disc=3125 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-141",
+          "qty_milli": 1250,
+          "unit_price_cents": 50000,
+          "discount_cents": 3125,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 54977,
+      "discount_cents": 3125,
+      "tax_cents": 4398,
+      "rounding_cents": 0,
+      "total_cents": 59375
+    }
+  },
+  {
+    "id": "GOLDEN-142",
+    "description": "Tax=INC8 qty_milli=12000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-142",
+          "qty_milli": 12000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 555556,
+      "discount_cents": 0,
+      "tax_cents": 44444,
+      "rounding_cents": 0,
+      "total_cents": 600000
+    }
+  },
+  {
+    "id": "GOLDEN-143",
+    "description": "Tax=INC8 qty_milli=2000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-143",
+          "qty_milli": 2000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 92593,
+      "discount_cents": 0,
+      "tax_cents": 7407,
+      "rounding_cents": 0,
+      "total_cents": 100000
+    }
+  },
+  {
+    "id": "GOLDEN-144",
+    "description": "Tax=INC8 qty_milli=375 price_cents=50000 disc=937 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-144",
+          "qty_milli": 375,
+          "unit_price_cents": 50000,
+          "discount_cents": 937,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 16494,
+      "discount_cents": 937,
+      "tax_cents": 1319,
+      "rounding_cents": -2813,
+      "total_cents": 15000
+    }
+  },
+  {
+    "id": "GOLDEN-145",
+    "description": "Tax=INC8 qty_milli=1250 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-145",
+          "qty_milli": 1250,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 57870,
+      "discount_cents": 0,
+      "tax_cents": 4630,
+      "rounding_cents": 0,
+      "total_cents": 62500
+    }
+  },
+  {
+    "id": "GOLDEN-146",
+    "description": "Tax=INC8 qty_milli=3000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-146",
+          "qty_milli": 3000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 333333,
+      "discount_cents": 0,
+      "tax_cents": 26667,
+      "rounding_cents": 0,
+      "total_cents": 360000
+    }
+  },
+  {
+    "id": "GOLDEN-147",
+    "description": "Tax=INC8 qty_milli=640 price_cents=120000 disc=3840 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-147",
+          "qty_milli": 640,
+          "unit_price_cents": 120000,
+          "discount_cents": 3840,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 67556,
+      "discount_cents": 3840,
+      "tax_cents": 5404,
+      "rounding_cents": 0,
+      "total_cents": 72960
+    }
+  },
+  {
+    "id": "GOLDEN-148",
+    "description": "Tax=INC8 qty_milli=6000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-148",
+          "qty_milli": 6000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 666667,
+      "discount_cents": 0,
+      "tax_cents": 53333,
+      "rounding_cents": 0,
+      "total_cents": 720000
+    }
+  },
+  {
+    "id": "GOLDEN-149",
+    "description": "Tax=INC8 qty_milli=1000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-149",
+          "qty_milli": 1000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 111111,
+      "discount_cents": 0,
+      "tax_cents": 8889,
+      "rounding_cents": 0,
+      "total_cents": 120000
+    }
+  },
+  {
+    "id": "GOLDEN-150",
+    "description": "Tax=INC8 qty_milli=3000 price_cents=120000 disc=18000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-150",
+          "qty_milli": 3000,
+          "unit_price_cents": 120000,
+          "discount_cents": 18000,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 316667,
+      "discount_cents": 18000,
+      "tax_cents": 25333,
+      "rounding_cents": -2000,
+      "total_cents": 340000
+    }
+  },
+  {
+    "id": "GOLDEN-151",
+    "description": "Tax=INC8 qty_milli=12000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-151",
+          "qty_milli": 12000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2777778,
+      "discount_cents": 0,
+      "tax_cents": 222222,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-152",
+    "description": "Tax=INC8 qty_milli=2000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-152",
+          "qty_milli": 2000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 462963,
+      "discount_cents": 0,
+      "tax_cents": 37037,
+      "rounding_cents": 0,
+      "total_cents": 500000
+    }
+  },
+  {
+    "id": "GOLDEN-153",
+    "description": "Tax=INC8 qty_milli=375 price_cents=250000 disc=4687 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-153",
+          "qty_milli": 375,
+          "unit_price_cents": 250000,
+          "discount_cents": 4687,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 82466,
+      "discount_cents": 4687,
+      "tax_cents": 6597,
+      "rounding_cents": 0,
+      "total_cents": 89063
+    }
+  },
+  {
+    "id": "GOLDEN-154",
+    "description": "Tax=INC8 qty_milli=1250 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-154",
+          "qty_milli": 1250,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 289352,
+      "discount_cents": 0,
+      "tax_cents": 23148,
+      "rounding_cents": -2500,
+      "total_cents": 310000
+    }
+  },
+  {
+    "id": "GOLDEN-155",
+    "description": "Tax=INC8 qty_milli=12000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-155",
+          "qty_milli": 12000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2777778,
+      "discount_cents": 0,
+      "tax_cents": 222222,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-156",
+    "description": "Tax=INC8 qty_milli=640 price_cents=385000 disc=12320 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-156",
+          "qty_milli": 640,
+          "unit_price_cents": 385000,
+          "discount_cents": 12320,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 216741,
+      "discount_cents": 12320,
+      "tax_cents": 17339,
+      "rounding_cents": -4080,
+      "total_cents": 230000
+    }
+  },
+  {
+    "id": "GOLDEN-157",
+    "description": "Tax=INC8 qty_milli=6000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-157",
+          "qty_milli": 6000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2138889,
+      "discount_cents": 0,
+      "tax_cents": 171111,
+      "rounding_cents": 0,
+      "total_cents": 2310000
+    }
+  },
+  {
+    "id": "GOLDEN-158",
+    "description": "Tax=INC8 qty_milli=1000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-158",
+          "qty_milli": 1000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 356481,
+      "discount_cents": 0,
+      "tax_cents": 28519,
+      "rounding_cents": 0,
+      "total_cents": 385000
+    }
+  },
+  {
+    "id": "GOLDEN-159",
+    "description": "Tax=INC8 qty_milli=3000 price_cents=385000 disc=57750 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-159",
+          "qty_milli": 3000,
+          "unit_price_cents": 385000,
+          "discount_cents": 57750,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1015972,
+      "discount_cents": 57750,
+      "tax_cents": 81278,
+      "rounding_cents": 0,
+      "total_cents": 1097250
+    }
+  },
+  {
+    "id": "GOLDEN-160",
+    "description": "Tax=INC8 qty_milli=640 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-160",
+          "qty_milli": 640,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 228148,
+      "discount_cents": 0,
+      "tax_cents": 18252,
+      "rounding_cents": -1400,
+      "total_cents": 245000
+    }
+  },
+  {
+    "id": "GOLDEN-161",
+    "description": "Tax=INC8 qty_milli=2000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-161",
+          "qty_milli": 2000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 894815,
+      "discount_cents": 0,
+      "tax_cents": 71585,
+      "rounding_cents": 0,
+      "total_cents": 966400
+    }
+  },
+  {
+    "id": "GOLDEN-162",
+    "description": "Tax=INC8 qty_milli=375 price_cents=483200 disc=9060 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-162",
+          "qty_milli": 375,
+          "unit_price_cents": 483200,
+          "discount_cents": 9060,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 159389,
+      "discount_cents": 9060,
+      "tax_cents": 12751,
+      "rounding_cents": -2140,
+      "total_cents": 170000
+    }
+  },
+  {
+    "id": "GOLDEN-163",
+    "description": "Tax=INC8 qty_milli=1250 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-163",
+          "qty_milli": 1250,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 559259,
+      "discount_cents": 0,
+      "tax_cents": 44741,
+      "rounding_cents": 0,
+      "total_cents": 604000
+    }
+  },
+  {
+    "id": "GOLDEN-164",
+    "description": "Tax=INC8 qty_milli=12000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-164",
+          "qty_milli": 12000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 5368889,
+      "discount_cents": 0,
+      "tax_cents": 429511,
+      "rounding_cents": -3400,
+      "total_cents": 5795000
+    }
+  },
+  {
+    "id": "GOLDEN-165",
+    "description": "Tax=INC8 qty_milli=2000 price_cents=483200 disc=48320 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-165",
+          "qty_milli": 2000,
+          "unit_price_cents": 483200,
+          "discount_cents": 48320,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 850074,
+      "discount_cents": 48320,
+      "tax_cents": 68006,
+      "rounding_cents": 0,
+      "total_cents": 918080
+    }
+  },
+  {
+    "id": "GOLDEN-166",
+    "description": "Tax=INC8 qty_milli=6000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-166",
+          "qty_milli": 6000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 6944444,
+      "discount_cents": 0,
+      "tax_cents": 555556,
+      "rounding_cents": 0,
+      "total_cents": 7500000
+    }
+  },
+  {
+    "id": "GOLDEN-167",
+    "description": "Tax=INC8 qty_milli=1000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-167",
+          "qty_milli": 1000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1157407,
+      "discount_cents": 0,
+      "tax_cents": 92593,
+      "rounding_cents": 0,
+      "total_cents": 1250000
+    }
+  },
+  {
+    "id": "GOLDEN-168",
+    "description": "Tax=INC8 qty_milli=3000 price_cents=1250000 disc=187500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-168",
+          "qty_milli": 3000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 187500,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 3298611,
+      "discount_cents": 187500,
+      "tax_cents": 263889,
+      "rounding_cents": -2500,
+      "total_cents": 3560000
+    }
+  },
+  {
+    "id": "GOLDEN-169",
+    "description": "Tax=INC8 qty_milli=640 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-169",
+          "qty_milli": 640,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 740741,
+      "discount_cents": 0,
+      "tax_cents": 59259,
+      "rounding_cents": 0,
+      "total_cents": 800000
+    }
+  },
+  {
+    "id": "GOLDEN-170",
+    "description": "Tax=INC8 qty_milli=6000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-170",
+          "qty_milli": 6000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 6944444,
+      "discount_cents": 0,
+      "tax_cents": 555556,
+      "rounding_cents": 0,
+      "total_cents": 7500000
+    }
+  },
+  {
+    "id": "GOLDEN-171",
+    "description": "Tax=INC8 qty_milli=375 price_cents=2400000 disc=45000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-171",
+          "qty_milli": 375,
+          "unit_price_cents": 2400000,
+          "discount_cents": 45000,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 791667,
+      "discount_cents": 45000,
+      "tax_cents": 63333,
+      "rounding_cents": 0,
+      "total_cents": 855000
+    }
+  },
+  {
+    "id": "GOLDEN-172",
+    "description": "Tax=INC8 qty_milli=1250 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-172",
+          "qty_milli": 1250,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2777778,
+      "discount_cents": 0,
+      "tax_cents": 222222,
+      "rounding_cents": 0,
+      "total_cents": 3000000
+    }
+  },
+  {
+    "id": "GOLDEN-173",
+    "description": "Tax=INC8 qty_milli=12000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-173",
+          "qty_milli": 12000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 26666667,
+      "discount_cents": 0,
+      "tax_cents": 2133333,
+      "rounding_cents": 0,
+      "total_cents": 28800000
+    }
+  },
+  {
+    "id": "GOLDEN-174",
+    "description": "Tax=INC8 qty_milli=2000 price_cents=2400000 disc=240000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-174",
+          "qty_milli": 2000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 240000,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4222222,
+      "discount_cents": 240000,
+      "tax_cents": 337778,
+      "rounding_cents": 0,
+      "total_cents": 4560000
+    }
+  },
+  {
+    "id": "GOLDEN-175",
+    "description": "Tax=INC8 qty_milli=375 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-175",
+          "qty_milli": 375,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "INC8",
+              "kind": "PERCENT",
+              "rate_bp": 800
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 833333,
+      "discount_cents": 0,
+      "tax_cents": 66667,
+      "rounding_cents": 0,
+      "total_cents": 900000
+    }
+  },
+  {
+    "id": "GOLDEN-176",
+    "description": "Tax=BOLSA qty_milli=1000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-176",
+          "qty_milli": 1000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 50000,
+      "discount_cents": 0,
+      "tax_cents": 6600,
+      "rounding_cents": -1600,
+      "total_cents": 55000
+    }
+  },
+  {
+    "id": "GOLDEN-177",
+    "description": "Tax=BOLSA qty_milli=3000 price_cents=50000 disc=7500 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-177",
+          "qty_milli": 3000,
+          "unit_price_cents": 50000,
+          "discount_cents": 7500,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 142500,
+      "discount_cents": 7500,
+      "tax_cents": 19800,
+      "rounding_cents": 0,
+      "total_cents": 162300
+    }
+  },
+  {
+    "id": "GOLDEN-178",
+    "description": "Tax=BOLSA qty_milli=640 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-178",
+          "qty_milli": 640,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 32000,
+      "discount_cents": 0,
+      "tax_cents": 4224,
+      "rounding_cents": -1224,
+      "total_cents": 35000
+    }
+  },
+  {
+    "id": "GOLDEN-179",
+    "description": "Tax=BOLSA qty_milli=6000 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-179",
+          "qty_milli": 6000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 300000,
+      "discount_cents": 0,
+      "tax_cents": 39600,
+      "rounding_cents": 0,
+      "total_cents": 339600
+    }
+  },
+  {
+    "id": "GOLDEN-180",
+    "description": "Tax=BOLSA qty_milli=1000 price_cents=50000 disc=2500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-180",
+          "qty_milli": 1000,
+          "unit_price_cents": 50000,
+          "discount_cents": 2500,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 47500,
+      "discount_cents": 2500,
+      "tax_cents": 6600,
+      "rounding_cents": -4100,
+      "total_cents": 50000
+    }
+  },
+  {
+    "id": "GOLDEN-181",
+    "description": "Tax=BOLSA qty_milli=1250 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-181",
+          "qty_milli": 1250,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 150000,
+      "discount_cents": 0,
+      "tax_cents": 8250,
+      "rounding_cents": 0,
+      "total_cents": 158250
+    }
+  },
+  {
+    "id": "GOLDEN-182",
+    "description": "Tax=BOLSA qty_milli=12000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-182",
+          "qty_milli": 12000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1440000,
+      "discount_cents": 0,
+      "tax_cents": 79200,
+      "rounding_cents": -4200,
+      "total_cents": 1515000
+    }
+  },
+  {
+    "id": "GOLDEN-183",
+    "description": "Tax=BOLSA qty_milli=2000 price_cents=120000 disc=12000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-183",
+          "qty_milli": 2000,
+          "unit_price_cents": 120000,
+          "discount_cents": 12000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 228000,
+      "discount_cents": 12000,
+      "tax_cents": 13200,
+      "rounding_cents": 0,
+      "total_cents": 241200
+    }
+  },
+  {
+    "id": "GOLDEN-184",
+    "description": "Tax=BOLSA qty_milli=375 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-184",
+          "qty_milli": 375,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 45000,
+      "discount_cents": 0,
+      "tax_cents": 2475,
+      "rounding_cents": -2475,
+      "total_cents": 45000
+    }
+  },
+  {
+    "id": "GOLDEN-185",
+    "description": "Tax=BOLSA qty_milli=1250 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-185",
+          "qty_milli": 1250,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 150000,
+      "discount_cents": 0,
+      "tax_cents": 8250,
+      "rounding_cents": 0,
+      "total_cents": 158250
+    }
+  },
+  {
+    "id": "GOLDEN-186",
+    "description": "Tax=BOLSA qty_milli=3000 price_cents=250000 disc=37500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-186",
+          "qty_milli": 3000,
+          "unit_price_cents": 250000,
+          "discount_cents": 37500,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 712500,
+      "discount_cents": 37500,
+      "tax_cents": 19800,
+      "rounding_cents": -2300,
+      "total_cents": 730000
+    }
+  },
+  {
+    "id": "GOLDEN-187",
+    "description": "Tax=BOLSA qty_milli=640 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-187",
+          "qty_milli": 640,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 160000,
+      "discount_cents": 0,
+      "tax_cents": 4224,
+      "rounding_cents": 0,
+      "total_cents": 164224
+    }
+  },
+  {
+    "id": "GOLDEN-188",
+    "description": "Tax=BOLSA qty_milli=6000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-188",
+          "qty_milli": 6000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1500000,
+      "discount_cents": 0,
+      "tax_cents": 39600,
+      "rounding_cents": -4600,
+      "total_cents": 1535000
+    }
+  },
+  {
+    "id": "GOLDEN-189",
+    "description": "Tax=BOLSA qty_milli=1000 price_cents=250000 disc=12500 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-189",
+          "qty_milli": 1000,
+          "unit_price_cents": 250000,
+          "discount_cents": 12500,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 237500,
+      "discount_cents": 12500,
+      "tax_cents": 6600,
+      "rounding_cents": 0,
+      "total_cents": 244100
+    }
+  },
+  {
+    "id": "GOLDEN-190",
+    "description": "Tax=BOLSA qty_milli=3000 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-190",
+          "qty_milli": 3000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 750000,
+      "discount_cents": 0,
+      "tax_cents": 19800,
+      "rounding_cents": -4800,
+      "total_cents": 765000
+    }
+  },
+  {
+    "id": "GOLDEN-191",
+    "description": "Tax=BOLSA qty_milli=12000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-191",
+          "qty_milli": 12000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4620000,
+      "discount_cents": 0,
+      "tax_cents": 79200,
+      "rounding_cents": 0,
+      "total_cents": 4699200
+    }
+  },
+  {
+    "id": "GOLDEN-192",
+    "description": "Tax=BOLSA qty_milli=2000 price_cents=385000 disc=38500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-192",
+          "qty_milli": 2000,
+          "unit_price_cents": 385000,
+          "discount_cents": 38500,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 731500,
+      "discount_cents": 38500,
+      "tax_cents": 13200,
+      "rounding_cents": -4700,
+      "total_cents": 740000
+    }
+  },
+  {
+    "id": "GOLDEN-193",
+    "description": "Tax=BOLSA qty_milli=375 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-193",
+          "qty_milli": 375,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 144375,
+      "discount_cents": 0,
+      "tax_cents": 2475,
+      "rounding_cents": 0,
+      "total_cents": 146850
+    }
+  },
+  {
+    "id": "GOLDEN-194",
+    "description": "Tax=BOLSA qty_milli=1250 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-194",
+          "qty_milli": 1250,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 481250,
+      "discount_cents": 0,
+      "tax_cents": 8250,
+      "rounding_cents": -4500,
+      "total_cents": 485000
+    }
+  },
+  {
+    "id": "GOLDEN-195",
+    "description": "Tax=BOLSA qty_milli=12000 price_cents=385000 disc=231000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-195",
+          "qty_milli": 12000,
+          "unit_price_cents": 385000,
+          "discount_cents": 231000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4389000,
+      "discount_cents": 231000,
+      "tax_cents": 79200,
+      "rounding_cents": 0,
+      "total_cents": 4468200
+    }
+  },
+  {
+    "id": "GOLDEN-196",
+    "description": "Tax=BOLSA qty_milli=640 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-196",
+          "qty_milli": 640,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 309248,
+      "discount_cents": 0,
+      "tax_cents": 4224,
+      "rounding_cents": -3472,
+      "total_cents": 310000
+    }
+  },
+  {
+    "id": "GOLDEN-197",
+    "description": "Tax=BOLSA qty_milli=6000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-197",
+          "qty_milli": 6000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2899200,
+      "discount_cents": 0,
+      "tax_cents": 39600,
+      "rounding_cents": 0,
+      "total_cents": 2938800
+    }
+  },
+  {
+    "id": "GOLDEN-198",
+    "description": "Tax=BOLSA qty_milli=1000 price_cents=483200 disc=24160 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-198",
+          "qty_milli": 1000,
+          "unit_price_cents": 483200,
+          "discount_cents": 24160,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 459040,
+      "discount_cents": 24160,
+      "tax_cents": 6600,
+      "rounding_cents": -640,
+      "total_cents": 465000
+    }
+  },
+  {
+    "id": "GOLDEN-199",
+    "description": "Tax=BOLSA qty_milli=3000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-199",
+          "qty_milli": 3000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1449600,
+      "discount_cents": 0,
+      "tax_cents": 19800,
+      "rounding_cents": 0,
+      "total_cents": 1469400
+    }
+  },
+  {
+    "id": "GOLDEN-200",
+    "description": "Tax=BOLSA qty_milli=640 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-200",
+          "qty_milli": 640,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 309248,
+      "discount_cents": 0,
+      "tax_cents": 4224,
+      "rounding_cents": -3472,
+      "total_cents": 310000
+    }
+  },
+  {
+    "id": "GOLDEN-201",
+    "description": "Tax=BOLSA qty_milli=2000 price_cents=1250000 disc=125000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-201",
+          "qty_milli": 2000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 125000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2375000,
+      "discount_cents": 125000,
+      "tax_cents": 13200,
+      "rounding_cents": 0,
+      "total_cents": 2388200
+    }
+  },
+  {
+    "id": "GOLDEN-202",
+    "description": "Tax=BOLSA qty_milli=375 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-202",
+          "qty_milli": 375,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 468750,
+      "discount_cents": 0,
+      "tax_cents": 2475,
+      "rounding_cents": -1225,
+      "total_cents": 470000
+    }
+  },
+  {
+    "id": "GOLDEN-203",
+    "description": "Tax=BOLSA qty_milli=1250 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-203",
+          "qty_milli": 1250,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1562500,
+      "discount_cents": 0,
+      "tax_cents": 8250,
+      "rounding_cents": 0,
+      "total_cents": 1570750
+    }
+  },
+  {
+    "id": "GOLDEN-204",
+    "description": "Tax=BOLSA qty_milli=12000 price_cents=1250000 disc=750000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-204",
+          "qty_milli": 12000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 750000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 14250000,
+      "discount_cents": 750000,
+      "tax_cents": 79200,
+      "rounding_cents": -4200,
+      "total_cents": 14325000
+    }
+  },
+  {
+    "id": "GOLDEN-205",
+    "description": "Tax=BOLSA qty_milli=2000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-205",
+          "qty_milli": 2000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2500000,
+      "discount_cents": 0,
+      "tax_cents": 13200,
+      "rounding_cents": 0,
+      "total_cents": 2513200
+    }
+  },
+  {
+    "id": "GOLDEN-206",
+    "description": "Tax=BOLSA qty_milli=6000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-206",
+          "qty_milli": 6000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 14400000,
+      "discount_cents": 0,
+      "tax_cents": 39600,
+      "rounding_cents": -4600,
+      "total_cents": 14435000
+    }
+  },
+  {
+    "id": "GOLDEN-207",
+    "description": "Tax=BOLSA qty_milli=1000 price_cents=2400000 disc=120000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-207",
+          "qty_milli": 1000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 120000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2280000,
+      "discount_cents": 120000,
+      "tax_cents": 6600,
+      "rounding_cents": 0,
+      "total_cents": 2286600
+    }
+  },
+  {
+    "id": "GOLDEN-208",
+    "description": "Tax=BOLSA qty_milli=3000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-208",
+          "qty_milli": 3000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 7200000,
+      "discount_cents": 0,
+      "tax_cents": 19800,
+      "rounding_cents": -4800,
+      "total_cents": 7215000
+    }
+  },
+  {
+    "id": "GOLDEN-209",
+    "description": "Tax=BOLSA qty_milli=640 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-209",
+          "qty_milli": 640,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1536000,
+      "discount_cents": 0,
+      "tax_cents": 4224,
+      "rounding_cents": 0,
+      "total_cents": 1540224
+    }
+  },
+  {
+    "id": "GOLDEN-210",
+    "description": "Tax=BOLSA qty_milli=6000 price_cents=2400000 disc=720000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-210",
+          "qty_milli": 6000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 720000,
+          "taxes": [
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 13680000,
+      "discount_cents": 720000,
+      "tax_cents": 39600,
+      "rounding_cents": -4600,
+      "total_cents": 13715000
+    }
+  },
+  {
+    "id": "GOLDEN-211",
+    "description": "Tax=IVA19+BOLSA qty_milli=375 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-211",
+          "qty_milli": 375,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 15756,
+      "discount_cents": 0,
+      "tax_cents": 5469,
+      "rounding_cents": 0,
+      "total_cents": 21225
+    }
+  },
+  {
+    "id": "GOLDEN-212",
+    "description": "Tax=IVA19+BOLSA qty_milli=1250 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-212",
+          "qty_milli": 1250,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 52521,
+      "discount_cents": 0,
+      "tax_cents": 18229,
+      "rounding_cents": -750,
+      "total_cents": 70000
+    }
+  },
+  {
+    "id": "GOLDEN-213",
+    "description": "Tax=IVA19+BOLSA qty_milli=12000 price_cents=50000 disc=30000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-213",
+          "qty_milli": 12000,
+          "unit_price_cents": 50000,
+          "discount_cents": 30000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 478992,
+      "discount_cents": 30000,
+      "tax_cents": 170208,
+      "rounding_cents": 0,
+      "total_cents": 649200
+    }
+  },
+  {
+    "id": "GOLDEN-214",
+    "description": "Tax=IVA19+BOLSA qty_milli=2000 price_cents=50000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-214",
+          "qty_milli": 2000,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 84034,
+      "discount_cents": 0,
+      "tax_cents": 29166,
+      "rounding_cents": -3200,
+      "total_cents": 110000
+    }
+  },
+  {
+    "id": "GOLDEN-215",
+    "description": "Tax=IVA19+BOLSA qty_milli=375 price_cents=50000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-215",
+          "qty_milli": 375,
+          "unit_price_cents": 50000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 15756,
+      "discount_cents": 0,
+      "tax_cents": 5469,
+      "rounding_cents": 0,
+      "total_cents": 21225
+    }
+  },
+  {
+    "id": "GOLDEN-216",
+    "description": "Tax=IVA19+BOLSA qty_milli=1000 price_cents=120000 disc=6000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-216",
+          "qty_milli": 1000,
+          "unit_price_cents": 120000,
+          "discount_cents": 6000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 95798,
+      "discount_cents": 6000,
+      "tax_cents": 24802,
+      "rounding_cents": -600,
+      "total_cents": 120000
+    }
+  },
+  {
+    "id": "GOLDEN-217",
+    "description": "Tax=IVA19+BOLSA qty_milli=3000 price_cents=120000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-217",
+          "qty_milli": 3000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 302521,
+      "discount_cents": 0,
+      "tax_cents": 77279,
+      "rounding_cents": 0,
+      "total_cents": 379800
+    }
+  },
+  {
+    "id": "GOLDEN-218",
+    "description": "Tax=IVA19+BOLSA qty_milli=640 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-218",
+          "qty_milli": 640,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 64538,
+      "discount_cents": 0,
+      "tax_cents": 16486,
+      "rounding_cents": -1024,
+      "total_cents": 80000
+    }
+  },
+  {
+    "id": "GOLDEN-219",
+    "description": "Tax=IVA19+BOLSA qty_milli=6000 price_cents=120000 disc=36000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-219",
+          "qty_milli": 6000,
+          "unit_price_cents": 120000,
+          "discount_cents": 36000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 574790,
+      "discount_cents": 36000,
+      "tax_cents": 148810,
+      "rounding_cents": 0,
+      "total_cents": 723600
+    }
+  },
+  {
+    "id": "GOLDEN-220",
+    "description": "Tax=IVA19+BOLSA qty_milli=1000 price_cents=120000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-220",
+          "qty_milli": 1000,
+          "unit_price_cents": 120000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 100840,
+      "discount_cents": 0,
+      "tax_cents": 25760,
+      "rounding_cents": -1600,
+      "total_cents": 125000
+    }
+  },
+  {
+    "id": "GOLDEN-221",
+    "description": "Tax=IVA19+BOLSA qty_milli=1250 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-221",
+          "qty_milli": 1250,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 262605,
+      "discount_cents": 0,
+      "tax_cents": 58145,
+      "rounding_cents": 0,
+      "total_cents": 320750
+    }
+  },
+  {
+    "id": "GOLDEN-222",
+    "description": "Tax=IVA19+BOLSA qty_milli=12000 price_cents=250000 disc=150000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-222",
+          "qty_milli": 12000,
+          "unit_price_cents": 250000,
+          "discount_cents": 150000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2394958,
+      "discount_cents": 150000,
+      "tax_cents": 534242,
+      "rounding_cents": -4200,
+      "total_cents": 2925000
+    }
+  },
+  {
+    "id": "GOLDEN-223",
+    "description": "Tax=IVA19+BOLSA qty_milli=2000 price_cents=250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-223",
+          "qty_milli": 2000,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 420168,
+      "discount_cents": 0,
+      "tax_cents": 93032,
+      "rounding_cents": 0,
+      "total_cents": 513200
+    }
+  },
+  {
+    "id": "GOLDEN-224",
+    "description": "Tax=IVA19+BOLSA qty_milli=375 price_cents=250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-224",
+          "qty_milli": 375,
+          "unit_price_cents": 250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 78782,
+      "discount_cents": 0,
+      "tax_cents": 17443,
+      "rounding_cents": -1225,
+      "total_cents": 95000
+    }
+  },
+  {
+    "id": "GOLDEN-225",
+    "description": "Tax=IVA19+BOLSA qty_milli=1250 price_cents=250000 disc=15625 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-225",
+          "qty_milli": 1250,
+          "unit_price_cents": 250000,
+          "discount_cents": 15625,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 249475,
+      "discount_cents": 15625,
+      "tax_cents": 55650,
+      "rounding_cents": 0,
+      "total_cents": 305125
+    }
+  },
+  {
+    "id": "GOLDEN-226",
+    "description": "Tax=IVA19+BOLSA qty_milli=3000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-226",
+          "qty_milli": 3000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 970588,
+      "discount_cents": 0,
+      "tax_cents": 204212,
+      "rounding_cents": -4800,
+      "total_cents": 1170000
+    }
+  },
+  {
+    "id": "GOLDEN-227",
+    "description": "Tax=IVA19+BOLSA qty_milli=640 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-227",
+          "qty_milli": 640,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 207059,
+      "discount_cents": 0,
+      "tax_cents": 43565,
+      "rounding_cents": 0,
+      "total_cents": 250624
+    }
+  },
+  {
+    "id": "GOLDEN-228",
+    "description": "Tax=IVA19+BOLSA qty_milli=6000 price_cents=385000 disc=115500 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-228",
+          "qty_milli": 6000,
+          "unit_price_cents": 385000,
+          "discount_cents": 115500,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1844118,
+      "discount_cents": 115500,
+      "tax_cents": 389982,
+      "rounding_cents": -4100,
+      "total_cents": 2230000
+    }
+  },
+  {
+    "id": "GOLDEN-229",
+    "description": "Tax=IVA19+BOLSA qty_milli=1000 price_cents=385000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-229",
+          "qty_milli": 1000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 323529,
+      "discount_cents": 0,
+      "tax_cents": 68071,
+      "rounding_cents": 0,
+      "total_cents": 391600
+    }
+  },
+  {
+    "id": "GOLDEN-230",
+    "description": "Tax=IVA19+BOLSA qty_milli=3000 price_cents=385000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-230",
+          "qty_milli": 3000,
+          "unit_price_cents": 385000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 970588,
+      "discount_cents": 0,
+      "tax_cents": 204212,
+      "rounding_cents": -4800,
+      "total_cents": 1170000
+    }
+  },
+  {
+    "id": "GOLDEN-231",
+    "description": "Tax=IVA19+BOLSA qty_milli=12000 price_cents=483200 disc=289920 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-231",
+          "qty_milli": 12000,
+          "unit_price_cents": 483200,
+          "discount_cents": 289920,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4628975,
+      "discount_cents": 289920,
+      "tax_cents": 958705,
+      "rounding_cents": 0,
+      "total_cents": 5587680
+    }
+  },
+  {
+    "id": "GOLDEN-232",
+    "description": "Tax=IVA19+BOLSA qty_milli=2000 price_cents=483200 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-232",
+          "qty_milli": 2000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 812101,
+      "discount_cents": 0,
+      "tax_cents": 167499,
+      "rounding_cents": -4600,
+      "total_cents": 975000
+    }
+  },
+  {
+    "id": "GOLDEN-233",
+    "description": "Tax=IVA19+BOLSA qty_milli=375 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-233",
+          "qty_milli": 375,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 152269,
+      "discount_cents": 0,
+      "tax_cents": 31406,
+      "rounding_cents": 0,
+      "total_cents": 183675
+    }
+  },
+  {
+    "id": "GOLDEN-234",
+    "description": "Tax=IVA19+BOLSA qty_milli=1250 price_cents=483200 disc=30200 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-234",
+          "qty_milli": 1250,
+          "unit_price_cents": 483200,
+          "discount_cents": 30200,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 482185,
+      "discount_cents": 30200,
+      "tax_cents": 99865,
+      "rounding_cents": -2050,
+      "total_cents": 580000
+    }
+  },
+  {
+    "id": "GOLDEN-235",
+    "description": "Tax=IVA19+BOLSA qty_milli=12000 price_cents=483200 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-235",
+          "qty_milli": 12000,
+          "unit_price_cents": 483200,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4872605,
+      "discount_cents": 0,
+      "tax_cents": 1004995,
+      "rounding_cents": 0,
+      "total_cents": 5877600
+    }
+  },
+  {
+    "id": "GOLDEN-236",
+    "description": "Tax=IVA19+BOLSA qty_milli=640 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-236",
+          "qty_milli": 640,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 672269,
+      "discount_cents": 0,
+      "tax_cents": 131955,
+      "rounding_cents": -4224,
+      "total_cents": 800000
+    }
+  },
+  {
+    "id": "GOLDEN-237",
+    "description": "Tax=IVA19+BOLSA qty_milli=6000 price_cents=1250000 disc=375000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-237",
+          "qty_milli": 6000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 375000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 5987395,
+      "discount_cents": 375000,
+      "tax_cents": 1177205,
+      "rounding_cents": 0,
+      "total_cents": 7164600
+    }
+  },
+  {
+    "id": "GOLDEN-238",
+    "description": "Tax=IVA19+BOLSA qty_milli=1000 price_cents=1250000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-238",
+          "qty_milli": 1000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 1050420,
+      "discount_cents": 0,
+      "tax_cents": 206180,
+      "rounding_cents": -1600,
+      "total_cents": 1255000
+    }
+  },
+  {
+    "id": "GOLDEN-239",
+    "description": "Tax=IVA19+BOLSA qty_milli=3000 price_cents=1250000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-239",
+          "qty_milli": 3000,
+          "unit_price_cents": 1250000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 3151261,
+      "discount_cents": 0,
+      "tax_cents": 618539,
+      "rounding_cents": 0,
+      "total_cents": 3769800
+    }
+  },
+  {
+    "id": "GOLDEN-240",
+    "description": "Tax=IVA19+BOLSA qty_milli=640 price_cents=1250000 disc=40000 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-240",
+          "qty_milli": 640,
+          "unit_price_cents": 1250000,
+          "discount_cents": 40000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 638655,
+      "discount_cents": 40000,
+      "tax_cents": 125569,
+      "rounding_cents": -4224,
+      "total_cents": 760000
+    }
+  },
+  {
+    "id": "GOLDEN-241",
+    "description": "Tax=IVA19+BOLSA qty_milli=2000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-241",
+          "qty_milli": 2000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4033613,
+      "discount_cents": 0,
+      "tax_cents": 779587,
+      "rounding_cents": 0,
+      "total_cents": 4813200
+    }
+  },
+  {
+    "id": "GOLDEN-242",
+    "description": "Tax=IVA19+BOLSA qty_milli=375 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-242",
+          "qty_milli": 375,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 756303,
+      "discount_cents": 0,
+      "tax_cents": 146172,
+      "rounding_cents": -2475,
+      "total_cents": 900000
+    }
+  },
+  {
+    "id": "GOLDEN-243",
+    "description": "Tax=IVA19+BOLSA qty_milli=1250 price_cents=2400000 disc=150000 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-243",
+          "qty_milli": 1250,
+          "unit_price_cents": 2400000,
+          "discount_cents": 150000,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 2394958,
+      "discount_cents": 150000,
+      "tax_cents": 463292,
+      "rounding_cents": 0,
+      "total_cents": 2858250
+    }
+  },
+  {
+    "id": "GOLDEN-244",
+    "description": "Tax=IVA19+BOLSA qty_milli=12000 price_cents=2400000 disc=0 rounding=true",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-244",
+          "qty_milli": 12000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": true,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 24201681,
+      "discount_cents": 0,
+      "tax_cents": 4677519,
+      "rounding_cents": -4200,
+      "total_cents": 28875000
+    }
+  },
+  {
+    "id": "GOLDEN-245",
+    "description": "Tax=IVA19+BOLSA qty_milli=2000 price_cents=2400000 disc=0 rounding=false",
+    "input": {
+      "lines": [
+        {
+          "product_id": "prod-245",
+          "qty_milli": 2000,
+          "unit_price_cents": 2400000,
+          "discount_cents": 0,
+          "taxes": [
+            {
+              "code": "IVA19",
+              "kind": "PERCENT",
+              "rate_bp": 1900
+            },
+            {
+              "code": "BOLSA",
+              "kind": "FIXED_PER_UNIT",
+              "rate_bp": 6600
+            }
+          ]
+        }
+      ],
+      "apply_cash_rounding": false,
+      "rounding_step_cents": 5000
+    },
+    "expected": {
+      "subtotal_cents": 4033613,
+      "discount_cents": 0,
+      "tax_cents": 779587,
+      "rounding_cents": 0,
+      "total_cents": 4813200
+    }
+  }
+]

@@ -1,0 +1,59 @@
+name: Management - Connectivity Foundation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/management.yml'
+      - 'repos/apps/management/**'
+      - 'repos/package.json'
+      - 'repos/pnpm-lock.yaml'
+      - 'repos/pnpm-workspace.yaml'
+      - 'repos/turbo.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/management.yml'
+      - 'repos/apps/management/**'
+      - 'repos/package.json'
+      - 'repos/pnpm-lock.yaml'
+      - 'repos/pnpm-workspace.yaml'
+      - 'repos/turbo.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: management-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: repos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: repos/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @tiendita/management lint
+      - run: pnpm --filter @tiendita/management test
+      - run: pnpm --filter @tiendita/management build
+      - run: pnpm --filter @tiendita/management exec playwright install --with-deps chromium
+      - run: pnpm --filter @tiendita/management test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: management-browser-diagnostics
+          path: repos/apps/management/test-results/
+          retention-days: 7
+          if-no-files-found: ignore

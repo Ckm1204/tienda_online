@@ -1,0 +1,76 @@
+# Reglas de Alerta Prometheus / Alertmanager para TienditaOnline
+# HU-133, HU-426, HU-427, HU-428, HU-429, HU-430
+
+groups:
+  - name: tiendita_critical_alerts
+    rules:
+      # HU-426: Regla de latencia y error en sincronización
+      - alert: SyncPushHighLatency
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{path="/v1/sync/push"}[5m])) by (le)) > 0.8
+        for: 5m
+        labels:
+          severity: critical
+          service: sync-service
+        annotations:
+          summary: "Latencia p99 de /v1/sync/push supera 800 ms"
+          description: "La latencia p99 es {{ $value }}s en los últimos 5 minutos. Revisar saturación de base de datos o broker Kafka."
+          runbook_url: "file:///docs/runbooks/RB-01-kafka-lag-consumer-failure.md"
+
+      - alert: SyncPushErrorRate
+        expr: sum(rate(http_requests_total{path="/v1/sync/push",status=~"5.."}[5m])) / sum(rate(http_requests_total{path="/v1/sync/push"}[5m])) > 0.005
+        for: 5m
+        labels:
+          severity: critical
+          service: sync-service
+        annotations:
+          summary: "Tasa de errores 5xx en /v1/sync/push superior al 0.5 %"
+          description: "La tasa de fallos HTTP 5xx en la sincronización de cajas es {{ $value | humanizePercentage }}."
+          runbook_url: "file:///docs/runbooks/RB-03-terminal-outbox-accumulation.md"
+
+      # HU-427: Regla de lag del consumidor de Kafka
+      - alert: KafkaConsumerLagHigh
+        expr: max(kafka_consumergroup_lag{topic="pos.events"}) by (consumergroup) > 300
+        for: 5m
+        labels:
+          severity: critical
+          service: kafka
+        annotations:
+          summary: "Lag de consumidor en pos.events supera 5 minutos"
+          description: "El grupo {{ $labels.consumergroup }} tiene un retraso acumulado de {{ $value }} eventos."
+          runbook_url: "file:///docs/runbooks/RB-01-kafka-lag-consumer-failure.md"
+
+      # HU-428: Regla de Outbox acumulado sin publicar
+      - alert: OutboxBacklogGrowing
+        expr: max(tiendita_outbox_unpublished_count) by (service) > 1000
+        for: 2m
+        labels:
+          severity: critical
+          service: outbox-worker
+        annotations:
+          summary: "Outbox acumulado > 1.000 filas o más de 2 minutos sin despachar"
+          description: "El servicio {{ $labels.service }} tiene {{ $value }} eventos sin publicar en outbox."
+          runbook_url: "file:///docs/runbooks/RB-01-kafka-lag-consumer-failure.md"
+
+      # HU-429: Integridad de la cadena SHA-256 de auditoría rota
+      - alert: AuditChainIntegrityBroken
+        expr: tiendita_audit_chain_tampered_total > 0
+        for: 0m
+        labels:
+          severity: page
+          service: audit-service
+        annotations:
+          summary: "Cadena WORM de audit_log alterada"
+          description: "El verificador nocturno detectó ruptura criptográfica en el hash SHA-256 de la auditoría."
+          runbook_url: "file:///docs/runbooks/RB-06-security-incident-response-sic-ley1581.md"
+
+      # HU-430: Conflicto de hash de seguridad en Sync
+      - alert: SecurityHashConflictInSync
+        expr: tiendita_sync_hash_mismatch_total > 0
+        for: 0m
+        labels:
+          severity: warning
+          service: sync-service
+        annotations:
+          summary: "Mismo event_id recibido con payload_hash diferente"
+          description: "Se detectó intento de sobreescritura de evento con payload divergente. Posible manipulación de caja o colisión."
+          runbook_url: "file:///docs/runbooks/RB-03-terminal-outbox-accumulation.md"

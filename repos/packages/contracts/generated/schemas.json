@@ -1,0 +1,125 @@
+[
+  {
+    "eventType": "sale.completed",
+    "schemaVersion": 1,
+    "fields": [
+      {
+        "name": "sale_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "receipt_prefix",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "receipt_number",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "cash_session_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "cashier_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "customer_id",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "lines",
+        "type": "array",
+        "required": true
+      },
+      {
+        "name": "payments",
+        "type": "array",
+        "required": true
+      },
+      {
+        "name": "totals",
+        "type": "object",
+        "required": true
+      },
+      {
+        "name": "is_credit",
+        "type": "boolean",
+        "required": true
+      }
+    ]
+  },
+  {
+    "eventType": "cash.session.opened",
+    "schemaVersion": 1,
+    "fields": [
+      {
+        "name": "cash_session_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "opened_by",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "opened_at",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "opening_float_cents",
+        "type": "integer",
+        "required": true
+      }
+    ]
+  },
+  {
+    "eventType": "cash.session.closed",
+    "schemaVersion": 1,
+    "fields": [
+      {
+        "name": "cash_session_id",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "closed_by",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "closed_at",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "opening_float_cents",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "expected_cash_cents",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "declared_cash_cents",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "difference_cents",
+        "type": "integer",
+        "required": true
+      }
+    ]
+  }
+]

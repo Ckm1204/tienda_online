@@ -61,6 +61,7 @@ CREATE TABLE downstream_changes (
 CREATE INDEX downstream_pull_idx ON downstream_changes (tenant_id, stream, row_xid);
 
 CREATE TRIGGER trg_touch BEFORE INSERT OR UPDATE ON downstream_changes FOR EACH ROW EXECUTE FUNCTION app.touch_row();
+SELECT app.enable_tenant_rls('ingested_events');
 SELECT app.enable_tenant_rls('event_ids');
 SELECT app.enable_tenant_rls('terminal_seq_state');
 SELECT app.enable_tenant_rls('sync_quarantine');

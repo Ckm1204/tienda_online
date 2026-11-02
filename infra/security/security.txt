@@ -1,0 +1,10 @@
+# RFC 9116: Security Vulnerability Disclosure Policy for TienditaOnline
+Contact: mailto:security@tienditaonline.co
+Contact: https://tienditaonline.co/security/report
+Expires: 2027-12-31T23:59:59.000Z
+Encryption: https://tienditaonline.co/pgp-key.asc
+Acknowledgments: https://tienditaonline.co/security/hall-of-fame
+Preferred-Languages: es, en
+Canonical: https://api.tienditaonline.co/.well-known/security.txt
+Policy: https://tienditaonline.co/security-policy
+Hiring: https://tienditaonline.co/careers

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.turbo/
+target/
+*.db
+*.tdbak
+.env
+.env.*
+!.env.example
+coverage/
+.expo/
+playwright-report/
+test-results/

@@ -52,5 +52,7 @@ CREATE TABLE tenant_limits_replica (
 );
 
 SELECT app.enable_tenant_rls('terminals');
+SELECT app.enable_tenant_rls('terminal_enrollment_codes');
 SELECT app.enable_tenant_rls('licenses_issued');
+SELECT app.enable_tenant_rls('tenant_limits_replica');
 -- Eventos: terminal.enrolled, terminal.revoked, terminal.heartbeat (muestreado), terminal.stale

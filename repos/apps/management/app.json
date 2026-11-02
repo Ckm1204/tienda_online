@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "TienditaOnline Gestion",
+    "slug": "tienditaonline-management",
+    "version": "0.1.0",
+    "userInterfaceStyle": "light",
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": ["expo-font", "expo-asset"]
+  }
+}

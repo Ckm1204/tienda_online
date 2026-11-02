@@ -1,0 +1,16 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/pnpm-workspace.yaml",
+        "$TURBO_ROOT$/turbo.json",
+        "$TURBO_ROOT$/Cargo.toml",
+        "$TURBO_ROOT$/.github/workflows/**",
+        "$TURBO_ROOT$/infra/local/**"
+      ]
+    }
+  }
+}

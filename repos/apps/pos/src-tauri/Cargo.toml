@@ -1,0 +1,17 @@
+[package]
+name = "tiendita-pos-core"
+version = "0.1.0"
+edition = "2021"
+license = "LicenseRef-Proprietary"
+
+[features]
+default = ["cloud"]
+cloud = []
+local = []
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

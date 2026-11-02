@@ -1,0 +1,329 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TienditaOnline SaaS & Local Edition API",
+    "version": "1.0.0",
+    "description": "Contratos OpenAPI 3.1 autogenerados desde @tiendita/contracts (HU-497)"
+  },
+  "servers": [
+    {
+      "url": "https://api.tienditaonline.co"
+    }
+  ],
+  "paths": {
+    "/v1/devices/enroll": {
+      "post": {
+        "summary": "Enrolar caja POS",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/devices/token": {
+      "post": {
+        "summary": "Obtener access token por private_key_jwt",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/terminals/heartbeat": {
+      "post": {
+        "summary": "Heartbeat de caja POS y renovación de licencia",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/sync/push": {
+      "post": {
+        "summary": "Subida idempotente de lotes de eventos del Outbox",
+        "tags": [
+          "sync-service"
+        ]
+      }
+    },
+    "/v1/sync/pull": {
+      "get": {
+        "summary": "Bajada incremental por cursor transaccional xid8",
+        "tags": [
+          "sync-service"
+        ]
+      }
+    },
+    "/v1/local-activation/activate": {
+      "post": {
+        "summary": "Activación en línea única de Edición Local",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/trial": {
+      "post": {
+        "summary": "Iniciar prueba de 15 días de Edición Local",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/deactivate": {
+      "post": {
+        "summary": "Desactivar licencia local",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/transfer-request": {
+      "post": {
+        "summary": "Solicitud de cambio de equipo con hash de respaldo .tdbak",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/transfer-complete": {
+      "post": {
+        "summary": "Confirmar restauración en equipo nuevo",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/restore-check": {
+      "post": {
+        "summary": "Validar restauración entre licencias",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/refresh": {
+      "post": {
+        "summary": "Actualizar updates_until de licencia local",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/local-activation/admin-reset": {
+      "post": {
+        "summary": "Solicitar restablecimiento de clave admin local",
+        "tags": [
+          "device-service"
+        ]
+      }
+    },
+    "/v1/activation/{token}": {
+      "post": {
+        "summary": "Activar cuenta de dueño (contraseña + MFA + PIN)",
+        "tags": [
+          "identity-service"
+        ]
+      }
+    },
+    "/v1/app/bootstrap": {
+      "get": {
+        "summary": "Contexto inicial de sesión de la App de Gestión",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/branches": {
+      "get": {
+        "summary": "Listar sucursales",
+        "tags": [
+          "bff-app"
+        ]
+      },
+      "post": {
+        "summary": "Crear sucursal",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/terminals": {
+      "get": {
+        "summary": "Listar cajas",
+        "tags": [
+          "bff-app"
+        ]
+      },
+      "post": {
+        "summary": "Crear caja",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/users": {
+      "get": {
+        "summary": "Listar usuarios",
+        "tags": [
+          "bff-app"
+        ]
+      },
+      "post": {
+        "summary": "Crear usuario",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/products": {
+      "get": {
+        "summary": "Listar productos paginados por cursor",
+        "tags": [
+          "bff-app"
+        ]
+      },
+      "post": {
+        "summary": "Crear producto",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/products/by-barcode/{code}": {
+      "get": {
+        "summary": "Buscar producto por código de barras (cámara)",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/products/import": {
+      "post": {
+        "summary": "Importar catálogo desde Excel/CSV",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/generic-items": {
+      "get": {
+        "summary": "Listar artículos genéricos vendidos en caja",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/customers": {
+      "get": {
+        "summary": "Listar clientes y cartera",
+        "tags": [
+          "bff-app"
+        ]
+      },
+      "post": {
+        "summary": "Crear cliente",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/inventory/receipts": {
+      "post": {
+        "summary": "Registrar recepción de mercancía",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/inventory/adjustments": {
+      "post": {
+        "summary": "Registrar ajuste de inventario",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/inventory/counts": {
+      "post": {
+        "summary": "Registrar conteo físico",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/payments/reconciliation": {
+      "get": {
+        "summary": "Bandeja de conciliación de pagos digitales",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/reports/dashboard": {
+      "get": {
+        "summary": "KPIs del día y comparativos",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/app/reports/sales": {
+      "get": {
+        "summary": "Reporte de ventas",
+        "tags": [
+          "bff-app"
+        ]
+      }
+    },
+    "/v1/pos-reports/sales": {
+      "get": {
+        "summary": "Reporte de ventas de la sucursal en Caja",
+        "tags": [
+          "bff-pos"
+        ]
+      }
+    },
+    "/v1/pos-reports/receipts/lookup": {
+      "get": {
+        "summary": "Buscar comprobante de otra caja para devolución",
+        "tags": [
+          "bff-pos"
+        ]
+      }
+    },
+    "/v1/platform/tenants": {
+      "get": {
+        "summary": "Directorio de tiendas",
+        "tags": [
+          "bff-platform"
+        ]
+      },
+      "post": {
+        "summary": "Saga de creación de tienda",
+        "tags": [
+          "bff-platform"
+        ]
+      }
+    },
+    "/v1/platform/billing/invoices": {
+      "get": {
+        "summary": "Facturas y morosidad SaaS",
+        "tags": [
+          "bff-platform"
+        ]
+      }
+    },
+    "/v1/platform/local-licenses": {
+      "get": {
+        "summary": "Licencias de Edición Local",
+        "tags": [
+          "bff-platform"
+        ]
+      },
+      "post": {
+        "summary": "Emitir serial de Edición Local",
+        "tags": [
+          "bff-platform"
+        ]
+      }
+    }
+  }
+}
