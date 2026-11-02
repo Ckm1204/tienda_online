@@ -43,7 +43,7 @@ export interface LocalCustomer {
   current_balance_cents: number;
 }
 
-export interface LocalSaleRecord {
+export interface LocalEditionSaleRecord {
   id: string;
   receipt_number: string;
   total_cents: number;
@@ -87,7 +87,7 @@ export class LocalEditionManager {
   public cashiers: LocalCashierAccount[] = [];
   public products = new Map<string, LocalProduct>();
   public customers = new Map<string, LocalCustomer>();
-  public sales: LocalSaleRecord[] = [];
+  public sales: LocalEditionSaleRecord[] = [];
   public shifts: LocalShiftRecord[] = [];
   public currentShift: LocalShiftRecord | null = null;
   public deviceTransferState: "NORMAL" | "PENDING_RELEASE" | "TRANSFERRED" = "NORMAL";
@@ -274,7 +274,7 @@ export class LocalEditionManager {
   // ==========================================================================
   // HU-314: Bloqueo de ventas si está transferido o en pendiente de traslado
   // ==========================================================================
-  public registerSale(sale: Omit<LocalSaleRecord, "id" | "receipt_number">): LocalSaleRecord {
+  public registerSale(sale: Omit<LocalEditionSaleRecord, "id" | "receipt_number">): LocalEditionSaleRecord {
     if (this.deviceTransferState === "TRANSFERRED") {
       throw new Error("403 DEVICE_TRANSFERRED: Este equipo fue trasladado a otro computador. Modo solo lectura");
     }
@@ -289,7 +289,7 @@ export class LocalEditionManager {
     const prefix = this.licenseInfo?.receipt_prefix ?? "L01";
     const receiptNumber = `${prefix}-${String(seq).padStart(6, "0")}`;
 
-    const rec: LocalSaleRecord = {
+    const rec: LocalEditionSaleRecord = {
       id: newId(sale.created_at_ms),
       receipt_number: receiptNumber,
       ...sale
