@@ -13,15 +13,19 @@ jobs:
   lint:
     name: Lint & Static Quality Rules (HU-002)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repos
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 12.16.1
+          package_json_file: repos/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build
       - run: pnpm lint
@@ -29,15 +33,19 @@ jobs:
   test-ts:
     name: Unit & Integration Tests TS (HU-001, HU-003)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repos
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 12.16.1
+          package_json_file: repos/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build
       - run: pnpm test
@@ -45,6 +53,9 @@ jobs:
   test-rust:
     name: Rust Domain & Clippy (HU-002, HU-003)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repos
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -57,15 +68,19 @@ jobs:
   contract-check:
     name: Contract Compatibility & RLS Schema Check (HU-008, HU-009, HU-469)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repos
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 12.16.1
+          package_json_file: repos/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build
       - run: pnpm contracts:check
@@ -91,28 +106,36 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
       - uses: pnpm/action-setup@v4
         with:
-          version: 12.16.1
+          package_json_file: repos/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile=false
+        working-directory: repos
       - run: pnpm build
+        working-directory: repos
       - run: pnpm license:check
+        working-directory: repos
 
   smoke-test:
     name: Post-Deploy Smoke Tests (HU-498)
     needs: [lint, test-ts, contract-check]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repos
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 12.16.1
+          package_json_file: repos/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: repos/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm build
       - run: pnpm smoke:test

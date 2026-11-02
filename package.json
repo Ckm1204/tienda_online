@@ -1,0 +1,23 @@
+{
+  "name": "tienditaonline",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -C repos build",
+    "test": "pnpm -C repos test",
+    "lint": "pnpm -C repos lint",
+    "test:e2e": "pnpm -C repos/apps/management exec playwright test",
+    "test:rust": "cargo test --manifest-path repos/apps/pos/src-tauri/Cargo.toml",
+    "simulate": "pnpm -C repos/tools/terminal-simulator simulate",
+    "db:migrate": "pnpm -C repos db:migrate",
+    "db:verify": "pnpm -C repos db:verify",
+    "contracts:check": "pnpm -C repos contracts:check",
+    "license:check": "pnpm -C repos license:check",
+    "smoke:test": "pnpm -C repos smoke:test"
+  }
+}
