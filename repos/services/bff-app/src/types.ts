@@ -11,6 +11,7 @@ import type { AuditService } from "@tiendita/audit-service";
 import type { ReportingService } from "@tiendita/reporting-service";
 import type { EinvoicingService } from "@tiendita/einvoicing-service";
 import type { NotificationService } from "@tiendita/notification-service";
+import type { CloudSyncService } from "@tiendita/sync-service";
 
 export interface HttpResponse {
   status: number;
@@ -54,4 +55,5 @@ export interface BffAppDependencies {
   reportingService?: ReportingService;
   einvoicingService?: EinvoicingService;
   notificationService?: NotificationService;
+  syncService?: CloudSyncService;
 }

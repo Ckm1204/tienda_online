@@ -36,7 +36,10 @@ export function createHttpServer(bffApp = app) {
 
         if (rawBody.length > 0) {
           const contentType = headers["content-type"] || "";
-          if (contentType.includes("application/json")) {
+          const contentEncoding = headers["content-encoding"] || "";
+          if (contentEncoding.includes("gzip") || contentType.includes("application/octet-stream")) {
+            body = rawBody;
+          } else if (contentType.includes("application/json")) {
             try {
               body = JSON.parse(rawBody.toString("utf-8"));
             } catch {

@@ -11,6 +11,7 @@ import type { SalesController } from "./controllers/sales.controller.js";
 import type { CustomersController } from "./controllers/customers.controller.js";
 import type { EinvoicingController } from "./controllers/einvoicing.controller.js";
 import type { NotificationsController } from "./controllers/notifications.controller.js";
+import type { SyncController } from "./controllers/sync.controller.js";
 
 export interface RouterControllers {
   authController: AuthController;
@@ -24,6 +25,7 @@ export interface RouterControllers {
   customersController: CustomersController;
   einvoicingController?: EinvoicingController;
   notificationsController?: NotificationsController;
+  syncController?: SyncController;
 }
 
 export class BffRouter {
@@ -70,6 +72,38 @@ export class BffRouter {
 
     if (method === "POST" && cleanPath === "/v1/auth/activate") {
       return this.controllers.authController.activate(req, nowMs);
+    }
+
+    // --- POS & SYNC (Sincronización Nube / Terminales - Audiencia pos-device o cabeceras de caja) ---
+    if (cleanPath === "/v1/sync/push" && method === "POST") {
+      return (
+        this.controllers.syncController?.push(req, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
+        }
+      );
+    }
+    if (cleanPath === "/v1/sync/pull" && method === "GET") {
+      return (
+        this.controllers.syncController?.pull(req, nowMs, queryParams) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
+        }
+      );
+    }
+    if (
+      (cleanPath === "/v1/terminals/heartbeat" || cleanPath === "/v1/sync/heartbeat") &&
+      method === "POST"
+    ) {
+      return (
+        this.controllers.syncController?.heartbeat(req, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
+        }
+      );
     }
 
     // A partir de aquí todos los endpoints requieren autenticación y audiencia "mgmt-app" o "platform"
@@ -314,6 +348,38 @@ export class BffRouter {
           status: 501,
           headers: { "Content-Type": "application/json" },
           body: { error: "NOTIFICATIONS_UNAVAILABLE" }
+        }
+      );
+    }
+
+    // --- Sincronización y Cuarentena (App de Gestión) ---
+    if ((cleanPath === "/v1/app/quarantine" || cleanPath === "/v1/sync/quarantine") && method === "GET") {
+      return (
+        this.controllers.syncController?.listQuarantine(req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
+        }
+      );
+    }
+
+    const quarantineResolveMatch = cleanPath.match(/^\/v1\/(?:app|sync)\/quarantine\/([^/]+)\/resolve$/);
+    if (quarantineResolveMatch && method === "POST") {
+      return (
+        this.controllers.syncController?.resolveQuarantine(req, quarantineResolveMatch[1]!, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
+        }
+      );
+    }
+
+    if (cleanPath === "/v1/app/sync/project-change" && method === "POST") {
+      return (
+        this.controllers.syncController?.projectDownstreamChange(req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "SYNC_UNAVAILABLE" }
         }
       );
     }

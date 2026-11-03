@@ -49,39 +49,83 @@ Aserción JWT firmada con la llave del dispositivo (`private_key_jwt`) → acces
 // 200
 {
   "results": [
-    { "event_id": "…", "status": "ACCEPTED" },
-    { "event_id": "…", "status": "DUPLICATE" },
-    { "event_id": "…", "status": "REJECTED", "code": "SCHEMA_INVALID" }
+    { "event_id": "…", "terminal_seq": 1, "status": "ACCEPTED" },
+    { "event_id": "…", "terminal_seq": 2, "status": "DUPLICATE" },
+    { "event_id": "…", "terminal_seq": 3, "status": "CONFLICT" }
   ],
   "ack_up_to_seq": 15234,
-  "server_time": "2026-10-03T20:21:10Z"
+  "server_time": "2026-10-03T20:21:10Z",
+  "server_time_ms": 1760000000000
 }
-// 409 GAP_DETECTED  { "expected_seq": 15200 }
-// 426 UPGRADE_REQUIRED · 429/503 con Retry-After · 401 token · 403 terminal revocada
+// 409 GAP_DETECTED  { "error": "GAP_DETECTED", "expected_seq": 15200 }
+// 413 PAYLOAD_TOO_LARGE  { "error": "PAYLOAD_TOO_LARGE" }
+// 426 UPGRADE_REQUIRED  { "error": "UPGRADE_REQUIRED", "min_version": "1.2.0" }
 ```
 
-`ACCEPTED` = durable en `sync-service`; la aplicación en cada servicio es asíncrona (los problemas posteriores van a cuarentena y se ven en la App de Gestión).
+`ACCEPTED` = durable en `sync-service`; la aplicación en cada servicio es atómica o asíncrona. Los eventos `sale.completed` y `sale.created` asientan la venta en `sales-service` y consolidan en tiempo real el Libro Fiscal de Operaciones Diarias (Art. 616 E.T.). Los eventos defectuosos van a `sync_quarantine` y se auditan desde la App de Gestión.
 
-### `GET /v1/sync/pull?stream=catalog&cursor=<opaco>&limit=1000`
+### `GET /v1/sync/pull?stream=catalog&cursor_xid=0`
 ```json
-{ "stream": "catalog",
+{
+  "stream": "catalog",
+  "safe_upto": "105",
+  "next_cursor": "105",
+  "has_more": false,
   "changes": [
-    { "entity": "product", "op": "upsert", "data": { "id": "…", "name": "Gaseosa 400ml", "price_cents": 250000, "...": "…" } },
-    { "entity": "product_barcode", "op": "delete", "id": "…" }
-  ],
-  "next_cursor": "opaco", "has_more": false }
-// 410 RESYNC_REQUIRED → descargar bootstrap
+    { "entity_id": "prod-1", "stream": "catalog", "op": "upsert", "source_version": 2, "row_xid": "101", "payload": { "name": "Arroz Diana 1kg", "price_cents": 500000 } }
+  ]
+}
+// 410 RESYNC_REQUIRED → descargar bootstrap S3
+{
+  "error": "RESYNC_REQUIRED",
+  "code": "RESYNC_REQUIRED",
+  "bootstrap_url": "https://s3.tiendita.local/bootstrap/...",
+  "snapshot_cursor_xid": "500"
+}
 ```
 Streams: `catalog`, `prices`, `promotions`, `taxes`, `users`, `customers`, `customer_balances`, `stock_snapshot`, `config` (incluye `fiscal_mode` y features). *Futuro:* `numbering`.
 
-### `POST /v1/terminals/heartbeat`
+### `POST /v1/terminals/heartbeat` (alias `/v1/sync/heartbeat`)
 ```json
 // request
-{ "app_version": "1.4.0", "pending_outbox": 37, "oldest_pending_at": "…", "last_seq": 15234,
-  "printer": "OK", "disk_free_mb": 18234, "local_time": "…", "open_session_id": "…" }
+{
+  "tenant_id": "…",
+  "branch_id": "…",
+  "terminal_id": "…",
+  "app_version": "1.4.0",
+  "pending_outbox_count": 0,
+  "oldest_pending_at_ms": null,
+  "local_time_ms": 1760000000000
+}
 // 200
-{ "server_time": "…", "license_token": "eyJ…", "flags": { "pull_now": ["catalog"], "update_available": "1.4.1", "revoked": false },
-  "messages": [ { "level": "warn", "text": "Tu suscripción vence en 3 días" } ] }
+{
+  "server_time": "2026-10-03T20:21:10.000Z",
+  "server_time_ms": 1760000000000,
+  "clock_skew_warning": null,
+  "flags": { "pull_now": ["catalog"] }
+}
+```
+Si el reloj de la máquina difiere en más de 15 minutos respecto a la nube, `clock_skew_warning` alerta al cajero/administrador para evitar inconsistencias en reportes y DIAN.
+
+### `GET /v1/app/quarantine` (alias `/v1/sync/quarantine`)
+Lista eventos retenidos en cuarentena para el tenant actual (`terminal.read`).
+
+### `POST /v1/app/quarantine/{id}/resolve` (alias `/v1/sync/quarantine/{id}/resolve`)
+Resuelve o descarta un evento en cuarentena con trazabilidad de auditoría (`terminal.manage`).
+```json
+// request
+{ "action": "RESOLVED", "note": "Corregido y reprocesado por soporte" }
+// 200
+{ "resolved": true, "record": { "id": "…", "status": "RESOLVED", "resolved_by": "…", "resolution_note": "…" } }
+```
+
+### `POST /v1/app/sync/project-change`
+Permite proyectar cambios reactivos downstream hacia las cajas (`catalog.manage`).
+```json
+// request
+{ "stream": "catalog", "entityId": "prod-100", "op": "upsert", "payload": { "name": "Leche Entera", "price_cents": 450000 } }
+// 200
+{ "projected": true }
 ```
 
 ### `GET /v1/pos-reports/receipts/lookup?prefix=C02&number=1234`

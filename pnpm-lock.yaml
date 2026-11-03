@@ -428,6 +428,9 @@ importers:
       '@tiendita/service-kit':
         specifier: workspace:*
         version: link:../../packages/service-kit
+      '@tiendita/sync-service':
+        specifier: workspace:*
+        version: link:../sync-service
       '@tiendita/tenant-service':
         specifier: workspace:*
         version: link:../tenant-service

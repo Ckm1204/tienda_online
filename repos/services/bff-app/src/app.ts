@@ -11,6 +11,7 @@ import { AuditService } from "@tiendita/audit-service";
 import { ReportingService } from "@tiendita/reporting-service";
 import { EinvoicingService } from "@tiendita/einvoicing-service";
 import { NotificationService } from "@tiendita/notification-service";
+import { CloudSyncService } from "@tiendita/sync-service";
 
 import type { HttpRequest, HttpResponse, BffAppDependencies } from "./types.js";
 import { RateLimiter } from "./middlewares/rate-limiter.js";
@@ -34,6 +35,7 @@ import { InventoryController } from "./controllers/inventory.controller.js";
 import { SalesController } from "./controllers/sales.controller.js";
 import { CustomersController } from "./controllers/customers.controller.js";
 import { NotificationsController } from "./controllers/notifications.controller.js";
+import { SyncController } from "./controllers/sync.controller.js";
 
 export class BffApp {
   public readonly tenantService: TenantService;
@@ -48,6 +50,7 @@ export class BffApp {
   public readonly reportingService: ReportingService;
   public readonly einvoicingService: EinvoicingService;
   public readonly notificationService: NotificationService;
+  public readonly syncService: CloudSyncService;
 
   public readonly rateLimiter = new RateLimiter();
   public readonly idempotencyStore = new IdempotencyStore();
@@ -72,6 +75,7 @@ export class BffApp {
     this.reportingService = deps.reportingService ?? new ReportingService();
     this.einvoicingService = deps.einvoicingService ?? new EinvoicingService();
     this.notificationService = deps.notificationService ?? new NotificationService();
+    this.syncService = deps.syncService ?? new CloudSyncService();
 
     // Circuit breakers por servicio
     this.breakers.set("tenant-service", new CircuitBreaker({ name: "tenant-service" }));
@@ -81,6 +85,7 @@ export class BffApp {
     this.breakers.set("audit-service", new CircuitBreaker({ name: "audit-service" }));
     this.breakers.set("reporting-service", new CircuitBreaker({ name: "reporting-service" }));
     this.breakers.set("einvoicing-service", new CircuitBreaker({ name: "einvoicing-service" }));
+    this.breakers.set("sync-service", new CircuitBreaker({ name: "sync-service" }));
 
     // Instanciar controladores modulares
     const authController = new AuthController(this.identityService, this.deviceService);
@@ -102,6 +107,12 @@ export class BffApp {
       this.notificationService,
       this.customerService
     );
+    const syncController = new SyncController({
+      syncService: this.syncService,
+      salesService: this.salesService,
+      reportingService: this.reportingService,
+      recordSaleAndConsolidate: (params) => this.recordSaleAndConsolidate(params)
+    });
 
     this.router = new BffRouter({
       authController,
@@ -114,7 +125,8 @@ export class BffApp {
       inventoryController,
       salesController,
       customersController,
-      notificationsController
+      notificationsController,
+      syncController
     });
   }
 

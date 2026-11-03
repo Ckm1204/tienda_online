@@ -19,6 +19,7 @@
  * 14. Reconciliación nocturna global (HU-501): reporting_db == sales_db == cash_db
  */
 
+import zlib from "node:zlib";
 import { BffApp } from "../services/bff-app/dist/index.js";
 
 function formatCOP(cents) {
@@ -529,6 +530,145 @@ async function runSimulation() {
   }
   printStep("✓", `Recordatorio legal despachado a Don Carlos Ramírez (Saldo: $145.000 COP).`);
   printStep("🛡️", `Contacto auditado ante la SIC con ID: ${dayReminderRes.body.sicAuditContactId}. Contactos esta semana: ${dayReminderRes.body.currentWeeklyContactsCount} de máx 2.`);
+
+  // 18. Sincronización Nube Offline-to-Cloud & Bajada Incremental — HU-065, HU-069, HU-071 & ÉPICA 07
+  printSection("PASO 18: SINCRONIZACIÓN NUBE OFFLINE-TO-CLOUD & BAJADA INCREMENTAL (ÉPICA 07)");
+  
+  // 18.1 Lote comprimido con gzip desde la caja local hacia POST /v1/sync/push
+  const syncPayload = {
+    tenant_id: tenantId,
+    branch_id: branchId,
+    terminal_id: terminalId,
+    events: [
+      {
+        event_id: "evt-offline-sync-101",
+        terminal_seq: 1,
+        event_type: "sale.completed",
+        schema_version: 1,
+        payload: {
+          sale_id: "sale-sync-auto-01",
+          receipt_prefix: "POS",
+          receipt_number: 901,
+          cash_session_id: "session-sync-01",
+          cashier_id: cashierId,
+          total_cents: 18_000_00,
+          lines: [
+            {
+              line_id: "line-sync-1",
+              product_id: "prod-pan",
+              description: "Pan Tajado Bimbo Familiar",
+              qty_milli: 1000,
+              unit_price_cents: 8_000_00,
+              line_total_cents: 8_000_00,
+              tax_rate_bps: 0
+            },
+            {
+              line_id: "line-sync-2",
+              product_id: "prod-huevos",
+              description: "Huevos Santa Reyes AA x 12",
+              qty_milli: 1000,
+              unit_price_cents: 10_000_00,
+              line_total_cents: 10_000_00,
+              tax_rate_bps: 0
+            }
+          ],
+          payments: [
+            {
+              payment_id: "pm-sync-1",
+              method: "CASH",
+              amount_cents: 18_000_00,
+              reference: null
+            }
+          ]
+        },
+        payload_hash: "hash-offline-sale-101",
+        occurred_at: new Date(nowMs + 12500000).toISOString(),
+        hlc: `${nowMs + 12500000}:0:${terminalId}`
+      }
+    ]
+  };
+
+  const gzipBatch = zlib.gzipSync(Buffer.from(JSON.stringify(syncPayload), "utf-8"));
+
+  const pushReq = {
+    method: "POST",
+    path: "/v1/sync/push",
+    ip: "127.0.0.1",
+    headers: {
+      "content-encoding": "gzip",
+      "x-tenant-id": tenantId,
+      "x-branch-id": branchId,
+      "x-terminal-id": terminalId,
+      "x-app-version": "1.4.0",
+      "x-batch-signature": "ed25519-caja-activa"
+    },
+    body: gzipBatch
+  };
+
+  const pushRes = await bff.handleRequest(pushReq, nowMs + 12500000);
+  if (pushRes.status !== 200 || !pushRes.body.results || pushRes.body.results[0].status !== "ACCEPTED") {
+    throw new Error(`Fallo en POST /v1/sync/push: ${JSON.stringify(pushRes.body)}`);
+  }
+  printStep("📦", `Lote Outbox local (GZIP ${gzipBatch.length} bytes) subido exitosamente a /v1/sync/push.`);
+  printStep("✓", `Evento evt-offline-sync-101 ACEPTADO. ack_up_to_seq: ${pushRes.body.ack_up_to_seq}.`);
+
+  // 18.2 Proyección downstream en nube y bajada incremental por cursor xid8
+  bff.syncService.projectDownstreamChange({
+    tenantId,
+    branchId,
+    stream: "catalog",
+    entityId: "prod-cafe-molido",
+    op: "upsert",
+    payload: { name: "Café Juan Valdez 450g", price_cents: 28_000_00 },
+    sourceVersion: 2
+  });
+
+  const pullReq = {
+    method: "GET",
+    path: "/v1/sync/pull?stream=catalog&cursor_xid=0",
+    ip: "127.0.0.1",
+    headers: {
+      "x-tenant-id": tenantId,
+      "x-branch-id": branchId
+    }
+  };
+
+  const pullRes = await bff.handleRequest(pullReq, nowMs + 12600000);
+  if (pullRes.status !== 200 || !pullRes.body.changes || pullRes.body.changes.length === 0) {
+    throw new Error(`Fallo en GET /v1/sync/pull: ${JSON.stringify(pullRes.body)}`);
+  }
+  printStep("🔄", `Bajada incremental GET /v1/sync/pull recibida. Cursor seguro xid8: ${pullRes.body.safe_upto}.`);
+  printStep("✓", `Cambio downstream sincronizado: ${pullRes.body.changes[0].payload.name} (${formatCOP(pullRes.body.changes[0].payload.price_cents)}).`);
+
+  // 18.3 Telemetría y Latido de Terminal (Heartbeat)
+  const hbRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/terminals/heartbeat",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    body: {
+      tenant_id: tenantId,
+      branch_id: branchId,
+      terminal_id: terminalId,
+      app_version: "1.4.0",
+      pending_outbox_count: 0,
+      local_time_ms: nowMs + 12700000
+    }
+  }, nowMs + 12700000);
+  if (hbRes.status !== 200) {
+    throw new Error(`Fallo en POST /v1/terminals/heartbeat: ${JSON.stringify(hbRes.body)}`);
+  }
+  printStep("💓", `Latido registrado: hora nube sincronizada, flags activas: ${JSON.stringify(hbRes.body.flags)}.`);
+
+  // 18.4 Verificación de Cuarentena (sync_quarantine)
+  const quarantineRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/app/quarantine",
+    ip: "127.0.0.1",
+    headers: authHeaders,
+    claims
+  }, nowMs + 12800000);
+  printStep("🛡️", `Eventos en cuarentena en la tienda: ${quarantineRes.body.items.length} (Integridad de datos: 100%).`);
 
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

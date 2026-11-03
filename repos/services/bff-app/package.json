@@ -27,6 +27,7 @@
     "@tiendita/reporting-service": "workspace:*",
     "@tiendita/sales-service": "workspace:*",
     "@tiendita/service-kit": "workspace:*",
+    "@tiendita/sync-service": "workspace:*",
     "@tiendita/tenant-service": "workspace:*",
     "zod": "^3.24.1"
   },
