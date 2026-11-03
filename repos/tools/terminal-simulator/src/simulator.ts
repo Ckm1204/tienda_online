@@ -138,3 +138,23 @@ export class TerminalSimulatorCluster {
     };
   }
 }
+
+const isMain = process.argv[1]?.endsWith("simulator.js") || process.argv[1]?.endsWith("simulator.ts");
+if (isMain) {
+  (async () => {
+    console.log("=== INICIANDO SIMULACIÓN DE TERMINALES POS (HU-132) ===");
+    const cluster = new TerminalSimulatorCluster();
+    console.log("1. Creando clúster de 100 terminales virtuales en 20 tiendas...");
+    cluster.spawnTerminals(100);
+    console.log("2. Simulando apagón masivo ('Volvió la luz en la ciudad')...");
+    const { totalEventsGenerated } = cluster.simulateOfflineOutages(25);
+    console.log(`   -> Generadas ${totalEventsGenerated} ventas offline firmadas con SHA-256 e HLC.`);
+    console.log("3. Restableciendo red eléctrica (reconexión masiva concurrente con backoff y jitter)...");
+    const metrics = await cluster.simulateMassReconnection({ batchSize: 50 });
+    console.log(`   -> Eventos drenados hacia sync-service: ${metrics.drainedEvents}/${totalEventsGenerated}`);
+    console.log(`   -> Tasa de éxito: ${(metrics.successRate * 100).toFixed(1)}%`);
+    console.log(`   -> Latencia p95: ${metrics.p95LatencyMs} ms`);
+    console.log(`   -> Latencia p99: ${metrics.p99LatencyMs} ms`);
+    console.log("=== SIMULACIÓN COMPLETADA EXITOSAMENTE ===");
+  })();
+}
