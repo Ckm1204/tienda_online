@@ -1,5 +1,6 @@
 import type { CircuitBreaker } from "@tiendita/service-kit";
 import type { SalesService } from "@tiendita/sales-service";
+import type { ReportingService } from "@tiendita/reporting-service";
 import type { ShortReportCache } from "../cache/report-cache.js";
 import type { HttpRequest, HttpResponse } from "../types.js";
 
@@ -7,7 +8,8 @@ export class ReportsController {
   constructor(
     private readonly salesService: SalesService,
     private readonly reportCache: ShortReportCache,
-    private readonly getBreaker: (name: string) => CircuitBreaker
+    private readonly getBreaker: (name: string) => CircuitBreaker,
+    private readonly reportingService?: ReportingService
   ) {}
 
   async getDashboard(req: HttpRequest, nowMs: number): Promise<HttpResponse> {
@@ -66,6 +68,84 @@ export class ReportsController {
       status: 200,
       headers: { "Content-Type": "application/json" },
       body: { invalidated: true }
+    };
+  }
+
+  /**
+   * Art. 616 E.T.: Consulta consolidada del Libro Fiscal de Operaciones Diarias con indicador UVT.
+   */
+  async getLibroFiscal(req: HttpRequest, nowMs: number, queryParams?: URLSearchParams): Promise<HttpResponse> {
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const yearMonth = queryParams?.get("yearMonth") ?? new Date(nowMs).toISOString().slice(0, 7);
+
+    if (!this.reportingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "REPORTING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const report = this.reportingService.generateLibroFiscalDiario(safeTenantId, yearMonth);
+
+    return {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: report
+    };
+  }
+
+  /**
+   * Art. 616 E.T.: Exportación del Libro Fiscal en formato CSV tabular para requerimientos DIAN.
+   */
+  async getLibroFiscalCsv(req: HttpRequest, nowMs: number, queryParams?: URLSearchParams): Promise<HttpResponse> {
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const yearMonth = queryParams?.get("yearMonth") ?? new Date(nowMs).toISOString().slice(0, 7);
+
+    if (!this.reportingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "REPORTING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const { filename, csv } = this.reportingService.exportLibroFiscalCsv(safeTenantId, yearMonth);
+
+    return {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${filename}"`
+      },
+      body: csv
+    };
+  }
+
+  /**
+   * Art. 616 E.T.: Exportación del comprobante de cierre fiscal en formato tiquete térmico 80 mm.
+   */
+  async getLibroFiscalThermal(req: HttpRequest, nowMs: number, queryParams?: URLSearchParams): Promise<HttpResponse> {
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const yearMonth = queryParams?.get("yearMonth") ?? new Date(nowMs).toISOString().slice(0, 7);
+
+    if (!this.reportingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "REPORTING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const thermalContent = this.reportingService.exportLibroFiscalThermalReceipt(safeTenantId, yearMonth);
+
+    return {
+      status: 200,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      body: thermalContent
     };
   }
 }

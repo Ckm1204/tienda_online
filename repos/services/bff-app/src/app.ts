@@ -8,6 +8,9 @@ import { CashService } from "@tiendita/cash-service";
 import { InventoryService } from "@tiendita/inventory-service";
 import { CustomerService } from "@tiendita/customer-service";
 import { AuditService } from "@tiendita/audit-service";
+import { ReportingService } from "@tiendita/reporting-service";
+import { EinvoicingService } from "@tiendita/einvoicing-service";
+import { NotificationService } from "@tiendita/notification-service";
 
 import type { HttpRequest, HttpResponse, BffAppDependencies } from "./types.js";
 import { RateLimiter } from "./middlewares/rate-limiter.js";
@@ -23,6 +26,7 @@ import { BffRouter } from "./router.js";
 import { AuthController } from "./controllers/auth.controller.js";
 import { BootstrapController } from "./controllers/bootstrap.controller.js";
 import { ReportsController } from "./controllers/reports.controller.js";
+import { EinvoicingController } from "./controllers/einvoicing.controller.js";
 import { TerminalsController } from "./controllers/terminals.controller.js";
 import { UsersController } from "./controllers/users.controller.js";
 import { CatalogController } from "./controllers/catalog.controller.js";
@@ -40,6 +44,9 @@ export class BffApp {
   public readonly inventoryService: InventoryService;
   public readonly customerService: CustomerService;
   public readonly auditService: AuditService;
+  public readonly reportingService: ReportingService;
+  public readonly einvoicingService: EinvoicingService;
+  public readonly notificationService: NotificationService;
 
   public readonly rateLimiter = new RateLimiter();
   public readonly idempotencyStore = new IdempotencyStore();
@@ -61,6 +68,9 @@ export class BffApp {
     this.inventoryService = deps.inventoryService ?? new InventoryService();
     this.customerService = deps.customerService ?? new CustomerService();
     this.auditService = deps.auditService ?? new AuditService();
+    this.reportingService = deps.reportingService ?? new ReportingService();
+    this.einvoicingService = deps.einvoicingService ?? new EinvoicingService();
+    this.notificationService = deps.notificationService ?? new NotificationService();
 
     // Circuit breakers por servicio
     this.breakers.set("tenant-service", new CircuitBreaker({ name: "tenant-service" }));
@@ -68,6 +78,8 @@ export class BffApp {
     this.breakers.set("device-service", new CircuitBreaker({ name: "device-service" }));
     this.breakers.set("catalog-service", new CircuitBreaker({ name: "catalog-service" }));
     this.breakers.set("audit-service", new CircuitBreaker({ name: "audit-service" }));
+    this.breakers.set("reporting-service", new CircuitBreaker({ name: "reporting-service" }));
+    this.breakers.set("einvoicing-service", new CircuitBreaker({ name: "einvoicing-service" }));
 
     // Instanciar controladores modulares
     const authController = new AuthController(this.identityService, this.deviceService);
@@ -75,8 +87,10 @@ export class BffApp {
     const reportsController = new ReportsController(
       this.salesService,
       this.reportCache,
-      (name) => this.getBreaker(name)
+      (name) => this.getBreaker(name),
+      this.reportingService
     );
+    const einvoicingController = new EinvoicingController(this.einvoicingService);
     const terminalsController = new TerminalsController(this.deviceService);
     const usersController = new UsersController(this.identityService);
     const catalogController = new CatalogController(this.catalogService, this.reportCache);
@@ -88,6 +102,7 @@ export class BffApp {
       authController,
       bootstrapController,
       reportsController,
+      einvoicingController,
       terminalsController,
       usersController,
       catalogController,
@@ -104,6 +119,44 @@ export class BffApp {
       this.breakers.set(name, b);
     }
     return b;
+  }
+
+  /**
+   * Registra una venta en el sales-service y consolida inmediatamente en reporting-service
+   * para el Libro Fiscal de Operaciones Diarias (Art. 616 E.T.).
+   */
+  recordSaleAndConsolidate(params: Parameters<SalesService["consumeSaleCompletedEvent"]>[0]) {
+    const result = this.salesService.consumeSaleCompletedEvent(params);
+    if (!result.deduplicated && result.sale) {
+      const s = result.sale;
+      this.reportingService.processSaleRecorded({
+        eventId: `${params.eventId}:rpt`,
+        tenantId: s.tenant_id,
+        branchId: s.branch_id,
+        terminalId: s.terminal_id,
+        occurredAtMs: s.occurred_at_ms,
+        saleId: s.sale_id,
+        totalCents: s.total_cents,
+        discountCents: 0,
+        taxCents: s.tax_breakdown.iva19_cents + s.tax_breakdown.iva5_cents,
+        paymentMethod: s.payments[0]?.method ?? "CASH",
+        receiptNumber: s.receipt_code,
+        taxBreakdown: {
+          gravado19Cents: s.tax_breakdown.gravado19_cents,
+          gravado5Cents: s.tax_breakdown.gravado5_cents,
+          exentoCents: s.tax_breakdown.exento_cents,
+          excluidoCents: s.tax_breakdown.excluido_cents,
+          inc8Cents: s.tax_breakdown.inc8_cents
+        },
+        lines: s.lines.map((l) => ({
+          productId: l.product_id,
+          productName: l.description,
+          qtyMilli: l.qty_milli,
+          subtotalCents: l.line_total_cents
+        }))
+      });
+    }
+    return result;
   }
 
   /**

@@ -9,6 +9,7 @@ import type { CatalogController } from "./controllers/catalog.controller.js";
 import type { InventoryController } from "./controllers/inventory.controller.js";
 import type { SalesController } from "./controllers/sales.controller.js";
 import type { CustomersController } from "./controllers/customers.controller.js";
+import type { EinvoicingController } from "./controllers/einvoicing.controller.js";
 
 export interface RouterControllers {
   authController: AuthController;
@@ -20,6 +21,7 @@ export interface RouterControllers {
   inventoryController: InventoryController;
   salesController: SalesController;
   customersController: CustomersController;
+  einvoicingController?: EinvoicingController;
 }
 
 export class BffRouter {
@@ -27,9 +29,12 @@ export class BffRouter {
 
   async route(req: HttpRequest, nowMs: number): Promise<HttpResponse> {
     const { path, method, claims } = req;
+    const [pathPart, search] = path.split("?");
+    const cleanPath = pathPart ?? "";
+    const queryParams = new URLSearchParams(search ?? "");
 
     // --- Endpoints públicos ---
-    if (method === "GET" && path === "/openapi.json") {
+    if (method === "GET" && cleanPath === "/openapi.json") {
       return {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -37,7 +42,7 @@ export class BffRouter {
       };
     }
 
-    if (method === "GET" && (path === "/docs" || path === "/api-docs")) {
+    if (method === "GET" && (cleanPath === "/docs" || cleanPath === "/api-docs")) {
       const html = `<!doctype html>
 <html lang="es">
   <head>
@@ -57,11 +62,11 @@ export class BffRouter {
       };
     }
 
-    if (method === "POST" && path === "/v1/auth/login") {
+    if (method === "POST" && cleanPath === "/v1/auth/login") {
       return this.controllers.authController.login(req, nowMs);
     }
 
-    if (method === "POST" && path === "/v1/auth/activate") {
+    if (method === "POST" && cleanPath === "/v1/auth/activate") {
       return this.controllers.authController.activate(req, nowMs);
     }
 
@@ -92,108 +97,149 @@ export class BffRouter {
     }
 
     // --- Bootstrap ---
-    if (method === "GET" && path === "/v1/app/bootstrap") {
+    if (method === "GET" && cleanPath === "/v1/app/bootstrap") {
       return this.controllers.bootstrapController.bootstrap(req);
     }
 
     // --- Reportes & Dashboard ---
-    if (method === "GET" && path === "/v1/app/reports/dashboard") {
+    if (method === "GET" && cleanPath === "/v1/app/reports/dashboard") {
       return this.controllers.reportsController.getDashboard(req, nowMs);
     }
-    if (method === "POST" && path === "/v1/app/events/sales-recorded") {
+    if (method === "POST" && cleanPath === "/v1/app/events/sales-recorded") {
       return this.controllers.reportsController.invalidateSalesCache(req);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/reports/libro-fiscal") {
+      return this.controllers.reportsController.getLibroFiscal(req, nowMs, queryParams);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/reports/libro-fiscal/csv") {
+      return this.controllers.reportsController.getLibroFiscalCsv(req, nowMs, queryParams);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/reports/libro-fiscal/thermal") {
+      return this.controllers.reportsController.getLibroFiscalThermal(req, nowMs, queryParams);
+    }
+
+    // --- Facturación Electrónica DIAN ---
+    if (cleanPath === "/v1/app/einvoicing/resolutions") {
+      if (method === "GET") {
+        return this.controllers.einvoicingController?.listResolutions(req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "EINVOICING_UNAVAILABLE" }
+        };
+      }
+      if (method === "POST") {
+        return this.controllers.einvoicingController?.registerResolution(req, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "EINVOICING_UNAVAILABLE" }
+        };
+      }
+    }
+    if (method === "GET" && cleanPath === "/v1/app/einvoicing/alerts") {
+      return this.controllers.einvoicingController?.getAlerts(req, nowMs) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
+    }
+    if (method === "GET" && cleanPath === "/v1/app/einvoicing/contingency") {
+      return this.controllers.einvoicingController?.getContingencyStatus(req) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
     }
 
     // --- Cajas / Terminales ---
-    if (method === "GET" && path === "/v1/app/terminals") {
+    if (method === "GET" && cleanPath === "/v1/app/terminals") {
       return this.controllers.terminalsController.listTerminals(req);
     }
-    if (method === "POST" && path === "/v1/app/terminals") {
+    if (method === "POST" && cleanPath === "/v1/app/terminals") {
       return this.controllers.terminalsController.createTerminal(req);
     }
-    const matchEnroll = path.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/enrollment-code$/);
+    const matchEnroll = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/enrollment-code$/);
     if (method === "POST" && matchEnroll) {
       return this.controllers.terminalsController.generateEnrollmentCode(matchEnroll[1]!, req, nowMs);
     }
-    const matchRevoke = path.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/revoke$/);
+    const matchRevoke = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/revoke$/);
     if (method === "POST" && matchRevoke) {
       return this.controllers.terminalsController.revokeTerminal(matchRevoke[1]!, req, nowMs);
     }
-    const matchForceClose = path.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/force-close-shift$/);
+    const matchForceClose = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/force-close-shift$/);
     if (method === "POST" && matchForceClose) {
       return this.controllers.terminalsController.forceCloseShift(matchForceClose[1]!, req);
     }
 
     // --- Usuarios / Empleados ---
-    if (method === "GET" && path === "/v1/app/users") {
+    if (method === "GET" && cleanPath === "/v1/app/users") {
       return this.controllers.usersController.listUsers(req);
     }
-    if (method === "POST" && path === "/v1/app/users") {
+    if (method === "POST" && cleanPath === "/v1/app/users") {
       return this.controllers.usersController.createUser(req, nowMs);
     }
-    const matchUserPatch = path.match(/^\/v1\/app\/users\/([a-zA-Z0-9_-]+)$/);
+    const matchUserPatch = cleanPath.match(/^\/v1\/app\/users\/([a-zA-Z0-9_-]+)$/);
     if (method === "PATCH" && matchUserPatch) {
       return this.controllers.usersController.patchUser(matchUserPatch[1]!, req);
     }
 
     // --- Catálogo y Productos ---
-    const matchBarcode = path.match(/^\/v1\/app\/products\/by-barcode\/([a-zA-Z0-9_-]+)$/);
+    const matchBarcode = cleanPath.match(/^\/v1\/app\/products\/by-barcode\/([a-zA-Z0-9_-]+)$/);
     if (method === "GET" && matchBarcode) {
       return this.controllers.catalogController.getProductByBarcode(matchBarcode[1]!, req);
     }
-    if (method === "GET" && path === "/v1/app/products") {
+    if (method === "GET" && cleanPath === "/v1/app/products") {
       return this.controllers.catalogController.listProducts(req);
     }
-    if (method === "POST" && path === "/v1/app/products") {
+    if (method === "POST" && cleanPath === "/v1/app/products") {
       return this.controllers.catalogController.createProduct(req);
     }
-    const matchProductPatch = path.match(/^\/v1\/app\/products\/([a-zA-Z0-9_-]+)$/);
+    const matchProductPatch = cleanPath.match(/^\/v1\/app\/products\/([a-zA-Z0-9_-]+)$/);
     if (method === "PATCH" && matchProductPatch) {
       return this.controllers.catalogController.patchProduct(matchProductPatch[1]!, req);
     }
-    const matchProductDuplicate = path.match(/^\/v1\/app\/products\/([a-zA-Z0-9_-]+)\/duplicate$/);
+    const matchProductDuplicate = cleanPath.match(/^\/v1\/app\/products\/([a-zA-Z0-9_-]+)\/duplicate$/);
     if (method === "POST" && matchProductDuplicate) {
       return this.controllers.catalogController.duplicateProduct(matchProductDuplicate[1]!, req);
     }
-    if (method === "GET" && path === "/v1/app/products/excel-template") {
+    if (method === "GET" && cleanPath === "/v1/app/products/excel-template") {
       return this.controllers.catalogController.getExcelTemplate();
     }
-    if (method === "POST" && path === "/v1/app/catalog/convert-generic") {
+    if (method === "POST" && cleanPath === "/v1/app/catalog/convert-generic") {
       return this.controllers.catalogController.convertGeneric(req);
     }
-    if (method === "POST" && path === "/v1/app/catalog/quick-margin-calc") {
+    if (method === "POST" && cleanPath === "/v1/app/catalog/quick-margin-calc") {
       return this.controllers.catalogController.quickMarginCalc(req);
     }
-    if (method === "POST" && path === "/v1/app/catalog/bulk-price-update") {
+    if (method === "POST" && cleanPath === "/v1/app/catalog/bulk-price-update") {
       return this.controllers.catalogController.bulkPriceUpdate(req, nowMs);
     }
 
     // --- Inventario ---
-    if (method === "POST" && path === "/v1/app/inventory/counts") {
+    if (method === "POST" && cleanPath === "/v1/app/inventory/counts") {
       return this.controllers.inventoryController.applyPhysicalCounts(req, nowMs);
     }
-    if (method === "POST" && path === "/v1/app/inventory/receptions") {
+    if (method === "POST" && cleanPath === "/v1/app/inventory/receptions") {
       return this.controllers.inventoryController.recordPurchaseReceptions(req, nowMs);
     }
-    const matchKardex = path.match(/^\/v1\/app\/inventory\/kardex\/([a-zA-Z0-9_-]+)$/);
+    const matchKardex = cleanPath.match(/^\/v1\/app\/inventory\/kardex\/([a-zA-Z0-9_-]+)$/);
     if (method === "GET" && matchKardex) {
       return this.controllers.inventoryController.getKardex(matchKardex[1]!, req);
     }
 
     // --- Ventas y Pagos Digitales ---
-    if (method === "POST" && path === "/v1/app/sales/reconcile-digital-payments") {
+    if (method === "POST" && cleanPath === "/v1/app/sales/reconcile-digital-payments") {
       return this.controllers.salesController.reconcileDigitalPayments(req);
     }
 
     // --- Clientes y Cartera ---
-    if (method === "GET" && path === "/v1/app/customers") {
+    if (method === "GET" && cleanPath === "/v1/app/customers") {
       return this.controllers.customersController.listCustomers(req);
     }
-    const matchWriteOff = path.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/write-off$/);
+    const matchWriteOff = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/write-off$/);
     if (method === "POST" && matchWriteOff) {
       return this.controllers.customersController.writeOffDebt(matchWriteOff[1]!, req, nowMs);
     }
-    const matchSuppress = path.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/suppress-data$/);
+    const matchSuppress = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/suppress-data$/);
     if (method === "POST" && matchSuppress) {
       return this.controllers.customersController.suppressCustomerData(matchSuppress[1]!, req);
     }

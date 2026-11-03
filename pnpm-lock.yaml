@@ -407,12 +407,21 @@ importers:
       '@tiendita/device-service':
         specifier: workspace:*
         version: link:../device-service
+      '@tiendita/einvoicing-service':
+        specifier: workspace:*
+        version: link:../einvoicing-service
       '@tiendita/identity-service':
         specifier: workspace:*
         version: link:../identity-service
       '@tiendita/inventory-service':
         specifier: workspace:*
         version: link:../inventory-service
+      '@tiendita/notification-service':
+        specifier: workspace:*
+        version: link:../notification-service
+      '@tiendita/reporting-service':
+        specifier: workspace:*
+        version: link:../reporting-service
       '@tiendita/sales-service':
         specifier: workspace:*
         version: link:../sales-service

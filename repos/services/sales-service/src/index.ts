@@ -14,6 +14,19 @@ export interface CloudSaleLineRecord {
   line_total_cents: number;
   returned_qty_milli: number;
   sold_with_stale_price: boolean;
+  tax_category?: "GRAVADO_19" | "GRAVADO_5" | "EXENTO" | "EXCLUIDO" | "INC_8";
+  tax_rate_bps?: number;
+  tax_amount_cents?: number;
+}
+
+export interface TaxBreakdownRecord {
+  gravado19_cents: number;
+  iva19_cents: number;
+  gravado5_cents: number;
+  iva5_cents: number;
+  exento_cents: number;
+  excluido_cents: number;
+  inc8_cents: number;
 }
 
 export interface CloudPaymentReconciliationRecord {
@@ -45,6 +58,7 @@ export interface CloudSaleRecord {
   lines: CloudSaleLineRecord[];
   payments: CloudPaymentReconciliationRecord[];
   occurred_at_ms: number;
+  tax_breakdown: TaxBreakdownRecord;
 }
 
 export interface DeferredReturnRecord {
@@ -71,7 +85,8 @@ export class SalesService {
   /**
    * HU-084, HU-192, HU-193 & HU-281: Consume `sale.completed` con idempotencia (`inbox`),
    * garantiza unicidad en `sale_receipt_numbers`, acepta productos borrados lógicamente (`E06`),
-   * detecta ventas con precio anterior al cambio en nube (`E05`) y enlaza devoluciones diferidas (`E23`).
+   * detecta ventas con precio anterior al cambio en nube (`E05`), calcula/asigna desglose fiscal
+   * para consolidación en Libro Fiscal (Art. 616 E.T.) y enlaza devoluciones diferidas (`E23`).
    */
   consumeSaleCompletedEvent(params: {
     eventId: string;
@@ -85,6 +100,7 @@ export class SalesService {
     receiptPrefix: string;
     receiptNumber: number;
     totalCents: number;
+    taxBreakdown?: Partial<TaxBreakdownRecord>;
     lines: {
       line_id: string;
       product_id: string;
@@ -92,6 +108,9 @@ export class SalesService {
       qty_milli: number;
       unit_price_cents: number;
       line_total_cents: number;
+      tax_category?: "GRAVADO_19" | "GRAVADO_5" | "EXENTO" | "EXCLUIDO" | "INC_8";
+      tax_rate_bps?: number;
+      tax_amount_cents?: number;
     }[];
     payments: {
       payment_id: string;
@@ -144,6 +163,44 @@ export class SalesService {
       return rec;
     });
 
+    // Desglose fiscal determinístico para Libro Fiscal (Art. 616 E.T.)
+    const breakdown: TaxBreakdownRecord = {
+      gravado19_cents: params.taxBreakdown?.gravado19_cents ?? 0,
+      iva19_cents: params.taxBreakdown?.iva19_cents ?? 0,
+      gravado5_cents: params.taxBreakdown?.gravado5_cents ?? 0,
+      iva5_cents: params.taxBreakdown?.iva5_cents ?? 0,
+      exento_cents: params.taxBreakdown?.exento_cents ?? 0,
+      excluido_cents: params.taxBreakdown?.excluido_cents ?? 0,
+      inc8_cents: params.taxBreakdown?.inc8_cents ?? 0
+    };
+
+    if (!params.taxBreakdown) {
+      let anyTaxTagged = false;
+      for (const l of cloudLines) {
+        if (l.tax_category) {
+          anyTaxTagged = true;
+          const taxAmt = l.tax_amount_cents ?? 0;
+          const baseAmt = l.line_total_cents - taxAmt;
+          if (l.tax_category === "GRAVADO_19") {
+            breakdown.gravado19_cents += baseAmt;
+            breakdown.iva19_cents += taxAmt;
+          } else if (l.tax_category === "GRAVADO_5") {
+            breakdown.gravado5_cents += baseAmt;
+            breakdown.iva5_cents += taxAmt;
+          } else if (l.tax_category === "EXCLUIDO") {
+            breakdown.excluido_cents += l.line_total_cents;
+          } else if (l.tax_category === "INC_8") {
+            breakdown.inc8_cents += l.line_total_cents;
+          } else {
+            breakdown.exento_cents += l.line_total_cents;
+          }
+        }
+      }
+      if (!anyTaxTagged) {
+        breakdown.exento_cents = params.totalCents;
+      }
+    }
+
     const sale: CloudSaleRecord = {
       sale_id: params.saleId,
       tenant_id: params.tenantId,
@@ -159,7 +216,8 @@ export class SalesService {
       status: "COMPLETED",
       lines: cloudLines,
       payments: cloudPayments,
-      occurred_at_ms: params.occurredAtMs
+      occurred_at_ms: params.occurredAtMs,
+      tax_breakdown: breakdown
     };
 
     // HU-193 (E23): Verificar si había devoluciones en PENDING_ORIGINAL_SALE esperando este comprobante

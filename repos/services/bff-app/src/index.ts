@@ -11,6 +11,7 @@ export * from "./cache/report-cache.js";
 export * from "./controllers/auth.controller.js";
 export * from "./controllers/bootstrap.controller.js";
 export * from "./controllers/reports.controller.js";
+export * from "./controllers/einvoicing.controller.js";
 export * from "./controllers/terminals.controller.js";
 export * from "./controllers/users.controller.js";
 export * from "./controllers/catalog.controller.js";

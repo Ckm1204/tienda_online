@@ -8,6 +8,9 @@ import type { CashService } from "@tiendita/cash-service";
 import type { InventoryService } from "@tiendita/inventory-service";
 import type { CustomerService } from "@tiendita/customer-service";
 import type { AuditService } from "@tiendita/audit-service";
+import type { ReportingService } from "@tiendita/reporting-service";
+import type { EinvoicingService } from "@tiendita/einvoicing-service";
+import type { NotificationService } from "@tiendita/notification-service";
 
 export interface HttpResponse {
   status: number;
@@ -48,4 +51,7 @@ export interface BffAppDependencies {
   inventoryService?: InventoryService;
   customerService?: CustomerService;
   auditService?: AuditService;
+  reportingService?: ReportingService;
+  einvoicingService?: EinvoicingService;
+  notificationService?: NotificationService;
 }
