@@ -129,7 +129,21 @@ Solo `GET`. Parámetros comunes: `branch_id`, `terminal_id`, `from`, `to`, `grou
 | `/audit` | Auditoría |
 | `/taxes` | Impuestos discriminados del periodo |
 | `POST /exports` → `202` | Genera Excel/PDF asíncrono y devuelve URL prefirmada de corta vida |
+| `/reports/libro-fiscal` | Libro Fiscal de Operaciones Diarias (Art. 616 E.T.) consolidado en centavos |
+| `/reports/libro-fiscal/csv` | Descarga de Libro Fiscal tabular CSV homologado para requerimientos DIAN |
+| `/reports/libro-fiscal/thermal` | Tirilla de Cierre Fiscal Diario Reporte Z en texto ESC/POS (80 mm / 58 mm) |
 | `PUT /v1/app/me/notifications` | Preferencias de notificaciones push del usuario |
+
+### 3b. Facturación Electrónica & Documento Equivalente POS DIAN (`/v1/app/einvoicing/*`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/v1/app/einvoicing/resolutions` | Lista resoluciones activas y bloques de folios autorizados por tenant |
+| `POST` | `/v1/app/einvoicing/resolutions` | Registra resolución DIAN validando rangos sin solapamiento (GiST) y custodia de clave en AWS Secrets Manager |
+| `GET` | `/v1/app/einvoicing/alerts` | Semáforo de vencimiento (<30 días) y agotamiento de rango (<500 folios) |
+| `POST` | `/v1/app/einvoicing/cude` | Calcula hash CUDE canónico SHA-384 (96 caracteres) y URL de búsqueda QR en VPFE DIAN |
+| `POST` | `/v1/app/einvoicing/ubl-preview` | Construye y previsualiza documento XML oficial en esquema OASIS UBL 2.1 |
+| `GET` | `/v1/app/einvoicing/contingency` | Estado de contingencia Tipo 4 y archivo inmutable WORM de 10 años en Amazon S3 |
 
 ## 3c. Activación de la Edición Local — `device-service` (`/v1/local-activation/*`)
 
