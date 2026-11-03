@@ -383,6 +383,30 @@ Autoriza una sesión de soporte técnico con permisos de solo lectura o interven
 - `POST /v1/app/terminals/{id}/test-print`: Emite ticket de prueba ESC/POS con código de corte y alineación.
 - `POST /v1/app/terminals/{id}/test-drawer`: Emite pulso eléctrico RJ-11 (24V 100ms) al solenoide del cajón.
 
+#### 4.2.4 Conciliación de Pagos Digitales (Nequi, Daviplata, Bre-B)
+- `GET /v1/app/sales/digital-payments`:
+  - Query params: `status` (PENDING | CONFIRMED | FAILED), `method` (NEQUI | DAVIPLATA | BRE_B | TRANSFER | CARD), `branchId`.
+  - Retorna: `{ totalCount, pendingCount, pendingTotalCents, confirmedTotalCents, items: [...] }`.
+- `POST /v1/app/sales/digital-payments/reconcile`:
+  - Body: `{ paymentIds: string[], status: "CONFIRMED" | "FAILED" }`.
+  - Actualiza el estado de conciliación bancaria y publica evento `payment.reconciliation_changed`.
+
+#### 4.2.5 Inventario, Mermas y Traslados entre Sucursales
+- `POST /v1/app/inventory/adjustments`:
+  - Body: `{ warehouseId, productId, kind: "ADJUSTMENT_DAMAGED" | "ADJUSTMENT_EXPIRED" | "ADJUSTMENT_SHRINKAGE", deltaMilli, reason }`.
+  - Valida motivo obligatorio (mínimo 3 caracteres) y cantidad distinta de cero. Descuenta del Kardex y recalcula stock.
+- `GET /v1/app/inventory/transfers`:
+  - Query params: `warehouseId` (opcional).
+  - Retorna listado de transferencias con su estado (`IN_TRANSIT`, `RECEIVED`, `RECEIVED_WITH_DIFF`).
+- `POST /v1/app/inventory/transfers`:
+  - Body: `{ fromWarehouseId, toWarehouseId, productId, qtyMilli }`.
+  - Despacha mercancía entre bodegas, deduce stock de origen y genera registro en ruta `IN_TRANSIT`.
+- `POST /v1/app/inventory/transfers/{id}/receive`:
+  - Body: `{ receivedQtyMilli, diffNote? }`.
+  - Recibe mercancía en bodega de destino. Exige `diffNote` si la cantidad difiere de la despachada.
+- `GET /v1/app/inventory/stock`:
+  - Retorna niveles de inventario por bodega con cálculo reactivo de alerta de bajo stock (`isLowStock: on_hand_milli <= min_stock_milli`).
+
 ## 5. Webhooks entrantes
 
 | Origen | Ruta | Validación |

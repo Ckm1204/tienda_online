@@ -9,12 +9,14 @@ import UserCheck from "lucide-react-native/icons/user-check";
 import User from "lucide-react-native/icons/user";
 import Scale from "lucide-react-native/icons/scale";
 import ShieldCheck from "lucide-react-native/icons/shield-check";
+import CreditCard from "lucide-react-native/icons/credit-card";
 import type { ManagementUser } from "../auth/auth-state";
 
 export type NavigationSection =
   | "dashboard"
   | "catalog"
   | "inventory"
+  | "reconciliation"
   | "customers"
   | "terminals"
   | "users"
@@ -35,6 +37,7 @@ export const ALL_NAV_ITEMS: NavigationItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, requiredPermission: "reports.read" },
   { id: "catalog", label: "Catálogo", icon: ShoppingBag, requiredPermission: "catalog.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "inventory", label: "Inventario", icon: Package, requiredPermission: "inventory.read", disallowedRoles: ["ACCOUNTANT"] },
+  { id: "reconciliation", label: "Conciliación", icon: CreditCard, requiredPermission: "reports.read", disallowedRoles: ["CASHIER"] },
   { id: "customers", label: "Clientes", icon: Users, requiredPermission: "customer.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "terminals", label: "Cajas", icon: Monitor, requiredPermission: "terminal.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "users", label: "Empleados", icon: UserCheck, requiredPermission: "user.read", disallowedRoles: ["ACCOUNTANT"] },

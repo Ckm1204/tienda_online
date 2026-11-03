@@ -65,7 +65,9 @@ async function runSimulation() {
       "terminal.read",
       "terminal.manage",
       "user.read",
-      "user.manage"
+      "user.manage",
+      "inventory.read",
+      "inventory.manage"
     ]
   };
 
@@ -864,6 +866,123 @@ async function runSimulation() {
     }
   }, nowMs + 14500000);
   printStep("👤", `Cajera creada exitosamente: "${goodUserRes.body.full_name}" con rol ${goodUserRes.body.role_code} y PIN Argon2id.`);
+
+  // ============================================================================
+  // PASO 21: CONCILIACIÓN DE PAGOS DIGITALES, MERMAS Y TRASLADOS ENTRE SUCURSALES (ÉPICA 09 & 10)
+  // ============================================================================
+  printSection("PASO 21: CONCILIACIÓN DE PAGOS DIGITALES, MERMAS Y TRASLADOS ENTRE SUCURSALES (ÉPICA 09 & 10)");
+
+  // 21.1 Consulta de Pagos Digitales del Día (Nequi, Daviplata, Bre-B)
+  const digitalPaymentsRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/app/sales/digital-payments",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 15000000);
+  if (digitalPaymentsRes.status !== 200) {
+    throw new Error(`Error consultando pagos digitales: ${JSON.stringify(digitalPaymentsRes.body)}`);
+  }
+  const digPayBody = digitalPaymentsRes.body;
+  printStep("📱", `Pagos digitales registrados hoy en caja: ${digPayBody.totalCount} transacciones (Total: $${(digPayBody.pendingTotalCents / 100).toLocaleString("es-CO")} COP por verificar).`);
+
+  // 21.2 Conciliación en Lote de Pagos Digitales contra Extracto Bancario
+  const pendingIds = digPayBody.items.filter((p) => p.status === "PENDING").map((p) => p.paymentId);
+  if (pendingIds.length > 0) {
+    const reconcileRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/sales/digital-payments/reconcile",
+      ip: "127.0.0.1",
+      headers: { "content-type": "application/json" },
+      claims,
+      body: {
+        paymentIds: pendingIds,
+        status: "CONFIRMED"
+      }
+    }, nowMs + 15100000);
+    if (reconcileRes.status !== 200) {
+      throw new Error(`Error en conciliación de pagos digitales: ${JSON.stringify(reconcileRes.body)}`);
+    }
+    printStep("✓", `Conciliación bancaria exitosa: ${reconcileRes.body.reconciledCount} pagos digitales confirmados como acreditados en Nequi/Bre-B.`);
+  }
+
+  // 21.3 Registro de Merma / Avería con Motivo Legal Obligatorio (HU-090 & HU-401)
+  const warehouseId = "wh_chapinero";
+  bff.inventoryService.recordInitialStock({
+    tenantId,
+    warehouseId,
+    productId: "P_ARROZ_1K",
+    qtyMilli: 50000, // 50 kg
+    unitCostCents: 370000,
+    minStockMilli: 10000,
+    idealStockMilli: 60000
+  });
+
+  const adjustmentRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/inventory/adjustments",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      warehouseId,
+      productId: "P_ARROZ_1K",
+      kind: "ADJUSTMENT_DAMAGED",
+      deltaMilli: -2000, // -2 kg dañados
+      reason: "Bolsas rasgadas por manipulación en exhibidor"
+    }
+  }, nowMs + 15200000);
+  if (adjustmentRes.status !== 201) {
+    throw new Error(`Error registrando merma de inventario: ${JSON.stringify(adjustmentRes.body)}`);
+  }
+  printStep("📦", `Avería de inventario registrada en Kardex: -2.000 g de Arroz Diana ("${adjustmentRes.body.level.onHandMilli / 1000} kg restantes en bodega").`);
+
+  // 21.4 Despacho y Recepción de Traslado entre Bodegas con Novedad (HU-092 & HU-402)
+  const transferDispatchRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/inventory/transfers",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      fromWarehouseId: warehouseId,
+      toWarehouseId: "wh_sucursal_cedritos",
+      productId: "P_ARROZ_1K",
+      qtyMilli: 20000 // 20 kg
+    }
+  }, nowMs + 15300000);
+  if (transferDispatchRes.status !== 201) {
+    throw new Error(`Error despachando traslado: ${JSON.stringify(transferDispatchRes.body)}`);
+  }
+  const transferData = transferDispatchRes.body.transfer;
+  printStep("🚚", `Traslado despachado: #${transferData.id.slice(0, 8)} (${transferData.sentQtyMilli / 1000} kg de ${transferData.fromWarehouseId} ➔ ${transferData.toWarehouseId}) en estado IN_TRANSIT.`);
+
+  const transferReceiveRes = await bff.handleRequest({
+    method: "POST",
+    path: `/v1/app/inventory/transfers/${transferData.id}/receive`,
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      receivedQtyMilli: 19000, // 19 kg recibidos (1 kg diferencia)
+      diffNote: "Llegaron 19 bolsas íntegras; 1 bolsa con pérdida durante transporte"
+    }
+  }, nowMs + 15400000);
+  if (transferReceiveRes.status !== 200) {
+    throw new Error(`Error recibiendo traslado: ${JSON.stringify(transferReceiveRes.body)}`);
+  }
+  const receivedData = transferReceiveRes.body.transfer;
+  printStep("🏬", `Recepción de traslado procesada: Estado ${receivedData.status} (${receivedData.receivedQtyMilli / 1000} kg recibidos). Novedad: "${receivedData.diffNote}".`);
+
+  // 21.5 Niveles de Stock Consolidados
+  const stockLevelsRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/app/inventory/stock",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 15500000);
+  printStep("📊", `Niveles de inventario actualizados: ${stockLevelsRes.body.count} registros de bodega con control de stock mínimo.`);
 
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

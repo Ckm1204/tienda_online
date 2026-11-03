@@ -953,4 +953,249 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     expect((drawerRes.body as any).success).toBe(true);
     expect((drawerRes.body as any).message).toContain("cajón monedero");
   });
+
+  it("HU-236: Conciliación de Pagos Digitales del Día (Nequi, Daviplata, Bre-B) con filtros y confirmación por lote", async () => {
+    const claims = {
+      sub: ownerId,
+      tid: tenantId,
+      roles: ["OWNER"],
+      perms: ["reports.read"],
+      aud: "mgmt-app"
+    };
+
+    // Registrar 2 ventas en salesService con pagos digitales (Nequi y Daviplata)
+    bff.salesService.consumeSaleCompletedEvent({
+      eventId: "evt-sale-dig-01",
+      tenantId,
+      branchId: "branch-main",
+      terminalId: "term-01",
+      cashSessionId: "session-01",
+      cashierId: "usr-cajera-01",
+      saleId: "sale-dig-01",
+      receiptPrefix: "POS",
+      receiptNumber: 101,
+      totalCents: 4500000, // $45.000 COP
+      lines: [
+        {
+          line_id: "line-01",
+          product_id: "prod-arr-01",
+          description: "Arroz Diana 1kg",
+          qty_milli: 5000,
+          unit_price_cents: 900000,
+          line_total_cents: 4500000
+        }
+      ],
+      payments: [
+        {
+          payment_id: "pay-nequi-001",
+          method: "NEQUI",
+          amount_cents: 4500000,
+          reference: "M102938"
+        }
+      ],
+      occurredAtMs: t0
+    });
+
+    bff.salesService.consumeSaleCompletedEvent({
+      eventId: "evt-sale-dig-02",
+      tenantId,
+      branchId: "branch-main",
+      terminalId: "term-01",
+      cashSessionId: "session-01",
+      cashierId: "usr-cajera-01",
+      saleId: "sale-dig-02",
+      receiptPrefix: "POS",
+      receiptNumber: 102,
+      totalCents: 3200000, // $32.000 COP
+      lines: [
+        {
+          line_id: "line-02",
+          product_id: "prod-ace-02",
+          description: "Aceite Premier",
+          qty_milli: 2000,
+          unit_price_cents: 1600000,
+          line_total_cents: 3200000
+        }
+      ],
+      payments: [
+        {
+          payment_id: "pay-davi-002",
+          method: "DAVIPLATA",
+          amount_cents: 3200000,
+          reference: "D882711"
+        }
+      ],
+      occurredAtMs: t0 + 1000
+    });
+
+    // 1. Listar pagos digitales pendientes
+    const listRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/sales/digital-payments",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 2000);
+    expect(listRes.status).toBe(200);
+    const body = listRes.body as any;
+    expect(body.totalCount).toBe(2);
+    expect(body.pendingCount).toBe(2);
+    expect(body.pendingTotalCents).toBe(7700000); // $77.000 COP
+    expect(body.items[0].method).toBe("DAVIPLATA");
+    expect(body.items[1].method).toBe("NEQUI");
+
+    // 2. Conciliación por lote (Confirmar Nequi, Rechazar Daviplata)
+    const confRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/sales/digital-payments/reconcile",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: { paymentIds: ["pay-nequi-001"], status: "CONFIRMED" }
+    }, t0 + 3000);
+    expect(confRes.status).toBe(200);
+    expect((confRes.body as any).reconciledCount).toBe(1);
+
+    const failRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/sales/digital-payments/reconcile",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: { paymentIds: ["pay-davi-002"], status: "FAILED" }
+    }, t0 + 3100);
+    expect(failRes.status).toBe(200);
+
+    // 3. Verificar estado actualizado
+    const listUpdated = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/sales/digital-payments",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 4000);
+    const updatedBody = listUpdated.body as any;
+    expect(updatedBody.pendingCount).toBe(0);
+    expect(updatedBody.confirmedTotalCents).toBe(4500000);
+  });
+
+  it("HU-090, HU-401, HU-092 & HU-402: Ajustes de inventario (mermas/averías) y Traslados entre Bodegas", async () => {
+    const claims = {
+      sub: ownerId,
+      tid: tenantId,
+      roles: ["OWNER"],
+      perms: ["inventory.read", "inventory.manage"],
+      aud: "mgmt-app"
+    };
+
+    // Crear stock inicial en bodega principal (wh-main)
+    bff.inventoryService.recordInitialStock({
+      tenantId,
+      warehouseId: "wh-main",
+      productId: "prod-huevos-30",
+      qtyMilli: 50000, // 50 panales
+      unitCostCents: 1400000,
+      minStockMilli: 10000,
+      idealStockMilli: 60000
+    });
+
+    // 1. Ajuste de inventario por avería (Huevos rotos en transporte)
+    const adjRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/inventory/adjustments",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        warehouseId: "wh-main",
+        productId: "prod-huevos-30",
+        kind: "ADJUSTMENT_DAMAGED",
+        deltaMilli: -2000, // -2 panales rotos
+        reason: "Huevos rotos durante descarga del camión"
+      }
+    }, t0);
+    expect(adjRes.status).toBe(201);
+    expect((adjRes.body as any).level.onHandMilli).toBe(48000);
+
+    // Validación de error: motivo vacío
+    const invalidAdj = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/inventory/adjustments",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        warehouseId: "wh-main",
+        productId: "prod-huevos-30",
+        kind: "ADJUSTMENT_DAMAGED",
+        deltaMilli: -1000,
+        reason: " "
+      }
+    }, t0 + 100);
+    expect(invalidAdj.status).toBe(400);
+
+    // 2. Despacho de traslado entre bodegas (wh-main -> wh-sucursal-norte)
+    const dispatchRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/inventory/transfers",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        fromWarehouseId: "wh-main",
+        toWarehouseId: "wh-sucursal-norte",
+        productId: "prod-huevos-30",
+        qtyMilli: 20000 // 20 panales
+      }
+    }, t0 + 200);
+    expect(dispatchRes.status).toBe(201);
+    const transfer = (dispatchRes.body as any).transfer;
+    expect(transfer.status).toBe("IN_TRANSIT");
+    expect(transfer.sentQtyMilli).toBe(20000);
+
+    // 3. Recepción en bodega sucursal con novedad/diferencia (se recibieron 19 panales)
+    const receiveRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/inventory/transfers/${transfer.id}/receive`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        receivedQtyMilli: 19000,
+        diffNote: "Llegaron 19 panales completos, 1 panal faltante"
+      }
+    }, t0 + 500);
+    expect(receiveRes.status).toBe(200);
+    const recTransfer = (receiveRes.body as any).transfer;
+    expect(recTransfer.status).toBe("RECEIVED_WITH_DIFF");
+    expect(recTransfer.receivedQtyMilli).toBe(19000);
+    expect(recTransfer.diffNote).toContain("faltante");
+
+    // 4. Consultar listado de traslados
+    const listTrRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/inventory/transfers",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 600);
+    expect(listTrRes.status).toBe(200);
+    expect((listTrRes.body as any).count).toBe(1);
+
+    // 5. Consultar niveles de stock y alertas de bajo stock
+    const stockRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/inventory/stock",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 700);
+    expect(stockRes.status).toBe(200);
+    const levels = (stockRes.body as any).items;
+    expect(levels.length).toBeGreaterThanOrEqual(2);
+    const originStock = levels.find((l: any) => l.warehouseId === "wh-main" && l.productId === "prod-huevos-30");
+    expect(originStock.onHandMilli).toBe(28000); // 50 - 2 (avería) - 20 (traslado) = 28 panales
+    const destStock = levels.find((l: any) => l.warehouseId === "wh-sucursal-norte" && l.productId === "prod-huevos-30");
+    expect(destStock.onHandMilli).toBe(19000); // 19 panales recibidos
+  });
 });

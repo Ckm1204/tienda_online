@@ -17,6 +17,7 @@ vi.mock("lucide-react-native/icons/monitor", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/user-check", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/user", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/scale", () => ({ default: () => null }));
+vi.mock("lucide-react-native/icons/credit-card", () => ({ default: () => null }));
 
 import { ManagementAuthService } from "../auth/auth-state";
 import { LoginForm } from "../components/LoginForm";
@@ -206,6 +207,7 @@ describe("ÉPICA 10 — apps/management: Autenticación OIDC/MFA, Navegación y 
         "dashboard",
         "catalog",
         "inventory",
+        "reconciliation",
         "customers",
         "terminals",
         "users",

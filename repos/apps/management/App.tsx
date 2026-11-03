@@ -68,6 +68,15 @@ import {
   StoreRoleCode
 } from "./src/components/UsersScreen";
 import {
+  PaymentReconciliationScreen,
+  DigitalPaymentItem
+} from "./src/components/PaymentReconciliationScreen";
+import {
+  WarehouseTransfersModal,
+  WarehouseTransferItem
+} from "./src/components/WarehouseTransfersModal";
+import Truck from "lucide-react-native/icons/truck";
+import {
   SuperAdminScreen,
   SuperAdminMetrics,
   PlatformTenantItem,
@@ -457,6 +466,65 @@ export default function App() {
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemRow[]>(INITIAL_INVENTORY_ITEMS);
   const [feedMessage, setFeedMessage] = useState<string | null>(null);
+
+  // Conciliación de Pagos Digitales (Épica 09 & 10 - HU-102, HU-236)
+  const [digitalPayments, setDigitalPayments] = useState<DigitalPaymentItem[]>([
+    {
+      paymentId: "pay-nq-001",
+      saleId: "sale-8101",
+      receiptCode: "POS-001201",
+      method: "NEQUI",
+      amountCents: 4500000,
+      reference: "M102938",
+      status: "PENDING",
+      reconciledBy: null,
+      branchId: "branch-main",
+      cashSessionId: "session-01",
+      occurredAtMs: Date.now() - 3600000 * 2
+    },
+    {
+      paymentId: "pay-dv-002",
+      saleId: "sale-8102",
+      receiptCode: "POS-001202",
+      method: "DAVIPLATA",
+      amountCents: 2850000,
+      reference: "D883712",
+      status: "PENDING",
+      reconciledBy: null,
+      branchId: "branch-main",
+      cashSessionId: "session-01",
+      occurredAtMs: Date.now() - 3600000 * 3
+    },
+    {
+      paymentId: "pay-bb-003",
+      saleId: "sale-8103",
+      receiptCode: "POS-001203",
+      method: "BRE_B",
+      amountCents: 6200000,
+      reference: "BRB-99120",
+      status: "CONFIRMED",
+      reconciledBy: "usr-owner-001",
+      branchId: "branch-main",
+      cashSessionId: "session-01",
+      occurredAtMs: Date.now() - 3600000 * 5
+    }
+  ]);
+
+  // Traslados entre Bodegas y Mermas (Épica 09 & 10 - HU-090, HU-092, HU-401, HU-402)
+  const [transfers, setTransfers] = useState<WarehouseTransferItem[]>([
+    {
+      id: "tr-001-init",
+      fromWarehouseId: "wh-main",
+      toWarehouseId: "wh-sucursal-norte",
+      productId: "prod-001",
+      productName: "Arroz Diana Tradicional 1kg",
+      sentQtyMilli: 15000,
+      receivedQtyMilli: null,
+      status: "IN_TRANSIT",
+      diffNote: null
+    }
+  ]);
+  const [showTransfersModal, setShowTransfersModal] = useState(false);
 
   // Clientes con crédito (Fiado)
   const [customers, setCustomers] = useState<FiadoCustomer[]>([
@@ -934,9 +1002,52 @@ export default function App() {
                   {/* SECCIÓN 3: INVENTARIO Y CONTEOS */}
                   {activeSection === "inventory" && (
                     <View style={styles.sectionWrapper}>
+                      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 12 }}>
+                        <TouchableOpacity
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                            backgroundColor: "#059669",
+                            paddingVertical: 10,
+                            paddingHorizontal: 16,
+                            borderRadius: 8
+                          }}
+                          onPress={() => setShowTransfersModal(true)}
+                          testID="btn-open-transfers-modal"
+                        >
+                          <Truck size={18} color="#FFFFFF" />
+                          <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 13 }}>
+                            Traslados y Mermas de Inventario
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       <InventoryAdjustmentsScreen
                         initialItems={inventoryItems}
                         onConfirmAdjustment={handleConfirmInventory}
+                      />
+                    </View>
+                  )}
+
+                  {/* SECCIÓN 3.5: CONCILIACIÓN DE PAGOS DIGITALES (ÉPICA 09 & 10 - HU-102 & HU-236) */}
+                  {activeSection === "reconciliation" && (
+                    <View style={styles.sectionWrapper}>
+                      <PaymentReconciliationScreen
+                        initialPayments={digitalPayments}
+                        onReconcileBatch={async (paymentIds, status) => {
+                          setDigitalPayments((prev) =>
+                            prev.map((p) =>
+                              paymentIds.includes(p.paymentId)
+                                ? { ...p, status, reconciledBy: currentUser?.fullName ?? "Don Pedro Pérez" }
+                                : p
+                            )
+                          );
+                          setFeedMessage(
+                            status === "CONFIRMED"
+                              ? `✓ ${paymentIds.length} pago(s) conciliado(s) exitosamente.`
+                              : `Marcados ${paymentIds.length} pago(s) como rechazados / no recibidos.`
+                          );
+                        }}
                       />
                     </View>
                   )}
@@ -1461,6 +1572,64 @@ export default function App() {
             }}
           />
         ) : null}
+
+        {/* MODAL 8: Traslados entre Bodegas y Ajustes de Merma */}
+        <WarehouseTransfersModal
+          isOpen={showTransfersModal}
+          onClose={() => setShowTransfersModal(false)}
+          transfers={transfers}
+          products={products}
+          onDispatchTransfer={async (params) => {
+            const prod = products.find((p) => p.id === params.productId);
+            const newTr: WarehouseTransferItem = {
+              id: `tr-${Date.now()}`,
+              fromWarehouseId: params.fromWarehouseId,
+              toWarehouseId: params.toWarehouseId,
+              productId: params.productId,
+              productName: prod?.name,
+              sentQtyMilli: params.qtyMilli,
+              receivedQtyMilli: null,
+              status: "IN_TRANSIT",
+              diffNote: null
+            };
+            setTransfers((prev) => [newTr, ...prev]);
+            setProducts((prev) =>
+              prev.map((p) =>
+                p.id === params.productId
+                  ? { ...p, stockQtyMilli: Math.max(0, (p.stockQtyMilli ?? 0) - params.qtyMilli) }
+                  : p
+              )
+            );
+            setFeedMessage(`Traslado de ${params.qtyMilli / 1000} unidades despachado.`);
+          }}
+          onReceiveTransfer={async (params) => {
+            setTransfers((prev) =>
+              prev.map((t) => {
+                if (t.id === params.transferId) {
+                  const isDiff = params.receivedQtyMilli !== t.sentQtyMilli;
+                  return {
+                    ...t,
+                    receivedQtyMilli: params.receivedQtyMilli,
+                    status: isDiff ? "RECEIVED_WITH_DIFF" : "RECEIVED",
+                    diffNote: params.diffNote ?? null
+                  };
+                }
+                return t;
+              })
+            );
+            setFeedMessage(`Entrada de almacén confirmada (${params.receivedQtyMilli / 1000} unidades recibidas).`);
+          }}
+          onRecordAdjustment={async (params) => {
+            setProducts((prev) =>
+              prev.map((p) =>
+                p.id === params.productId
+                  ? { ...p, stockQtyMilli: Math.max(0, (p.stockQtyMilli ?? 0) + params.deltaMilli) }
+                  : p
+              )
+            );
+            setFeedMessage(`Ajuste de inventario (${params.kind}) registrado: ${params.reason}`);
+          }}
+        />
 
         {/* Pie de Página */}
         <View style={styles.footer}>

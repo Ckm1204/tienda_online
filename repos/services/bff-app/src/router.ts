@@ -378,13 +378,32 @@ export class BffRouter {
     if (method === "POST" && cleanPath === "/v1/app/inventory/receptions") {
       return this.controllers.inventoryController.recordPurchaseReceptions(req, nowMs);
     }
+    if (method === "POST" && cleanPath === "/v1/app/inventory/adjustments") {
+      return this.controllers.inventoryController.recordAdjustment(req, nowMs);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/inventory/transfers") {
+      return this.controllers.inventoryController.listTransfers(req, queryParams);
+    }
+    if (method === "POST" && cleanPath === "/v1/app/inventory/transfers") {
+      return this.controllers.inventoryController.dispatchTransfer(req, nowMs);
+    }
+    const matchReceiveTransfer = cleanPath.match(/^\/v1\/app\/inventory\/transfers\/([a-zA-Z0-9_-]+)\/receive$/);
+    if (method === "POST" && matchReceiveTransfer) {
+      return this.controllers.inventoryController.receiveTransfer(matchReceiveTransfer[1]!, req, nowMs);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/inventory/stock") {
+      return this.controllers.inventoryController.getStockLevels(req, queryParams);
+    }
     const matchKardex = cleanPath.match(/^\/v1\/app\/inventory\/kardex\/([a-zA-Z0-9_-]+)$/);
     if (method === "GET" && matchKardex) {
       return this.controllers.inventoryController.getKardex(matchKardex[1]!, req);
     }
 
     // --- Ventas y Pagos Digitales ---
-    if (method === "POST" && cleanPath === "/v1/app/sales/reconcile-digital-payments") {
+    if (method === "GET" && cleanPath === "/v1/app/sales/digital-payments") {
+      return this.controllers.salesController.listDigitalPayments(req, queryParams);
+    }
+    if (method === "POST" && (cleanPath === "/v1/app/sales/reconcile-digital-payments" || cleanPath === "/v1/app/sales/digital-payments/reconcile")) {
       return this.controllers.salesController.reconcileDigitalPayments(req);
     }
 
