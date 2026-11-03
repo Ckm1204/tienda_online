@@ -44,6 +44,11 @@ import {
 } from "./src/components/SubscriptionBillingScreen";
 import { HelpCenterModal } from "./src/components/HelpCenterModal";
 import { StepUpMfaModal } from "./src/components/StepUpMfaModal";
+import {
+  FiscalReportsScreen,
+  FiscalDaySummary,
+  DianResolutionInfo
+} from "./src/components/FiscalReportsScreen";
 import { ManagementAuthService, ManagementUser } from "./src/auth/auth-state";
 
 // Datos iniciales de demostración para tienda de barrio típica colombiana
@@ -215,6 +220,107 @@ interface StoreEmployee {
   isLocked: boolean;
 }
 
+const DEFAULT_FISCAL_DAYS: FiscalDaySummary[] = [
+  {
+    date: "2026-11-01",
+    initialReceipt: "POS-001-0001420",
+    finalReceipt: "POS-001-0001468",
+    ticketsCount: 49,
+    grossTotalCents: 185000000,
+    returnsCents: 0,
+    netTotalCents: 185000000,
+    taxBreakdown: {
+      gravado19Cents: 85000000,
+      iva19Cents: 16150000,
+      gravado5Cents: 20000000,
+      iva5Cents: 1000000,
+      exentoCents: 45000000,
+      excluidoCents: 35000000,
+      inc8Cents: 0
+    }
+  },
+  {
+    date: "2026-11-02",
+    initialReceipt: "POS-001-0001469",
+    finalReceipt: "POS-001-0001524",
+    ticketsCount: 56,
+    grossTotalCents: 212000000,
+    returnsCents: 480000,
+    netTotalCents: 211520000,
+    taxBreakdown: {
+      gravado19Cents: 98000000,
+      iva19Cents: 18620000,
+      gravado5Cents: 22000000,
+      iva5Cents: 1100000,
+      exentoCents: 52000000,
+      excluidoCents: 39520000,
+      inc8Cents: 0
+    }
+  }
+];
+
+const DEFAULT_DIAN_RESOLUTION: DianResolutionInfo = {
+  resolutionNumber: "18764000001234",
+  prefix: "SETT",
+  rangeFrom: 1,
+  rangeTo: 5000,
+  currentNumber: 1524,
+  validTo: "2027-05-15",
+  daysRemaining: 194,
+  alertLevel: "NORMAL"
+};
+
+const SAMPLE_THERMAL_REPORT_Z = [
+  "================================",
+  "     TIENDA LA ESMERALDA        ",
+  "       NIT: 901.234.567-8       ",
+  "  Cra 15 # 45-20, Bogotá D.C.   ",
+  "================================",
+  "  CIERRE DIARIO FISCAL - REP Z  ",
+  "Fecha: 2026-11-02     Hora: 21:00",
+  "Terminal: CAJA-01                ",
+  "--------------------------------",
+  "Consecutivo Inicial: POS-001-0001469",
+  "Consecutivo Final:   POS-001-0001524",
+  "Total Transacciones: 56         ",
+  "--------------------------------",
+  "DESGLOSE TRIBUTARIO (COP)       ",
+  "Base Gravable 19%:   $980.000   ",
+  "IVA 19%:             $186.200   ",
+  "Base Gravable 5%:    $220.000   ",
+  "IVA 5%:              $11.000    ",
+  "Exento:              $520.000   ",
+  "Excluido:            $395.200   ",
+  "INC 8%:              $0         ",
+  "--------------------------------",
+  "Ventas Brutas:       $2.120.000 ",
+  "Devoluciones:        -$4.800    ",
+  "VENTA NETA TOTAL:    $2.115.200 ",
+  "--------------------------------",
+  "MEDIOS DE PAGO                  ",
+  "Efectivo en Caja:    $1.240.000 ",
+  "Transferencia:       $580.000   ",
+  "Nequi / Daviplata:   $295.200   ",
+  "--------------------------------",
+  "ARQUEO CIEGO DE EFECTIVO        ",
+  "Esperado en Sistema: $1.240.000 ",
+  "Contado en Caja:     $1.240.000 ",
+  "Diferencia:          $0 (Cuadrado)",
+  "================================",
+  "  COMPROBANTE ART. 616 E.T.     ",
+  "  Custodia Digital en Nube      ",
+  "================================"
+].join("\n");
+
+function isLey2300Open(): boolean {
+  const now = new Date();
+  const day = now.getDay();
+  const hour = now.getHours();
+  if (day === 0) return false;
+  if (day === 6) return hour >= 8 && hour < 15;
+  return hour >= 7 && hour < 19;
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_600SemiBold });
   const authService = useMemo(() => new ManagementAuthService(), []);
@@ -231,6 +337,9 @@ export default function App() {
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [showMfaModal, setShowMfaModal] = useState(false);
   const [pendingMfaAction, setPendingMfaAction] = useState<(() => void) | null>(null);
+  const [showThermalModal, setShowThermalModal] = useState(false);
+  const [fiscalDays, setFiscalDays] = useState<FiscalDaySummary[]>(DEFAULT_FISCAL_DAYS);
+  const [dianResolution, setDianResolution] = useState<DianResolutionInfo>(DEFAULT_DIAN_RESOLUTION);
 
   // Datos en vivo
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -882,6 +991,27 @@ export default function App() {
                       />
                     </View>
                   )}
+
+                  {/* SECCIÓN 8: GESTIÓN FISCAL, LIBRO FISCAL ART. 616 E.T. & DIAN */}
+                  {activeSection === "fiscal" && (
+                    <View style={styles.sectionWrapper}>
+                      <FiscalReportsScreen
+                        yearMonth="2026-11"
+                        accumulatedYearCents={7850000000}
+                        tope3500UvtCents={18375000000}
+                        uvtAlertLevel="NORMAL"
+                        days={fiscalDays}
+                        dianResolution={dianResolution}
+                        isLey2300WindowOpen={isLey2300Open()}
+                        onDownloadCsv={() => {
+                          setFeedMessage("Descarga iniciada: Libro Fiscal Art. 616 E.T. (CSV)");
+                        }}
+                        onViewThermalReportZ={() => {
+                          setShowThermalModal(true);
+                        }}
+                      />
+                    </View>
+                  )}
                 </AdaptiveNavigation>
               )}
             </View>
@@ -970,6 +1100,71 @@ export default function App() {
               setPendingMfaAction(null);
             }}
           />
+        ) : null}
+
+        {/* MODAL 5: Previsualización Tiquete Térmico Reporte Z */}
+        {showThermalModal ? (
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalContainer, { maxWidth: 460, padding: 20 }]}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <Text style={{ fontFamily: "DMSans_600SemiBold", fontSize: 16, color: "#0f172a" }}>
+                  Comprobante Térmico Reporte Z (80mm)
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowThermalModal(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cerrar vista previa térmica"
+                  style={{ padding: 4 }}
+                >
+                  <Text style={{ fontSize: 18, color: "#64748b", fontWeight: "bold" }}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                style={{
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 8,
+                  padding: 12,
+                  maxHeight: 400,
+                  borderWidth: 1,
+                  borderColor: "#e2e8f0"
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 11,
+                    color: "#1e293b",
+                    lineHeight: 16
+                  }}
+                  testID="thermal-slip-preview-text"
+                >
+                  {SAMPLE_THERMAL_REPORT_Z}
+                </Text>
+              </ScrollView>
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+                <TouchableOpacity
+                  style={[styles.actionBtnSecondary, { paddingVertical: 8, paddingHorizontal: 12 }]}
+                  onPress={() => {
+                    setFeedMessage("Texto de tiquete térmico copiado.");
+                    setShowThermalModal(false);
+                  }}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.actionBtnSecondaryText}>Copiar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtnPrimary, { paddingVertical: 8, paddingHorizontal: 12 }]}
+                  onPress={() => {
+                    setFeedMessage("Enviando orden de impresión ESC/POS a CAJA-01...");
+                    setShowThermalModal(false);
+                  }}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.actionBtnPrimaryText}>Imprimir ESC/POS</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         ) : null}
 
         {/* Pie de Página */}

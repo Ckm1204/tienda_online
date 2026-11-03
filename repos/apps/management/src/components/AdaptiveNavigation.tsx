@@ -7,6 +7,7 @@ import Users from "lucide-react-native/icons/users";
 import Monitor from "lucide-react-native/icons/monitor";
 import UserCheck from "lucide-react-native/icons/user-check";
 import User from "lucide-react-native/icons/user";
+import Scale from "lucide-react-native/icons/scale";
 import type { ManagementUser } from "../auth/auth-state";
 
 export type NavigationSection =
@@ -16,6 +17,7 @@ export type NavigationSection =
   | "customers"
   | "terminals"
   | "users"
+  | "fiscal"
   | "profile";
 
 export interface NavigationItem {
@@ -33,6 +35,7 @@ export const ALL_NAV_ITEMS: NavigationItem[] = [
   { id: "customers", label: "Clientes", icon: Users, requiredPermission: "customer.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "terminals", label: "Cajas", icon: Monitor, requiredPermission: "terminal.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "users", label: "Empleados", icon: UserCheck, requiredPermission: "user.read", disallowedRoles: ["ACCOUNTANT"] },
+  { id: "fiscal", label: "Libro Fiscal", icon: Scale, requiredPermission: "reports.read" },
   { id: "profile", label: "Mi Perfil", icon: User }
 ];
 
