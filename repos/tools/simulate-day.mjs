@@ -166,6 +166,85 @@ async function runSimulation() {
   });
   printStep("🛒", `Venta 2 (${sale2.sale.receipt_code}): Snacks con IVA 19% por ${formatCOP(5_300_00)} pagado por Nequi.`);
 
+  // Generación de CUDE SHA-384 y Documento UBL 2.1 para la venta
+  const cudeReq = {
+    method: "POST",
+    path: "/v1/app/einvoicing/cude",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      doc_number: "SETT-000002",
+      issue_date: day,
+      issue_time: "10:30:00-05:00",
+      subtotal_cents: 4_453_78,
+      tax_iva_cents: 846_22,
+      tax_inc_cents: 0,
+      total_cents: 5_300_00,
+      issuer_nit: "900123456",
+      acquirer_doc: "222222222222",
+      technical_key_or_pin: "test_tech_key_dian_sett_002",
+      environment_type: "1"
+    }
+  };
+  const cudeRes = await bff.handleRequest(cudeReq, nowMs + 3600000);
+  if (cudeRes.status === 200) {
+    printStep("🔐", `CUDE SHA-384 generado (96 caracteres): ${cudeRes.body.cude.slice(0, 32)}...`);
+    printStep("📱", `URL QR DIAN: ${cudeRes.body.qr_url}`);
+  }
+
+  const ublReq = {
+    method: "POST",
+    path: "/v1/app/einvoicing/ubl-preview",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      docKind: "POS_EQUIVALENT",
+      prefix: "SETT",
+      number: 2,
+      issueDate: day,
+      issueTime: "10:30:00-05:00",
+      cude: cudeRes.body ? cudeRes.body.cude : "cude_mock_sha384",
+      softwareSecurityCode: "sec_code_tiendita_pos",
+      qrUrl: cudeRes.body ? cudeRes.body.qr_url : "https://catalogo-vpfe.dian.gov.co",
+      issuer: {
+        nit: "900123456",
+        dv: "7",
+        name: "Tienda La Esmeralda",
+        regimeCode: "49"
+      },
+      acquirer: {
+        docKind: "NATIONAL_ID",
+        docNumber: "222222222222",
+        name: "Consumidor Final"
+      },
+      lines: [
+        {
+          id: "1",
+          sku: "P_POSTOBON_400",
+          name: "Postobón Manzana 400ml",
+          qtyMilli: 1000,
+          unitPriceCents: 250000,
+          subtotalCents: 210084,
+          taxPercent: 1900,
+          taxCents: 39916,
+          totalCents: 250000
+        }
+      ],
+      totals: {
+        subtotalCents: 445378,
+        taxIvaCents: 84622,
+        taxIncCents: 0,
+        totalCents: 530000
+      }
+    }
+  };
+  const ublRes = await bff.handleRequest(ublReq, nowMs + 3600000);
+  if (ublRes.status === 200) {
+    printStep("📜", `Documento UBL 2.1 XML generado (${ublRes.body.length} caracteres, Namespace urn:oasis:names:specification:ubl:schema:xsd:Invoice-2).`);
+  }
+
   // Venta 3: A granel pesado en balanza digital (1.250g Tomate Chonto a $3.200/kg = $4.000 COP)
   const sale3 = bff.recordSaleAndConsolidate({
     eventId: "evt_sale_003",

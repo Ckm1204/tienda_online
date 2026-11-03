@@ -127,10 +127,10 @@ export class UblBuilder {
   <cac:AccountingSupplierParty>
     <cac:Party>
       <cac:PartyName>
-        <cbc:Name>${this.escapeXml(doc.issuer.trade_name)}</cbc:Name>
+        <cbc:Name>${this.escapeXml(doc.issuer.trade_name ?? (doc.issuer as any).name)}</cbc:Name>
       </cac:PartyName>
       <cac:PartyTaxScheme>
-        <cbc:RegistrationName>${this.escapeXml(doc.issuer.legal_name)}</cbc:RegistrationName>
+        <cbc:RegistrationName>${this.escapeXml(doc.issuer.legal_name ?? (doc.issuer as any).name)}</cbc:RegistrationName>
         <cbc:CompanyID schemeAgencyID="195" schemeID="${doc.issuer.dv}">${doc.issuer.nit}</cbc:CompanyID>
         <cac:TaxScheme>
           <cbc:ID>01</cbc:ID>
@@ -143,12 +143,12 @@ export class UblBuilder {
     <cac:Party>
       <cac:PartyTaxScheme>
         <cbc:RegistrationName>${this.escapeXml(doc.acquirer.name)}</cbc:RegistrationName>
-        <cbc:CompanyID schemeAgencyID="195">${doc.acquirer.doc_number}</cbc:CompanyID>
+        <cbc:CompanyID schemeAgencyID="195">${doc.acquirer.doc_number ?? (doc.acquirer as any).docNumber}</cbc:CompanyID>
       </cac:PartyTaxScheme>
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>${doc.payment_mean}</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode>${doc.payment_mean ?? "10"}</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
   <cac:LegalMonetaryTotal>
     <cbc:LineExtensionAmount currencyID="COP">${(doc.subtotal_cents / 100).toFixed(2)}</cbc:LineExtensionAmount>
@@ -187,8 +187,9 @@ export class UblBuilder {
     };
   }
 
-  private static escapeXml(str: string): string {
-    return str
+  private static escapeXml(str?: string | null): string {
+    if (!str) return "";
+    return String(str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
