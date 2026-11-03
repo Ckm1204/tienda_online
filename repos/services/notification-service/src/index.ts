@@ -61,66 +61,133 @@ export interface NotificationRecord {
   isDebtCollection?: boolean;
 }
 
+export interface ColombianDateComponents {
+  year: number;
+  month: number;
+  day: number;
+  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  hour: number;
+  minute: number;
+  second: number;
+  dateStr: string;
+}
+
+export function getColombiaDateComponents(tsMs: number): ColombianDateComponents {
+  const COLOMBIA_OFFSET_MS = -5 * 60 * 60 * 1000;
+  const colDate = new Date(tsMs + COLOMBIA_OFFSET_MS);
+  const year = colDate.getUTCFullYear();
+  const month = colDate.getUTCMonth() + 1;
+  const day = colDate.getUTCDate();
+  const dayOfWeek = colDate.getUTCDay();
+  const hour = colDate.getUTCHours();
+  const minute = colDate.getUTCMinutes();
+  const second = colDate.getUTCSeconds();
+  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return { year, month, day, dayOfWeek, hour, minute, second, dateStr };
+}
+
+export function computeEasterSunday(year: number): { month: number; day: number } {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return { month, day };
+}
+
+function getEmilianiMonday(year: number, month: number, day: number): string {
+  const dt = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const dow = dt.getUTCDay();
+  if (dow === 1) {
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+  const daysToAdd = dow === 0 ? 1 : 8 - dow;
+  const nextMonday = new Date(dt.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+  const m = nextMonday.getUTCMonth() + 1;
+  const d = nextMonday.getUTCDate();
+  return `${year}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function formatOffsetDate(year: number, month: number, day: number, offsetDays: number): string {
+  const dt = new Date(Date.UTC(year, month - 1, day + offsetDays, 12, 0, 0));
+  const m = dt.getUTCMonth() + 1;
+  const d = dt.getUTCDate();
+  return `${year}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+export function getColombianHolidays(year: number): Map<string, string> {
+  const holidays = new Map<string, string>();
+  holidays.set(`${year}-01-01`, "Año Nuevo");
+  holidays.set(`${year}-05-01`, "Día del Trabajo");
+  holidays.set(`${year}-07-20`, "Día de la Independencia");
+  holidays.set(`${year}-08-07`, "Batalla de Boyacá");
+  holidays.set(`${year}-12-08`, "Inmaculada Concepción");
+  holidays.set(`${year}-12-25`, "Navidad");
+
+  const easter = computeEasterSunday(year);
+  const juevesSanto = formatOffsetDate(year, easter.month, easter.day, -3);
+  const viernesSanto = formatOffsetDate(year, easter.month, easter.day, -2);
+  holidays.set(juevesSanto, "Jueves Santo");
+  holidays.set(viernesSanto, "Viernes Santo");
+
+  holidays.set(getEmilianiMonday(year, 1, 6), "Reyes Magos (Epifanía)");
+  holidays.set(getEmilianiMonday(year, 3, 19), "Día de San José");
+  holidays.set(getEmilianiMonday(year, 6, 29), "San Pedro y San Pablo");
+  holidays.set(getEmilianiMonday(year, 8, 15), "Asunción de la Virgen");
+  holidays.set(getEmilianiMonday(year, 10, 12), "Día de la Raza");
+  holidays.set(getEmilianiMonday(year, 11, 1), "Todos los Santos");
+  holidays.set(getEmilianiMonday(year, 11, 11), "Independencia de Cartagena");
+
+  holidays.set(formatOffsetDate(year, easter.month, easter.day, 43), "Ascensión del Señor");
+  holidays.set(formatOffsetDate(year, easter.month, easter.day, 64), "Corpus Christi");
+  holidays.set(formatOffsetDate(year, easter.month, easter.day, 71), "Sagrado Corazón de Jesús");
+
+  return holidays;
+}
+
 /**
  * HU-109 & HU-364: Verificador de Cumplimiento de la Ley 2300 de 2023 ("Dejen de fregar")
  * Reglas:
  * 1. Lunes a Viernes: 07:00 a 19:00 (hora local Colombia UTC-5)
  * 2. Sábados: 08:00 a 15:00 (hora local Colombia UTC-5)
- * 3. Domingos y días festivos: PROHIBIDO TODO CONTACTO DE COBRANZA
+ * 3. Domingos y días festivos en Colombia: PROHIBIDO TODO CONTACTO DE COBRANZA
  * 4. Máximo 2 contactos de cobranza por semana por deudor
  */
 export class Ley2300ComplianceEngine {
-  // Lista de festivos colombianos (muestra para pruebas y cálculo de calendario)
-  private readonly holidays = new Set<string>([
-    "2026-01-01",
-    "2026-01-12",
-    "2026-03-23",
-    "2026-04-02",
-    "2026-04-03",
-    "2026-05-01",
-    "2026-05-18",
-    "2026-06-08",
-    "2026-06-15",
-    "2026-06-29",
-    "2026-07-20",
-    "2026-08-07",
-    "2026-08-17",
-    "2026-10-12",
-    "2026-11-02",
-    "2026-11-16",
-    "2026-12-08",
-    "2026-12-25"
-  ]);
-
   // Contador auditable de contactos semanales por deudor (HU-364)
-  // Llave: `${debtorId}:${yearWeek}` -> número de contactos en esa semana
   public readonly weeklyContactCounters = new Map<string, number>();
 
   isLegalContactTime(timestampMs: number): boolean {
-    const d = new Date(timestampMs);
-    // Colombia es UTC-5
-    const utcHours = d.getUTCHours();
-    const colombiaHours = (utcHours - 5 + 24) % 24;
-    const colombiaMinutes = d.getUTCMinutes();
-    const timeDec = colombiaHours + colombiaMinutes / 60;
+    const comp = getColombiaDateComponents(timestampMs);
 
-    // Día de la semana (0=Domingo, 1=Lunes, ..., 6=Sábado)
-    const dayOfWeek = d.getUTCDay();
-    const dateStr = d.toISOString().slice(0, 10);
-
-    // Domingos y festivos prohibidos
-    if (dayOfWeek === 0 || this.holidays.has(dateStr)) {
+    // Domingos prohibidos 24/7
+    if (comp.dayOfWeek === 0) {
       return false;
     }
 
-    // Lunes a Viernes: 07:00 a 19:00
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-      return timeDec >= 7 && timeDec < 19;
+    // Días festivos oficiales en Colombia prohibidos 24/7 (Ley 51 de 1983)
+    const holidays = getColombianHolidays(comp.year);
+    if (holidays.has(comp.dateStr)) {
+      return false;
     }
 
-    // Sábados: 08:00 a 15:00
-    if (dayOfWeek === 6) {
-      return timeDec >= 8 && timeDec < 15;
+    // Lunes a Viernes: 07:00 a 19:00 hora Colombia
+    if (comp.dayOfWeek >= 1 && comp.dayOfWeek <= 5) {
+      return comp.hour >= 7 && comp.hour < 19;
+    }
+
+    // Sábados: 08:00 a 15:00 hora Colombia
+    if (comp.dayOfWeek === 6) {
+      return comp.hour >= 8 && comp.hour < 15;
     }
 
     return false;
@@ -150,11 +217,11 @@ export class Ley2300ComplianceEngine {
   }
 
   private getYearWeekKey(timestampMs: number): string {
-    const d = new Date(timestampMs);
-    const year = d.getUTCFullYear();
-    const dayOfYear = Math.floor((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000);
-    const week = Math.ceil((dayOfYear + 1) / 7);
-    return `${year}-W${week}`;
+    const comp = getColombiaDateComponents(timestampMs);
+    const daysSinceMonday = (comp.dayOfWeek + 6) % 7;
+    const todayMidnightUtcMs = Date.UTC(comp.year, comp.month - 1, comp.day, 5, 0, 0);
+    const mondayMidnightUtcMs = todayMidnightUtcMs - daysSinceMonday * 24 * 60 * 60 * 1000;
+    return `${comp.year}-W${Math.floor(mondayMidnightUtcMs / (7 * 24 * 60 * 60 * 1000))}`;
   }
 }
 
