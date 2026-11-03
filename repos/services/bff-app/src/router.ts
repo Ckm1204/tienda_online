@@ -117,6 +117,9 @@ export class BffRouter {
     if (method === "GET" && cleanPath === "/v1/app/reports/libro-fiscal/thermal") {
       return this.controllers.reportsController.getLibroFiscalThermal(req, nowMs, queryParams);
     }
+    if (method === "GET" && cleanPath === "/v1/app/reports/accounting-export") {
+      return this.controllers.reportsController.getAccountingExport(req, nowMs, queryParams);
+    }
 
     // --- Facturación Electrónica DIAN ---
     if (cleanPath === "/v1/app/einvoicing/resolutions") {

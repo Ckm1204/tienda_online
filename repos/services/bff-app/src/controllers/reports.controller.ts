@@ -148,4 +148,64 @@ export class ReportsController {
       body: thermalContent
     };
   }
+
+  /**
+   * HU-107, HU-484: Exportación de asientos contables estructurados para Siigo, World Office o Alegra.
+   */
+  async getAccountingExport(req: HttpRequest, nowMs: number, queryParams?: URLSearchParams): Promise<HttpResponse> {
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const nowIsoDay = new Date(nowMs).toISOString().slice(0, 10);
+    const fromDay = queryParams?.get("from") ?? nowIsoDay;
+    const toDay = queryParams?.get("to") ?? nowIsoDay;
+    const rawSoftware = (queryParams?.get("software") ?? "SIIGO").toUpperCase();
+    const software: "SIIGO" | "WORLD_OFFICE" | "ALEGRA" =
+      rawSoftware === "WORLD_OFFICE" || rawSoftware === "ALEGRA" ? rawSoftware : "SIIGO";
+
+    if (!this.reportingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "REPORTING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const exportResult = this.reportingService.generateAccountingExport(safeTenantId, fromDay, toDay, software);
+
+    // Formatear filas a CSV estándar
+    const headers = [
+      "fecha",
+      "cuenta_ingreso",
+      "comprobante",
+      "base_gravable_cents",
+      "iva_cents",
+      "total_cents",
+      "efectivo_cents",
+      "bancos_digitales_cents"
+    ];
+    const csvLines = [
+      headers.join(","),
+      ...exportResult.rows.map((r: any) =>
+        [
+          r.fecha,
+          r.cuenta_ingreso,
+          r.comprobante,
+          r.base_gravable_cents,
+          r.iva_cents,
+          r.total_cents,
+          r.efectivo_cents,
+          r.bancos_digitales_cents
+        ].join(",")
+      )
+    ];
+
+    return {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${exportResult.filename}"`
+      },
+      body: csvLines.join("\n")
+    };
+  }
 }

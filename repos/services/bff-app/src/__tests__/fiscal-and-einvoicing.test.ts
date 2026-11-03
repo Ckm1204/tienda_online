@@ -138,6 +138,68 @@ describe("BFF: Integración Fiscal Colombiana (Art. 616 E.T. & Facturación DIAN
     expect(res.body as string).toContain("Tope 3.500 UVT");
   });
 
+  it("HU-107 & HU-484: Exporta asientos contables para Siigo / World Office / Alegra con PUC colombiano", async () => {
+    // 1. Registrar una venta para generar movimiento diario
+    bff.recordSaleAndConsolidate({
+      eventId: "evt-sale-acct-01",
+      tenantId,
+      branchId: "branch-01",
+      terminalId: "CAJA-01",
+      cashSessionId: "session-01",
+      cashierId: "cashier-01",
+      saleId: "sale-acct-01",
+      receiptPrefix: "POS",
+      receiptNumber: 99,
+      totalCents: 119_000_00,
+      taxBreakdown: {
+        gravado19_cents: 100_000_00,
+        iva19_cents: 19_000_00,
+        gravado5_cents: 0,
+        iva5_cents: 0,
+        exento_cents: 0,
+        excluido_cents: 0,
+        inc8_cents: 0
+      },
+      lines: [
+        {
+          line_id: "line-1",
+          product_id: "prod-1",
+          description: "Arroz Extra 5kg",
+          qty_milli: 1000,
+          unit_price_cents: 119_000_00,
+          line_total_cents: 119_000_00
+        }
+      ],
+      payments: [
+        {
+          payment_id: "pay-1",
+          method: "CASH",
+          amount_cents: 119_000_00,
+          reference: null
+        }
+      ],
+      occurredAtMs: nowMs
+    });
+
+    const day = "2026-11-02";
+    const req: HttpRequest = {
+      method: "GET",
+      path: `/v1/app/reports/accounting-export?software=SIIGO&from=${day}&to=${day}`,
+      ip: "127.0.0.1",
+      headers: authHeaders,
+      claims
+    };
+
+    const res = await bff.handleRequest(req, nowMs);
+    expect(res.status).toBe(200);
+    expect(res.headers["Content-Type"]).toContain("text/csv");
+    expect(res.headers["Content-Disposition"]).toContain("ReporteContable_SIIGO_");
+    expect(typeof res.body).toBe("string");
+    expect(res.body as string).toContain("fecha,cuenta_ingreso,comprobante");
+    expect(res.body as string).toContain("413501"); // Cuenta PUC ingresos comercio Siigo
+    expect(res.body as string).toContain("11900000"); // 119.000 COP en centavos
+  });
+
   it("Gestiona resoluciones DIAN y vigila alertas de vencimiento y agotamiento de rango", async () => {
     // 1. Registro de resolución válido (referencia a AWS Secrets Manager)
     const registerReq: HttpRequest = {

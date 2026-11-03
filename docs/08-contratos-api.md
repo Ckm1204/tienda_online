@@ -132,6 +132,7 @@ Solo `GET`. Parámetros comunes: `branch_id`, `terminal_id`, `from`, `to`, `grou
 | `/reports/libro-fiscal` | Libro Fiscal de Operaciones Diarias (Art. 616 E.T.) consolidado en centavos |
 | `/reports/libro-fiscal/csv` | Descarga de Libro Fiscal tabular CSV homologado para requerimientos DIAN |
 | `/reports/libro-fiscal/thermal` | Tirilla de Cierre Fiscal Diario Reporte Z en texto ESC/POS (80 mm / 58 mm) |
+| `/reports/accounting-export` | Exportación contable tabular (Siigo / World Office / Alegra) con cuentas PUC |
 | `PUT /v1/app/me/notifications` | Preferencias de notificaciones push del usuario |
 
 ### 3b. Facturación Electrónica & Documento Equivalente POS DIAN (`/v1/app/einvoicing/*`)
