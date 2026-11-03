@@ -13,6 +13,7 @@ import type { EinvoicingController } from "./controllers/einvoicing.controller.j
 import type { NotificationsController } from "./controllers/notifications.controller.js";
 import type { SyncController } from "./controllers/sync.controller.js";
 import type { PlatformController } from "./controllers/platform.controller.js";
+import type { CashController } from "./controllers/cash.controller.js";
 
 export interface RouterControllers {
   authController: AuthController;
@@ -28,6 +29,7 @@ export interface RouterControllers {
   notificationsController?: NotificationsController;
   syncController?: SyncController;
   platformController?: PlatformController;
+  cashController?: CashController;
 }
 
 export class BffRouter {
@@ -391,12 +393,65 @@ export class BffRouter {
     if (method === "POST" && matchReceiveTransfer) {
       return this.controllers.inventoryController.receiveTransfer(matchReceiveTransfer[1]!, req, nowMs);
     }
+    if (method === "GET" && cleanPath === "/v1/app/inventory/rebalancing-suggestions") {
+      return this.controllers.inventoryController.getRebalancingSuggestions(req);
+    }
     if (method === "GET" && cleanPath === "/v1/app/inventory/stock") {
       return this.controllers.inventoryController.getStockLevels(req, queryParams);
     }
     const matchKardex = cleanPath.match(/^\/v1\/app\/inventory\/kardex\/([a-zA-Z0-9_-]+)$/);
     if (method === "GET" && matchKardex) {
       return this.controllers.inventoryController.getKardex(matchKardex[1]!, req);
+    }
+
+    // --- Turnos y Arqueos de Caja (Épica 05 & 09 - HU-086, HU-087, HU-195) ---
+    if (method === "GET" && cleanPath === "/v1/app/cash/sessions") {
+      return (
+        this.controllers.cashController?.listSessions(req, queryParams) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "CASH_SERVICE_UNAVAILABLE" }
+        }
+      );
+    }
+    if (method === "POST" && cleanPath === "/v1/app/cash/sessions/open") {
+      return (
+        this.controllers.cashController?.openSession(req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "CASH_SERVICE_UNAVAILABLE" }
+        }
+      );
+    }
+    const matchCloseCash = cleanPath.match(/^\/v1\/app\/cash\/sessions\/([a-zA-Z0-9_-]+)\/close$/);
+    if (method === "POST" && matchCloseCash) {
+      return (
+        this.controllers.cashController?.closeSession(matchCloseCash[1]!, req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "CASH_SERVICE_UNAVAILABLE" }
+        }
+      );
+    }
+    const matchForceCloseCash = cleanPath.match(/^\/v1\/app\/cash\/sessions\/([a-zA-Z0-9_-]+)\/force-close$/);
+    if (method === "POST" && matchForceCloseCash) {
+      return (
+        this.controllers.cashController?.forceCloseSession(matchForceCloseCash[1]!, req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "CASH_SERVICE_UNAVAILABLE" }
+        }
+      );
+    }
+    const matchReviewCash = cleanPath.match(/^\/v1\/app\/cash\/sessions\/([a-zA-Z0-9_-]+)\/review$/);
+    if (method === "POST" && matchReviewCash) {
+      return (
+        this.controllers.cashController?.reviewDiscrepancy(matchReviewCash[1]!, req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "CASH_SERVICE_UNAVAILABLE" }
+        }
+      );
     }
 
     // --- Ventas y Pagos Digitales ---

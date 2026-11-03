@@ -984,7 +984,134 @@ async function runSimulation() {
   }, nowMs + 15500000);
   printStep("📊", `Niveles de inventario actualizados: ${stockLevelsRes.body.count} registros de bodega con control de stock mínimo.`);
 
+
+  // ============================================================================
+  // PASO 22: CICLO DE CAJA, ARQUEO CIEGO Y CIERRE FORZADO REMOTO (ÉPICA 05 & 09)
+  // ============================================================================
+  printSection("PASO 22: CICLO DE CAJA, ARQUEO CIEGO Y CIERRE FORZADO REMOTO (ÉPICA 05 & 09)");
+
+  // 22.1 Apertura de turno con base de $100.000 COP
+  const openCashRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/cash/sessions/open",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      cashSessionId: "turn-pos-01",
+      branchId: "branch-central",
+      terminalId: "term-caja-01",
+      cashierId: goodUserRes.body.id || goodUserRes.body.user_id || "emp-cajero-01",
+      openingFloatCents: 10000000 // $100.000 COP
+    }
+  }, nowMs + 16000000);
+  if (openCashRes.status !== 201) {
+    throw new Error(`Error abriendo turno de caja: ${JSON.stringify(openCashRes.body)}`);
+  }
+  printStep("💵", `Turno de caja abierto: #turn-pos-01 (Cajero: ${goodUserRes.body.full_name}, Base: $100.000 COP).`);
+
+  // 22.2 Arqueo ciego con detección de descuadre (Esperado: $400.000 COP, Declarado: $395.000 COP -> Faltante -$5.000 COP)
+  bff.cashService.applyCashDeltaCents("turn-pos-01", 30000000); // Ventas en efectivo netas: $300.000 COP
+  const closeCashRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/cash/sessions/turn-pos-01/close",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      terminalReportedExpectedCents: 40000000,
+      declaredCashCents: 39500000 // Faltante -$5.000 COP
+    }
+  }, nowMs + 16100000);
+  if (closeCashRes.status !== 200) {
+    throw new Error(`Error cerrando turno de caja: ${JSON.stringify(closeCashRes.body)}`);
+  }
+  const closeCash = closeCashRes.body;
+  printStep("🧾", `Cierre Z procesado: Esperado $400.000 COP vs Declarado $395.000 COP. Descuadre detectado: ${(closeCash.session.differenceCents / 100).toLocaleString("es-CO")} COP (Faltante).`);
+
+  // 22.3 Justificación y Nota de Auditoría de Descuadre (HU-195)
+  const reviewCashRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/cash/sessions/turn-pos-01/review",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      note: "Descuadre verificado: vuelto extra entregado por error de conteo rápido en hora pico de almuerzo."
+    }
+  }, nowMs + 16200000);
+  printStep("📝", `Justificación de descuadre asentada en libro de caja: "${reviewCashRes.body.session.reviewNote}".`);
+
+  // 22.4 Cierre Forzado Remoto de Turno Olvidado en Sucursal (HU-087)
+  const openTurn2Res = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/cash/sessions/open",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      cashSessionId: "turn-pos-norte-02",
+      branchId: "branch-sucursal-norte",
+      terminalId: "term-caja-norte-01",
+      cashierId: "emp-cajero-02",
+      openingFloatCents: 5000000
+    }
+  }, nowMs + 16300000);
+
+  const forceCloseCashRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/cash/sessions/turn-pos-norte-02/force-close",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      reason: "Cajero de turno noche no cerró turno antes de corte de energía programado"
+    }
+  }, nowMs + 16400000);
+  printStep("⚠️", `Cierre forzado remoto ejecutado por el dueño (HU-087): Turno #turn-pos-norte-02 en estado ${forceCloseCashRes.body.session.status}.`);
+
+  // ============================================================================
+  // PASO 23: SUGERENCIAS INTELIGENTES DE REBALANCEO DE STOCK ENTRE SUCURSALES (HU-304 & HU-356)
+  // ============================================================================
+  printSection("PASO 23: SUGERENCIAS INTELIGENTES DE REBALANCEO DE STOCK ENTRE SUCURSALES (HU-304 & HU-356)");
+
+  // 23.1 Generar desabastecimiento en Cedritos y excedente en Chapinero
+  bff.inventoryService.recordInitialStock({
+    tenantId,
+    warehouseId: "wh_chapinero",
+    productId: "P_LECHE_1L",
+    qtyMilli: 80000, // 80 L (Excedente)
+    unitCostCents: 380000,
+    minStockMilli: 15000,
+    idealStockMilli: 40000
+  });
+
+  bff.inventoryService.recordInitialStock({
+    tenantId,
+    warehouseId: "wh_sucursal_cedritos",
+    productId: "P_LECHE_1L",
+    qtyMilli: 1000, // 1 L (Quiebre crítico, min 10 L)
+    unitCostCents: 380000,
+    minStockMilli: 10000,
+    idealStockMilli: 25000
+  });
+
+  const rebalanceRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/app/inventory/rebalancing-suggestions",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 16500000);
+  if (rebalanceRes.status !== 200) {
+    throw new Error(`Error consultando sugerencias de rebalanceo: ${JSON.stringify(rebalanceRes.body)}`);
+  }
+  const suggs = rebalanceRes.body.items;
+  const lecheSugg = suggs.find((s) => s.productId === "P_LECHE_1L");
+  printStep("⚡", `Sugerencia de rebalanceo generada (HU-304): Trasladar ${lecheSugg.suggestedQtyMilli / 1000} unidades de Leche Entera desde ${lecheSugg.fromWarehouseId} hacia ${lecheSugg.toWarehouseId} [Prioridad: ${lecheSugg.priority}].`);
+
   const durationMs = Date.now() - startTime;
+
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");
   console.log(`  ⏱️ Tiempo total de simulación: ${durationMs} ms`);
   console.log(`  ✨ Todas las aserciones, leyes y directrices técnicas colombianas validadas al 100%.\n`);

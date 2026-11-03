@@ -407,6 +407,27 @@ Autoriza una sesión de soporte técnico con permisos de solo lectura o interven
 - `GET /v1/app/inventory/stock`:
   - Retorna niveles de inventario por bodega con cálculo reactivo de alerta de bajo stock (`isLowStock: on_hand_milli <= min_stock_milli`).
 
+### 4.2.6 Turnos y Arqueos de Caja en Nube (Cash Service — Épica 05 & 09 - HU-086, HU-087, HU-195, HU-302)
+- `GET /v1/app/cash/sessions`:
+  - Query params: `status` (`OPEN`, `CLOSED`, `FORCE_CLOSED`), `branchId`, `terminalId`.
+  - Retorna listado de turnos, resumen de turnos abiertos/cerrados y total de descuadres (`totalDiscrepancyCents`).
+- `POST /v1/app/cash/sessions/open`:
+  - Body: `{ cashSessionId, branchId, terminalId, cashierId, openingFloatCents }`.
+  - Abre sesión de caja con fondo inicial en centavos enteros.
+- `POST /v1/app/cash/sessions/{id}/close`:
+  - Body: `{ terminalReportedExpectedCents, declaredCashCents }`.
+  - Cierra el turno, coteja lo declarado contra lo esperado en servidor y emite evento `cash.discrepancy.detected` si hay faltante o sobrante.
+- `POST /v1/app/cash/sessions/{id}/force-close`:
+  - Body: `{ reason }` (mínimo 3 caracteres).
+  - Cierre forzado remoto de un turno olvidado por cajero desde la App de Gestión.
+- `POST /v1/app/cash/sessions/{id}/review`:
+  - Body: `{ note }` (mínimo 3 caracteres).
+  - Registro de nota de revisión/justificación de descuadre por parte del administrador.
+
+### 4.2.7 Sugerencias de Rebalanceo de Inventario (Inventory Service — HU-304 & HU-356)
+- `GET /v1/app/inventory/rebalancing-suggestions`:
+  - Identifica automáticamente sedes con desabastecimiento (`on_hand_milli <= min_stock_milli`) y propone traslados óptimos desde bodegas con excedentes disponibles (`availableSurplusMilli`), priorizando `CRITICAL` ante quiebre de stock total.
+
 ## 5. Webhooks entrantes
 
 | Origen | Ruta | Validación |

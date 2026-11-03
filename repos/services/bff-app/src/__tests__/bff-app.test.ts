@@ -1198,4 +1198,163 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     const destStock = levels.find((l: any) => l.warehouseId === "wh-sucursal-norte" && l.productId === "prod-huevos-30");
     expect(destStock.onHandMilli).toBe(19000); // 19 panales recibidos
   });
+  it("HU-086, HU-087 & HU-195: Turnos de Caja, Arqueo Ciego, Detección de Descuadre en Nube, Cierre Forzado Remoto y Justificación", async () => {
+    const claims = {
+      sub: ownerId,
+      tid: tenantId,
+      roles: ["OWNER"],
+      perms: ["terminal.read", "terminal.manage"],
+      aud: "mgmt-app"
+    };
+
+    // 1. Apertura de turno con base de $100.000 COP
+    const openRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/cash/sessions/open",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        cashSessionId: "cash-sess-turn-01",
+        branchId: "branch-principal",
+        terminalId: "term-caja-01",
+        cashierId: "emp-cajero-01",
+        openingFloatCents: 10000000 // $100.000 COP
+      }
+    }, t0 + 100);
+    expect(openRes.status).toBe(201);
+    expect((openRes.body as any).session.openingFloatCents).toBe(10000000);
+
+    // 2. Simular ventas en efectivo sumando delta en servidor
+    bff.cashService.applyCashDeltaCents("cash-sess-turn-01", 35000000); // +$350.000 en ventas efectivo
+    bff.cashService.applyCashDeltaCents("cash-sess-turn-01", -5000000); // -$50.000 en retiro para compras
+    // Esperado en servidor: 100.000 + 350.000 - 50.000 = $400.000 COP (40000000 centavos)
+
+    // 3. Arqueo ciego con descuadre (cajero contó $395.000 COP -> faltante de -$5.000 COP)
+    const closeRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/cash/sessions/cash-sess-turn-01/close",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        terminalReportedExpectedCents: 40000000,
+        declaredCashCents: 39500000 // Faltante de $5.000 COP
+      }
+    }, t0 + 200);
+    expect(closeRes.status).toBe(200);
+    const closeBody = closeRes.body as any;
+    expect(closeBody.discrepancyDetected).toBe(true);
+    expect(closeBody.session.differenceCents).toBe(-500000); // -$5.000 COP
+
+    // 4. Anotar justificación de descuadre por el dueño (HU-195)
+    const reviewRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/cash/sessions/cash-sess-turn-01/review",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        note: "Descuadre de $5.000 verificado: se entregaron vueltas de más a cliente habitual en hora pico."
+      }
+    }, t0 + 300);
+    expect(reviewRes.status).toBe(200);
+    expect((reviewRes.body as any).session.reviewNote).toContain("Descuadre de $5.000 verificado");
+
+    // 5. Cierre forzado remoto de turno olvidado (HU-087)
+    const openTurn2 = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/cash/sessions/open",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        cashSessionId: "cash-sess-turn-02",
+        branchId: "branch-sucursal-norte",
+        terminalId: "term-caja-norte-01",
+        cashierId: "emp-cajero-02",
+        openingFloatCents: 5000000
+      }
+    }, t0 + 400);
+    expect(openTurn2.status).toBe(201);
+
+    const forceCloseRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/cash/sessions/cash-sess-turn-02/force-close",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        reason: "Cajero olvidó cerrar turno al finalizar jornada de domingo"
+      }
+    }, t0 + 500);
+    expect(forceCloseRes.status).toBe(200);
+    expect((forceCloseRes.body as any).session.status).toBe("FORCE_CLOSED");
+
+    // 6. Consultar listado de turnos
+    const listSessRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/cash/sessions",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 600);
+    expect(listSessRes.status).toBe(200);
+    const sessBody = listSessRes.body as any;
+    expect(sessBody.totalSessions).toBe(2);
+    expect(sessBody.closedCount).toBe(1);
+    expect(sessBody.forceClosedCount).toBe(1);
+    expect(sessBody.totalDiscrepancyCents).toBe(-500000);
+  });
+
+  it("HU-304 & HU-356: Sugerencias automáticas de rebalanceo de stock entre bodegas/sucursales ante desabastecimiento", async () => {
+    const claims = {
+      sub: ownerId,
+      tid: tenantId,
+      roles: ["OWNER"],
+      perms: ["inventory.read", "inventory.manage"],
+      aud: "mgmt-app"
+    };
+
+    // Bodega principal: stock excedente de Leche Entera (on_hand: 100 bolsas, min: 20 bolsas, excedente: 80 bolsas)
+    bff.inventoryService.recordInitialStock({
+      tenantId,
+      warehouseId: "wh-main",
+      productId: "prod-leche-alqueria",
+      qtyMilli: 100000,
+      unitCostCents: 380000,
+      minStockMilli: 20000,
+      idealStockMilli: 60000
+    });
+
+    // Sucursal Norte: desabastecimiento crítico (on_hand: 2 bolsas, min: 15 bolsas, ideal: 30 bolsas)
+    bff.inventoryService.recordInitialStock({
+      tenantId,
+      warehouseId: "wh-sucursal-norte",
+      productId: "prod-leche-alqueria",
+      qtyMilli: 2000,
+      unitCostCents: 380000,
+      minStockMilli: 15000,
+      idealStockMilli: 30000
+    });
+
+    // Consultar sugerencias de rebalanceo
+    const suggRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/inventory/rebalancing-suggestions",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 100);
+
+    expect(suggRes.status).toBe(200);
+    const suggBody = suggRes.body as any;
+    expect(suggBody.count).toBeGreaterThanOrEqual(1);
+    const lecheSugg = suggBody.items.find((s: any) => s.productId === "prod-leche-alqueria");
+    expect(lecheSugg).toBeDefined();
+    expect(lecheSugg.fromWarehouseId).toBe("wh-main");
+    expect(lecheSugg.toWarehouseId).toBe("wh-sucursal-norte");
+    expect(lecheSugg.suggestedQtyMilli).toBe(28000); // 30.000 ideal - 2.000 actual = 28.000 unidades
+    expect(lecheSugg.availableSurplusMilli).toBe(80000); // 100.000 - 20.000 = 80.000
+  });
 });

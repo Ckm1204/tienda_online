@@ -10,13 +10,15 @@ vi.mock("lucide-react-native/icons/circle-check", () => ({ default: () => null }
 vi.mock("lucide-react-native/icons/x", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/package-plus", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/package-minus", () => ({ default: () => null }));
+vi.mock("lucide-react-native/icons/zap", () => ({ default: () => null }));
 
 import {
   WarehouseTransfersModal,
-  WarehouseTransferItem
+  WarehouseTransferItem,
+  RebalancingSuggestionItem
 } from "../components/WarehouseTransfersModal";
 
-describe("WarehouseTransfersModal (Traslados y Mermas de Inventario - HU-090, HU-092)", () => {
+describe("WarehouseTransfersModal (Traslados, Rebalanceo y Mermas - HU-090, HU-092, HU-304, HU-356)", () => {
   const sampleTransfers: WarehouseTransferItem[] = [
     {
       id: "tr-001",
@@ -28,6 +30,19 @@ describe("WarehouseTransfersModal (Traslados y Mermas de Inventario - HU-090, HU
       receivedQtyMilli: null,
       status: "IN_TRANSIT",
       diffNote: null
+    }
+  ];
+
+  const sampleSuggestions: RebalancingSuggestionItem[] = [
+    {
+      productId: "prod-003",
+      productName: "Leche Alquería 1L",
+      fromWarehouseId: "wh-main",
+      toWarehouseId: "wh-sucursal-norte",
+      deficitQtyMilli: 13000,
+      availableSurplusMilli: 80000,
+      suggestedQtyMilli: 28000,
+      priority: "CRITICAL"
     }
   ];
 
@@ -160,5 +175,34 @@ describe("WarehouseTransfersModal (Traslados y Mermas de Inventario - HU-090, HU
 
     expect(screen.getByTestId("transfer-success-banner")).toBeDefined();
     expect(screen.getByText(/Ajuste de inventario \(-3 unidades\) registrado en Kardex/)).toBeDefined();
+  });
+
+  it("aplica sugerencias inteligentes de rebalanceo precargando el formulario de despacho (HU-304 & HU-356)", async () => {
+    render(
+      <WarehouseTransfersModal
+        isOpen={true}
+        onClose={() => {}}
+        transfers={sampleTransfers}
+        suggestions={sampleSuggestions}
+      />
+    );
+
+    // Navegar a pestaña 'Rebalanceo'
+    const suggTab = screen.getByTestId("tab-suggestions");
+    fireEvent.click(suggTab);
+
+    expect(screen.getByText("Leche Alquería 1L")).toBeDefined();
+    expect(screen.getByText("🔴 QUIEBRE CRÍTICO")).toBeDefined();
+    expect(screen.getByText(/Sugerido a trasladar: 28 unidades/)).toBeDefined();
+
+    // Click en 'Despachar Traslado'
+    const applyBtn = screen.getByTestId("btn-apply-suggestion-prod-003");
+    fireEvent.click(applyBtn);
+
+    // Debe cambiar automáticamente a la pestaña de despacho con los campos precargados
+    expect(screen.getByTestId("transfer-success-banner")).toBeDefined();
+    expect(screen.getByText(/Sugerencia precargada: Despachando 28 unidades/)).toBeDefined();
+    const qtyInput = screen.getByTestId("input-transfer-qty") as HTMLInputElement;
+    expect(qtyInput.value).toBe("28");
   });
 });

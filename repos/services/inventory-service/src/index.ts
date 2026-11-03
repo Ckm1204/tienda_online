@@ -378,6 +378,68 @@ export class InventoryService {
   /**
    * HU-194: Reconstrucción total de `stock_levels` a partir de la tabla inmutable `stock_movements`.
    */
+  /**
+   * HU-304 & HU-356: Sugerencias de rebalanceo de stock entre bodegas/sucursales.
+   * Identifica sedes donde el inventario cayó por debajo del mínimo (min_stock_milli)
+   * y busca bodegas del mismo tenant con excedentes disponibles.
+   */
+  getRebalancingSuggestions(tenantId: string): Array<{
+    productId: string;
+    fromWarehouseId: string;
+    toWarehouseId: string;
+    deficitQtyMilli: number;
+    availableSurplusMilli: number;
+    suggestedQtyMilli: number;
+    priority: "CRITICAL" | "MODERATE";
+  }> {
+    const suggestions: Array<{
+      productId: string;
+      fromWarehouseId: string;
+      toWarehouseId: string;
+      deficitQtyMilli: number;
+      availableSurplusMilli: number;
+      suggestedQtyMilli: number;
+      priority: "CRITICAL" | "MODERATE";
+    }> = [];
+    const tenantLevels = [...this.stockLevels.values()].filter((l) => l.tenant_id === tenantId);
+
+    const levelsByProduct = new Map<string, StockLevelRow[]>();
+    for (const lvl of tenantLevels) {
+      const arr = levelsByProduct.get(lvl.product_id) ?? [];
+      arr.push(lvl);
+      levelsByProduct.set(lvl.product_id, arr);
+    }
+
+    for (const [productId, levels] of levelsByProduct.entries()) {
+      const deficitWarehouses = levels.filter((l) => l.min_stock_milli > 0 && l.on_hand_milli <= l.min_stock_milli);
+      const surplusWarehouses = levels.filter((l) => l.on_hand_milli > l.min_stock_milli);
+
+      for (const def of deficitWarehouses) {
+        const neededQty = (def.ideal_stock_milli > 0 ? def.ideal_stock_milli : def.min_stock_milli * 2) - def.on_hand_milli;
+        const bestSource = [...surplusWarehouses].sort(
+          (a, b) => (b.on_hand_milli - b.min_stock_milli) - (a.on_hand_milli - a.min_stock_milli)
+        )[0];
+        if (bestSource && bestSource.warehouse_id !== def.warehouse_id) {
+          const surplus = bestSource.on_hand_milli - bestSource.min_stock_milli;
+          if (surplus > 0) {
+            const suggestedQty = Math.min(surplus, Math.max(1000, neededQty));
+            suggestions.push({
+              productId,
+              fromWarehouseId: bestSource.warehouse_id,
+              toWarehouseId: def.warehouse_id,
+              deficitQtyMilli: Math.max(0, def.min_stock_milli - def.on_hand_milli),
+              availableSurplusMilli: surplus,
+              suggestedQtyMilli: suggestedQty,
+              priority: def.on_hand_milli <= 0 ? "CRITICAL" : "MODERATE"
+            });
+          }
+        }
+      }
+    }
+
+    return suggestions;
+  }
+
   rebuildStockLevelsFromMovements(tenantId: string): void {
     for (const lvl of this.stockLevels.values()) {
       if (lvl.tenant_id === tenantId) {

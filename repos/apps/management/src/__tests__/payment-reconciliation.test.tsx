@@ -12,13 +12,16 @@ vi.mock("lucide-react-native/icons/x", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/clock", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/circle-check", () => ({ default: () => null }));
 vi.mock("lucide-react-native/icons/triangle-alert", () => ({ default: () => null }));
+vi.mock("lucide-react-native/icons/shield-alert", () => ({ default: () => null }));
+vi.mock("lucide-react-native/icons/dollar-sign", () => ({ default: () => null }));
 
 import {
   PaymentReconciliationScreen,
-  DigitalPaymentItem
+  DigitalPaymentItem,
+  CashSessionItem
 } from "../components/PaymentReconciliationScreen";
 
-describe("PaymentReconciliationScreen (Conciliación de Pagos Digitales - Épica 09 & 10)", () => {
+describe("PaymentReconciliationScreen (Conciliación Financiera y Turnos de Caja - Épica 05, 09 & 10)", () => {
   const samplePayments: DigitalPaymentItem[] = [
     {
       paymentId: "pay-001",
@@ -61,6 +64,37 @@ describe("PaymentReconciliationScreen (Conciliación de Pagos Digitales - Épica
     }
   ];
 
+  const sampleSessions: CashSessionItem[] = [
+    {
+      id: "cash-sess-01",
+      branchId: "branch-main",
+      terminalId: "Caja Principal",
+      cashierName: "Pedro Pérez",
+      openingFloatCents: 10000000,
+      serverExpectedCashCents: 45000000,
+      terminalReportedExpectedCents: 45000000,
+      declaredCashCents: 44500000,
+      differenceCents: -500000, // Faltante -$5.000 COP
+      status: "CLOSED",
+      reviewNote: null,
+      occurredAtMs: 1772500000000
+    },
+    {
+      id: "cash-sess-02",
+      branchId: "branch-sucursal-norte",
+      terminalId: "Caja Express Norte",
+      cashierName: "María Gómez",
+      openingFloatCents: 5000000,
+      serverExpectedCashCents: 20000000,
+      terminalReportedExpectedCents: null,
+      declaredCashCents: null,
+      differenceCents: null,
+      status: "OPEN",
+      reviewNote: null,
+      occurredAtMs: 1772500010000
+    }
+  ];
+
   afterEach(cleanup);
 
   it("renderiza encabezado, métricas de totales y lista de pagos digitales", () => {
@@ -71,9 +105,9 @@ describe("PaymentReconciliationScreen (Conciliación de Pagos Digitales - Épica
 
     // Verificación de totales calculados en centavos integer:
     // Pendiente: $50.000 + $35.000 = $85.000
-    expect(screen.getByText(/\$85\.000 COP/)).toBeDefined();
+    expect(screen.getByTestId("stat-pending-cents").textContent).toContain("$85.000 COP");
     // Confirmado: $80.000
-    expect(screen.getByText(/\$80\.000 COP/)).toBeDefined();
+    expect(screen.getByTestId("stat-confirmed-cents").textContent).toContain("$80.000 COP");
 
     // Códigos de recibo
     expect(screen.getByText("POS-000101")).toBeDefined();
@@ -138,5 +172,64 @@ describe("PaymentReconciliationScreen (Conciliación de Pagos Digitales - Épica
 
     expect(screen.getByTestId("reconciliation-alert")).toBeDefined();
     expect(screen.getByText(/Se confirmaron 3 pago\(s\) digital\(es\)/)).toBeDefined();
+  });
+
+  it("cambia a pestaña de Turnos de Caja, detecta descuadre y permite cierre forzado remoto (HU-086, HU-087 & HU-195)", async () => {
+    const handleForceClose = vi.fn().mockResolvedValue(undefined);
+    const handleReview = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <PaymentReconciliationScreen
+        initialPayments={samplePayments}
+        initialCashSessions={sampleSessions}
+        onForceCloseCashSession={handleForceClose}
+        onReviewCashDiscrepancy={handleReview}
+      />
+    );
+
+    // Cambiar a pestaña de Turnos de Caja
+    const cashTab = screen.getByTestId("tab-cash-sessions");
+    fireEvent.click(cashTab);
+
+    // Métricas de turnos
+    expect(screen.getByTestId("stat-open-sessions-count")).toBeDefined();
+    expect(screen.getByText("1 turnos activos")).toBeDefined();
+    expect(screen.getByTestId("stat-cash-discrepancy")).toBeDefined();
+    expect(screen.getByText(/-\$5\.000 COP/)).toBeDefined();
+
+    // Sesiones listadas
+    expect(screen.getByText("Pedro Pérez")).toBeDefined();
+    expect(screen.getByText("María Gómez")).toBeDefined();
+    expect(screen.getByText(/Faltante -\$5\.000/)).toBeDefined();
+
+    // Ejecutar Cierre Forzado Remoto en la sesión abierta (cash-sess-02)
+    const forceCloseBtn = screen.getByTestId("btn-force-close-cash-sess-02");
+    fireEvent.click(forceCloseBtn);
+
+    expect(screen.getByTestId("modal-force-close")).toBeDefined();
+    const reasonInput = screen.getByTestId("input-force-close-reason");
+    fireEvent.change(reasonInput, { target: { value: "Cajera no cerró turno al retirarse" } });
+
+    const confirmForceBtn = screen.getByTestId("btn-confirm-force-close");
+    fireEvent.click(confirmForceBtn);
+
+    await waitFor(() => {
+      expect(handleForceClose).toHaveBeenCalledWith("cash-sess-02", "Cajera no cerró turno al retirarse");
+    });
+
+    // Ejecutar Justificación de Descuadre en la sesión cerrada con descuadre (cash-sess-01)
+    const reviewBtn = screen.getByTestId("btn-review-cash-sess-01");
+    fireEvent.click(reviewBtn);
+
+    expect(screen.getByTestId("modal-review-discrepancy")).toBeDefined();
+    const noteInput = screen.getByTestId("input-review-note");
+    fireEvent.change(noteInput, { target: { value: "Vueltas de más entregadas en hora pico" } });
+
+    const confirmReviewBtn = screen.getByTestId("btn-confirm-review-note");
+    fireEvent.click(confirmReviewBtn);
+
+    await waitFor(() => {
+      expect(handleReview).toHaveBeenCalledWith("cash-sess-01", "Vueltas de más entregadas en hora pico");
+    });
   });
 });

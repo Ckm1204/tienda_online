@@ -295,6 +295,21 @@ export class InventoryController {
     };
   }
 
+  /**
+   * HU-304 & HU-356: Sugerencias automáticas de rebalanceo entre sucursales.
+   */
+  async getRebalancingSuggestions(req: HttpRequest): Promise<HttpResponse> {
+    const claims = req.claims!;
+    requirePermission(claims, "inventory.read");
+    const tenantId = claims.tid!;
+    const suggestions = this.inventoryService.getRebalancingSuggestions(tenantId);
+    return {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: { count: suggestions.length, items: suggestions }
+    };
+  }
+
   async getKardex(productId: string, req: HttpRequest): Promise<HttpResponse> {
     const claims = req.claims!;
     requirePermission(claims, "inventory.read");

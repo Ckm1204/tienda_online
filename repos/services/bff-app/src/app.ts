@@ -37,6 +37,7 @@ import { CustomersController } from "./controllers/customers.controller.js";
 import { NotificationsController } from "./controllers/notifications.controller.js";
 import { SyncController } from "./controllers/sync.controller.js";
 import { PlatformController } from "./controllers/platform.controller.js";
+import { CashController } from "./controllers/cash.controller.js";
 
 export class BffApp {
   public readonly tenantService: TenantService;
@@ -104,6 +105,7 @@ export class BffApp {
     const einvoicingController = new EinvoicingController(this.einvoicingService);
     const terminalsController = new TerminalsController(this.deviceService);
     const usersController = new UsersController(this.identityService);
+    const cashController = new CashController(this.cashService);
     const catalogController = new CatalogController(this.catalogService, this.reportCache);
     const inventoryController = new InventoryController(this.inventoryService);
     const salesController = new SalesController(this.salesService);
@@ -135,6 +137,7 @@ export class BffApp {
       catalogController,
       inventoryController,
       salesController,
+      cashController,
       customersController,
       notificationsController,
       syncController,

@@ -724,13 +724,18 @@
         Total a Pagar: <span id="modal-pay-total" style="color: var(--primary); font-size: 1.4rem;">$0 COP</span>
       </div>
 
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <button class="btn btn-secondary active" style="flex: 1;" id="pay-mode-cash">Efectivo</button>
-        <button class="btn btn-secondary" style="flex: 1;" id="pay-mode-transfer">Transferencia</button>
-        <button class="btn btn-secondary" style="flex: 1;" id="pay-mode-fiado">Fiado</button>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px;">
+        <button class="btn btn-secondary active" id="pay-mode-cash" onclick="setCheckoutMode('CASH')">💵 Efectivo</button>
+        <button class="btn btn-secondary" id="pay-mode-nequi" onclick="setCheckoutMode('NEQUI')">📱 Nequi</button>
+        <button class="btn btn-secondary" id="pay-mode-daviplata" onclick="setCheckoutMode('DAVIPLATA')">🔴 Daviplata</button>
+        <button class="btn btn-secondary" id="pay-mode-bre-b" onclick="setCheckoutMode('BRE_B')">⚡ Bre-B</button>
+        <button class="btn btn-secondary" id="pay-mode-card" onclick="setCheckoutMode('CARD')">💳 Tarjeta</button>
+        <button class="btn btn-secondary" id="pay-mode-fiado" onclick="setCheckoutMode('FIADO')">📝 Fiado</button>
+        <button class="btn btn-secondary" id="pay-mode-split" style="grid-column: span 3; font-weight: bold; background: rgba(59, 130, 246, 0.12); border-color: var(--primary);" onclick="setCheckoutMode('SPLIT')">🔀 Pago Mixto / Combinado (Efectivo + Digital + Fiado)</button>
       </div>
 
-      <div id="cash-payment-fields" style="margin-top: 6px;">
+      <!-- Panel Efectivo -->
+      <div id="cash-payment-fields" style="margin-top: 8px;">
         <label for="cash-received-input" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Recibido en Efectivo:</label>
         <input type="text" id="cash-received-input" class="search-input" style="font-size: 1.3rem; font-weight: bold; text-align: right;" value="0">
 
@@ -745,6 +750,90 @@
           <button class="category-btn" onclick="addCash(50000)">$50.000</button>
           <button class="category-btn" onclick="addCash(100000)">$100.000</button>
         </div>
+      </div>
+
+      <!-- Panel Pagos Digitales (Nequi, Daviplata, Bre-B, Tarjeta) -->
+      <div id="digital-payment-fields" style="display: none; margin-top: 8px;">
+        <label id="digital-ref-label" for="digital-ref-input" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">N° de Aprobación / Comprobante:</label>
+        <input type="text" id="digital-ref-input" class="search-input" placeholder="Ej: M102938, D883712 o N° voucher..." style="font-size: 1.1rem; font-family: monospace;">
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">
+          💡 Este pago digital se sincroniza en estado <strong>PENDIENTE</strong> para conciliación bancaria contra el extracto en la App de Gestión.
+        </p>
+      </div>
+
+
+      <!-- Panel Pago Mixto / Combinado (Split Payment - EP-03 / HU-044) -->
+      <div id="split-payment-fields" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 6px; margin-bottom: 8px;">
+          <div><strong>Asignado:</strong> <span id="split-assigned-txt" style="color: var(--primary); font-weight: bold;">$0 COP</span></div>
+          <div><strong>Restante:</strong> <span id="split-remaining-txt" style="color: var(--danger); font-weight: bold;">$0 COP</span></div>
+        </div>
+
+        <!-- Tender 1: Efectivo -->
+        <div style="margin-bottom: 8px; background: var(--surface); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-weight: 600; font-size: 0.85rem;">💵 Porción en Efectivo:</label>
+            <button class="category-btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="fillSplitRemaining('CASH')">Completar Restante</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Monto Cobro:</span>
+              <input type="text" id="split-cash-amount" class="search-input" value="0" style="text-align: right; font-weight: bold;" oninput="updateSplitCalculations()">
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Billete Recibido:</span>
+              <input type="text" id="split-cash-received" class="search-input" value="0" style="text-align: right;" oninput="updateSplitCalculations()">
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; margin-top: 4px; text-align: right;">
+            <span>Vueltas / Cambio: <strong id="split-cash-change" style="color: var(--warning);">$0 COP</strong></span>
+          </div>
+        </div>
+
+        <!-- Tender 2: Digital -->
+        <div style="margin-bottom: 8px; background: var(--surface); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-weight: 600; font-size: 0.85rem;">📱 Porción Digital:</label>
+            <button class="category-btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="fillSplitRemaining('DIGITAL')">Completar Restante</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
+            <select id="split-digital-provider" class="search-input" style="height: 38px;">
+              <option value="NEQUI">Nequi</option>
+              <option value="DAVIPLATA">Daviplata</option>
+              <option value="BRE_B">Bre-B</option>
+              <option value="CARD">Datáfono / Tarjeta</option>
+            </select>
+            <input type="text" id="split-digital-amount" class="search-input" value="0" placeholder="Monto" style="text-align: right; font-weight: bold;" oninput="updateSplitCalculations()">
+          </div>
+          <input type="text" id="split-digital-ref" class="search-input" placeholder="N° Comprobante / Aprobación..." style="margin-top: 4px; font-size: 0.85rem; font-family: monospace;">
+        </div>
+
+        <!-- Tender 3: Fiado -->
+        <div style="background: var(--surface); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-weight: 600; font-size: 0.85rem;">📝 Porción en Fiado (Crédito):</label>
+            <button class="category-btn" style="padding: 2px 8px; font-size: 0.75rem;" onclick="fillSplitRemaining('FIADO')">Completar Restante</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 6px; margin-top: 4px;">
+            <select id="split-fiado-customer" class="search-input" style="height: 38px;" onchange="updateSplitCalculations()">
+              <option value="CUST_CARMEN">Doña Carmen Torres</option>
+              <option value="CUST_PEDRO">Don Pedro Gómez</option>
+              <option value="CUST_MARTA">Sra. Marta Ruiz</option>
+            </select>
+            <input type="text" id="split-fiado-amount" class="search-input" value="0" placeholder="Monto" style="text-align: right; font-weight: bold;" oninput="updateSplitCalculations()">
+          </div>
+          <div id="split-fiado-quota-info" style="font-size: 0.78rem; color: var(--primary); margin-top: 4px; font-weight: 500;"></div>
+        </div>
+      </div>
+      <!-- Panel Fiado (Crédito en Cartera) -->
+      <div id="fiado-payment-fields" style="display: none; margin-top: 8px;">
+        <label for="fiado-customer-select" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Seleccionar Cliente con Cupo:</label>
+        <select id="fiado-customer-select" class="search-input" style="font-size: 1rem; width: 100%; height: 42px; background: var(--surface); color: var(--text-main);" onchange="updateCheckoutFiadoDisplay()">
+          <option value="CUST_CARMEN">Doña Carmen Torres (C.C. 52.345.678)</option>
+          <option value="CUST_PEDRO">Don Pedro Gómez (C.C. 19.876.543)</option>
+          <option value="CUST_MARTA">Sra. Marta Ruiz (C.C. 41.567.890)</option>
+        </select>
+        <div id="fiado-checkout-quota-info" style="font-size: 0.85rem; color: var(--primary); margin-top: 6px; font-weight: 600;"></div>
       </div>
     </div>
     <div class="dialog-footer">
@@ -1324,15 +1413,132 @@
       renderCart();
     };
 
-    // Modal de Cobro
+    // Modal de Cobro y Medios de Pago (Efectivo, Nequi, Daviplata, Bre-B, Tarjeta, Fiado)
     document.getElementById("btn-checkout").onclick = openCheckout;
     document.getElementById("btn-f5").onclick = openCheckout;
+
+    let currentCheckoutMode = "CASH";
+
+
+    window.updateSplitCalculations = function() {
+      const totals = calculateTotals();
+      const cashAmt = (parseInt(document.getElementById("split-cash-amount").value.replace(/\D/g, "")) || 0) * 100;
+      const cashRec = (parseInt(document.getElementById("split-cash-received").value.replace(/\D/g, "")) || 0) * 100;
+      const digAmt = (parseInt(document.getElementById("split-digital-amount").value.replace(/\D/g, "")) || 0) * 100;
+      const fiadoAmt = (parseInt(document.getElementById("split-fiado-amount").value.replace(/\D/g, "")) || 0) * 100;
+
+      const assigned = cashAmt + digAmt + fiadoAmt;
+      const remaining = Math.max(0, totals.totalCents - assigned);
+
+      document.getElementById("split-assigned-txt").textContent = formatCOP(assigned) + " COP";
+      const remEl = document.getElementById("split-remaining-txt");
+      if (remaining === 0 && assigned >= totals.totalCents) {
+        remEl.style.color = "var(--primary)";
+        remEl.textContent = "✓ Cubierto";
+      } else {
+        remEl.style.color = "var(--danger)";
+        remEl.textContent = formatCOP(remaining) + " COP";
+      }
+
+      // Vueltas del efectivo
+      const rawChange = Math.max(0, cashRec - cashAmt);
+      const roundedChange = Math.round(rawChange / 5000) * 5000;
+      document.getElementById("split-cash-change").textContent = formatCOP(roundedChange) + " COP";
+
+      // Info cupo fiado
+      const selKey = document.getElementById("split-fiado-customer").value;
+      const c = CUSTOMERS[selKey];
+      if (c) {
+        const avail = Math.max(0, c.limitCents - c.debtCents);
+        const infoEl = document.getElementById("split-fiado-quota-info");
+        if (fiadoAmt > avail) {
+          infoEl.style.color = "var(--danger)";
+          infoEl.textContent = `❌ Excede cupo: Disponible ${formatCOP(avail)} COP`;
+        } else {
+          infoEl.style.color = "var(--primary)";
+          infoEl.textContent = `✓ Cupo disponible: ${formatCOP(avail)} COP • Saldo post-fiado: ${formatCOP(c.debtCents + fiadoAmt)} COP`;
+        }
+      }
+    };
+
+    window.fillSplitRemaining = function(tender) {
+      const totals = calculateTotals();
+      let cashAmt = (parseInt(document.getElementById("split-cash-amount").value.replace(/\D/g, "")) || 0) * 100;
+      let digAmt = (parseInt(document.getElementById("split-digital-amount").value.replace(/\D/g, "")) || 0) * 100;
+      let fiadoAmt = (parseInt(document.getElementById("split-fiado-amount").value.replace(/\D/g, "")) || 0) * 100;
+
+      if (tender === 'CASH') {
+        const other = digAmt + fiadoAmt;
+        const rem = Math.max(0, totals.totalCents - other);
+        document.getElementById("split-cash-amount").value = (rem / 100).toString();
+        document.getElementById("split-cash-received").value = (rem / 100).toString();
+      } else if (tender === 'DIGITAL') {
+        const other = cashAmt + fiadoAmt;
+        const rem = Math.max(0, totals.totalCents - other);
+        document.getElementById("split-digital-amount").value = (rem / 100).toString();
+      } else if (tender === 'FIADO') {
+        const other = cashAmt + digAmt;
+        const rem = Math.max(0, totals.totalCents - other);
+        document.getElementById("split-fiado-amount").value = (rem / 100).toString();
+      }
+      updateSplitCalculations();
+    };
+
+    window.setCheckoutMode = function(mode) {
+      currentCheckoutMode = mode;
+      ["cash", "nequi", "daviplata", "bre-b", "card", "fiado", "split"].forEach(m => {
+        const btn = document.getElementById("pay-mode-" + m);
+        if (btn) btn.classList.remove("active");
+      });
+      const activeBtn = document.getElementById("pay-mode-" + mode.toLowerCase().replace("_", "-"));
+      if (activeBtn) activeBtn.classList.add("active");
+
+      const cashPanel = document.getElementById("cash-payment-fields");
+      const digitalPanel = document.getElementById("digital-payment-fields");
+      const fiadoPanel = document.getElementById("fiado-payment-fields");
+      const splitPanel = document.getElementById("split-payment-fields");
+
+      cashPanel.style.display = mode === "CASH" ? "block" : "none";
+      digitalPanel.style.display = (mode === "NEQUI" || mode === "DAVIPLATA" || mode === "BRE_B" || mode === "CARD") ? "block" : "none";
+      fiadoPanel.style.display = mode === "FIADO" ? "block" : "none";
+      if (splitPanel) splitPanel.style.display = mode === "SPLIT" ? "block" : "none";
+      if (mode === "SPLIT") updateSplitCalculations();
+
+      if (mode === "NEQUI") {
+        document.getElementById("digital-ref-label").textContent = "N° Comprobante Nequi (Ej: M102938):";
+      } else if (mode === "DAVIPLATA") {
+        document.getElementById("digital-ref-label").textContent = "N° Autorización Daviplata (Ej: D883712):";
+      } else if (mode === "BRE_B") {
+        document.getElementById("digital-ref-label").textContent = "Código Bre-B / Llave Interoperable:";
+      } else if (mode === "CARD") {
+        document.getElementById("digital-ref-label").textContent = "Número de Recibo / Voucher Datáfono:";
+      } else if (mode === "FIADO") {
+        updateCheckoutFiadoDisplay();
+      }
+    };
+
+    window.updateCheckoutFiadoDisplay = function() {
+      const selKey = document.getElementById("fiado-customer-select").value;
+      const c = CUSTOMERS[selKey];
+      if (!c) return;
+      const avail = Math.max(0, c.limitCents - c.debtCents);
+      const totals = calculateTotals();
+      const info = document.getElementById("fiado-checkout-quota-info");
+      if (totals.totalCents > avail) {
+        info.style.color = "var(--danger)";
+        info.textContent = `❌ Cupo Insuficiente: Disponible ${formatCOP(avail)} (Venta: ${formatCOP(totals.totalCents)})`;
+      } else {
+        info.style.color = "var(--primary)";
+        info.textContent = `✓ Cupo disponible: ${formatCOP(avail)} COP • Nuevo saldo post-venta: ${formatCOP(c.debtCents + totals.totalCents)} COP`;
+      }
+    };
 
     function openCheckout() {
       if (cart.length === 0) return;
       const totals = calculateTotals();
       document.getElementById("modal-pay-total").textContent = formatCOP(totals.totalCents) + " COP";
       document.getElementById("cash-received-input").value = (totals.totalCents / 100).toString();
+      setCheckoutMode("CASH");
       updateChange();
       document.getElementById("modal-checkout").showModal();
     }
@@ -1358,17 +1564,78 @@
 
     document.getElementById("btn-confirm-payment").onclick = () => {
       const totals = calculateTotals();
-      shiftExpectedCashCents += totals.totalCents;
+      const refVal = document.getElementById("digital-ref-input").value.trim();
+
+      if (currentCheckoutMode === "CASH") {
+        shiftExpectedCashCents += totals.totalCents;
+        triggerDrawerKick();
+      } else if (currentCheckoutMode === "SPLIT") {
+        const cashAmt = (parseInt(document.getElementById("split-cash-amount").value.replace(/\D/g, "")) || 0) * 100;
+        const digAmt = (parseInt(document.getElementById("split-digital-amount").value.replace(/\D/g, "")) || 0) * 100;
+        const digProv = document.getElementById("split-digital-provider").value;
+        const digRef = document.getElementById("split-digital-ref").value.trim();
+        const fiadoAmt = (parseInt(document.getElementById("split-fiado-amount").value.replace(/\D/g, "")) || 0) * 100;
+        const fiadoSel = document.getElementById("split-fiado-customer").value;
+        const c = CUSTOMERS[fiadoSel];
+
+        if (cashAmt + digAmt + fiadoAmt < totals.totalCents) {
+          playScanSound("error");
+          alert(`❌ PAGO INCOMPLETO: Asignaste ${formatCOP(cashAmt + digAmt + fiadoAmt)} de ${formatCOP(totals.totalCents)}. Faltan ${formatCOP(totals.totalCents - (cashAmt + digAmt + fiadoAmt))}.`);
+          return;
+        }
+
+        if (fiadoAmt > 0 && c) {
+          const avail = c.limitCents - c.debtCents;
+          if (fiadoAmt > avail) {
+            playScanSound("error");
+            alert(`❌ CUPO INSUFICIENTE: La porción de fiado (${formatCOP(fiadoAmt)}) supera el cupo de ${c.name} (${formatCOP(avail)}).`);
+            return;
+          }
+          c.debtCents += fiadoAmt;
+        }
+
+        if (cashAmt > 0) {
+          shiftExpectedCashCents += cashAmt;
+          triggerDrawerKick();
+        }
+
+        playScanSound("success");
+        document.getElementById("modal-checkout").close();
+        showReceiptPreview(totals, "SPLIT", "", {
+          cashAmt,
+          digAmt,
+          digProv,
+          digRef,
+          fiadoAmt,
+          customerName: c ? c.name : "",
+          customerDebt: c ? c.debtCents : 0
+        });
+        cart = [];
+        currentDiscountPercent = 0;
+        renderCart();
+        return;
+      } else if (currentCheckoutMode === "FIADO") {
+        const selKey = document.getElementById("fiado-customer-select").value;
+        const c = CUSTOMERS[selKey];
+        const avail = c.limitCents - c.debtCents;
+        if (totals.totalCents > avail) {
+          playScanSound("error");
+          alert(`❌ CUPO EXCEDIDO: La venta supera el cupo disponible de ${c.name} (${formatCOP(avail)}).`);
+          return;
+        }
+        c.debtCents += totals.totalCents;
+      }
+
       playScanSound("success");
       document.getElementById("modal-checkout").close();
-      showReceiptPreview(totals);
+      showReceiptPreview(totals, currentCheckoutMode, refVal);
       cart = [];
       currentDiscountPercent = 0;
       renderCart();
     };
 
     // Generador y Previsualización de Comprobante ESC/POS
-    function showReceiptPreview(totals) {
+    function showReceiptPreview(totals, paymentMode = "CASH", paymentRef = "", splitDetails = null) {
       const cols = selectedPaperWidth === 58 ? 32 : 48;
       const receiptNo = "C01-" + Math.floor(100000 + Math.random() * 900000);
       const nowStr = new Date().toLocaleString("es-CO");
@@ -1397,6 +1664,36 @@
         text += formatTwoCols("Descuento:", "-" + formatCOP(totals.discountAmountCents), cols) + "\n";
       }
       text += formatTwoCols("TOTAL A PAGAR:", formatCOP(totals.totalCents), cols) + "\n";
+      text += "-".repeat(cols) + "\n";
+
+      // Detalle del Medio de Pago
+      if (paymentMode === "SPLIT" && splitDetails) {
+        text += centerText("MEDIO DE PAGO: MIXTO / DIVIDIDO", cols) + "\n";
+        if (splitDetails.cashAmt > 0) {
+          text += formatTwoCols("- EFECTIVO:", formatCOP(splitDetails.cashAmt), cols) + "\n";
+        }
+        if (splitDetails.digAmt > 0) {
+          text += formatTwoCols(`- ${splitDetails.digProv} [${splitDetails.digRef || "COMPROBANTE"}]:`, formatCOP(splitDetails.digAmt), cols) + "\n";
+        }
+        if (splitDetails.fiadoAmt > 0) {
+          text += formatTwoCols(`- FIADO [${splitDetails.customerName.slice(0, 15)}]:`, formatCOP(splitDetails.fiadoAmt), cols) + "\n";
+          text += formatTwoCols("  NUEVO SALDO DEUDA:", formatCOP(splitDetails.customerDebt), cols) + "\n";
+        }
+      } else {
+        text += formatTwoCols("MEDIO DE PAGO:", paymentMode, cols) + "\n";
+        if (paymentRef) {
+          text += formatTwoCols("REFERENCIA:", paymentRef, cols) + "\n";
+        }
+        if (paymentMode === "FIADO") {
+          const selKey = document.getElementById("fiado-customer-select").value;
+          const c = CUSTOMERS[selKey];
+          if (c) {
+            text += formatTwoCols("CLIENTE:", c.name.slice(0, 20), cols) + "\n";
+            text += formatTwoCols("SALDO DEUDA:", formatCOP(c.debtCents), cols) + "\n";
+          }
+        }
+      }
+
       text += "-".repeat(cols) + "\n";
       text += centerText("CUDE: " + cudeHash.slice(0, 32) + "...", cols) + "\n";
       text += centerText("[ CÓDIGO QR DIAN VERIFICABLE ]", cols) + "\n";

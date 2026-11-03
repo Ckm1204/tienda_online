@@ -7,6 +7,7 @@ import CircleCheck from "lucide-react-native/icons/circle-check";
 import X from "lucide-react-native/icons/x";
 import PackagePlus from "lucide-react-native/icons/package-plus";
 import PackageMinus from "lucide-react-native/icons/package-minus";
+import Zap from "lucide-react-native/icons/zap";
 
 export interface WarehouseTransferItem {
   id: string;
@@ -20,10 +21,22 @@ export interface WarehouseTransferItem {
   diffNote: string | null;
 }
 
+export interface RebalancingSuggestionItem {
+  productId: string;
+  productName?: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  deficitQtyMilli: number;
+  availableSurplusMilli: number;
+  suggestedQtyMilli: number;
+  priority: "CRITICAL" | "MODERATE";
+}
+
 export interface WarehouseTransfersModalProps {
   isOpen: boolean;
   onClose: () => void;
   transfers?: WarehouseTransferItem[];
+  suggestions?: RebalancingSuggestionItem[];
   warehouses?: { id: string; name: string }[];
   products?: { id: string; name: string; sku: string; stockQtyMilli?: number }[];
   onDispatchTransfer?: (params: {
@@ -46,10 +59,24 @@ export interface WarehouseTransfersModalProps {
   }) => Promise<void> | void;
 }
 
+const DEFAULT_SUGGESTIONS: RebalancingSuggestionItem[] = [
+  {
+    productId: "prod-003",
+    productName: "Leche Alquería Entera 1L",
+    fromWarehouseId: "wh-main",
+    toWarehouseId: "wh-sucursal-norte",
+    deficitQtyMilli: 13000,
+    availableSurplusMilli: 80000,
+    suggestedQtyMilli: 28000,
+    priority: "CRITICAL"
+  }
+];
+
 export function WarehouseTransfersModal({
   isOpen,
   onClose,
   transfers = [],
+  suggestions = DEFAULT_SUGGESTIONS,
   warehouses = [
     { id: "wh-main", name: "Bodega Principal (Sede Centro)" },
     { id: "wh-sucursal-norte", name: "Bodega Sucursal Norte" }
@@ -63,20 +90,20 @@ export function WarehouseTransfersModal({
   onReceiveTransfer,
   onRecordAdjustment
 }: WarehouseTransfersModalProps) {
-  const [activeTab, setActiveTab] = useState<"DISPATCH" | "IN_TRANSIT" | "ADJUSTMENT">("DISPATCH");
+  const [activeTab, setActiveTab] = useState<"DISPATCH" | "TRANSIT" | "ADJUSTMENT" | "SUGGESTIONS">("DISPATCH");
 
-  // Formulario de Despacho de Traslado
+  // Formulario Despacho
   const [fromWarehouseId, setFromWarehouseId] = useState(warehouses[0]?.id || "wh-main");
   const [toWarehouseId, setToWarehouseId] = useState(warehouses[1]?.id || "wh-sucursal-norte");
   const [selectedProductId, setSelectedProductId] = useState(products[0]?.id || "prod-001");
   const [transferQty, setTransferQty] = useState("10");
 
-  // Formulario de Recepción
-  const [receivingTransfer, setReceivingTransfer] = useState<WarehouseTransferItem | null>(null);
+  // Formulario Recepción
+  const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
   const [receivedQty, setReceivedQty] = useState("");
   const [diffNote, setDiffNote] = useState("");
 
-  // Formulario de Ajuste / Mermas
+  // Formulario Ajuste Avería / Merma
   const [adjustmentKind, setAdjustmentKind] = useState<"ADJUSTMENT_EXPIRED" | "ADJUSTMENT_DAMAGED" | "ADJUSTMENT_SHRINKAGE">("ADJUSTMENT_DAMAGED");
   const [adjustmentWarehouseId, setAdjustmentWarehouseId] = useState(warehouses[0]?.id || "wh-main");
   const [adjustmentProductId, setAdjustmentProductId] = useState(products[0]?.id || "prod-001");
@@ -87,7 +114,6 @@ export function WarehouseTransfersModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Polyfill de Modern Web Guidance para closedby="any"
   useEffect(() => {
     if (!isOpen) return;
     const dialog = document.getElementById("dialog-warehouse-transfers") as HTMLDialogElement | null;
@@ -140,18 +166,34 @@ export function WarehouseTransfersModal({
     }
   };
 
-  const handleConfirmReceive = async () => {
-    if (!receivingTransfer) return;
+  const handleApplySuggestion = (sugg: RebalancingSuggestionItem) => {
+    setSelectedProductId(sugg.productId);
+    setFromWarehouseId(sugg.fromWarehouseId);
+    setToWarehouseId(sugg.toWarehouseId);
+    setTransferQty((sugg.suggestedQtyMilli / 1000).toString());
+    setActiveTab("DISPATCH");
+    setFeedback(
+      `✓ Sugerencia precargada: Despachando ${sugg.suggestedQtyMilli / 1000} unidades de ${sugg.fromWarehouseId} a ${sugg.toWarehouseId}`
+    );
+    setTimeout(() => setFeedback(null), 5000);
+  };
+
+  const handleReceive = async () => {
     setErrorMessage(null);
-    const recUnits = parseFloat(receivedQty);
-    if (isNaN(recUnits) || recUnits < 0) {
-      setErrorMessage("Ingresa una cantidad recibida válida.");
+    if (!selectedTransferId) {
+      setErrorMessage("Selecciona una remisión de traslado para recibir.");
+      return;
+    }
+    const units = parseFloat(receivedQty);
+    if (isNaN(units) || units < 0) {
+      setErrorMessage("Ingresa una cantidad válida.");
       return;
     }
 
-    const sentUnits = receivingTransfer.sentQtyMilli / 1000;
-    if (recUnits !== sentUnits && (!diffNote || diffNote.trim().length < 3)) {
-      setErrorMessage("Al existir diferencia con la cantidad enviada, la nota explicativa es obligatoria.");
+    const tr = transfers.find((t) => t.id === selectedTransferId);
+    const sentUnits = tr ? tr.sentQtyMilli / 1000 : 0;
+    if (units !== sentUnits && diffNote.trim().length < 3) {
+      setErrorMessage("Si recibes una cantidad diferente a la despachada, debes ingresar una nota explicativa (mínimo 3 caracteres).");
       return;
     }
 
@@ -159,13 +201,13 @@ export function WarehouseTransfersModal({
     try {
       if (onReceiveTransfer) {
         await onReceiveTransfer({
-          transferId: receivingTransfer.id,
-          receivedQtyMilli: Math.round(recUnits * 1000),
-          diffNote: diffNote.trim() || undefined
+          transferId: selectedTransferId,
+          receivedQtyMilli: Math.round(units * 1000),
+          diffNote: units !== sentUnits ? diffNote.trim() : undefined
         });
       }
-      setFeedback(`Traslado ${receivingTransfer.id.slice(0, 8)} recibido exitosamente.`);
-      setReceivingTransfer(null);
+      setFeedback(`Recepción de ${units} unidades confirmada en bodega de destino.`);
+      setSelectedTransferId(null);
       setReceivedQty("");
       setDiffNote("");
       setTimeout(() => setFeedback(null), 4000);
@@ -180,11 +222,11 @@ export function WarehouseTransfersModal({
     setErrorMessage(null);
     const units = parseFloat(adjustmentQty);
     if (isNaN(units) || units <= 0) {
-      setErrorMessage("Ingresa una cantidad válida a descontar.");
+      setErrorMessage("Ingresa una cantidad válida mayor a 0 para el ajuste.");
       return;
     }
-    if (!adjustmentReason || adjustmentReason.trim().length < 3) {
-      setErrorMessage("El motivo o justificación de la merma/avería es obligatorio (mínimo 3 caracteres).");
+    if (adjustmentReason.trim().length < 3) {
+      setErrorMessage("El motivo o justificación de la merma/avería es obligatorio (mínimo 3 caracteres, DIAN Art. 616).");
       return;
     }
 
@@ -195,329 +237,157 @@ export function WarehouseTransfersModal({
           warehouseId: adjustmentWarehouseId,
           productId: adjustmentProductId,
           kind: adjustmentKind,
-          deltaMilli: -Math.round(units * 1000), // Descuento de inventario
+          deltaMilli: -Math.round(units * 1000),
           reason: adjustmentReason.trim()
         });
       }
-      setFeedback(`Ajuste de inventario (-${units} unidades) registrado en Kardex.`);
+      setFeedback(`Ajuste de inventario (-${units} unidades) registrado en Kardex Fiscal.`);
       setAdjustmentReason("");
-      setAdjustmentQty("2");
       setTimeout(() => setFeedback(null), 4000);
     } catch (err: any) {
-      setErrorMessage(err.message || "Error al registrar ajuste de inventario.");
+      setErrorMessage(err.message || "Error al registrar ajuste.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const inTransitTransfers = transfers.filter((t) => t.status === "IN_TRANSIT");
+
   return (
     <dialog
       id="dialog-warehouse-transfers"
       open={isOpen}
-      aria-labelledby="dialog-transfers-title"
+      closedby="any"
+      aria-labelledby="modal-transfers-title"
       data-testid="warehouse-transfers-dialog"
-      style={htmlDialogStyle as any}
-      onCancel={handleClose}
+      style={htmlDialogStyle}
     >
       <View style={styles.dialogHeader}>
-        <View style={styles.dialogHeaderTitle}>
-          <Truck size={22} color="#059669" />
-          <Text role="heading" id="dialog-transfers-title" style={styles.title}>
+        <View style={styles.headerTitleRow}>
+          <Truck size={22} color="#0284C7" />
+          <Text id="modal-transfers-title" style={styles.modalTitle}>
             Traslados y Mermas de Inventario
           </Text>
         </View>
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Cerrar modal"
-          style={htmlCloseBtnStyle}
-        >
-          &times;
-        </button>
+        <TouchableOpacity onPress={handleClose} accessibilityLabel="Cerrar modal" testID="btn-close-modal">
+          <X size={20} color="#64748B" />
+        </TouchableOpacity>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabNav}>
+      {/* Selector de Pestañas */}
+      <View style={styles.tabsRow}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "DISPATCH" && styles.tabButtonActive]}
+          style={[styles.tabBtn, activeTab === "DISPATCH" && styles.tabBtnActive]}
           onPress={() => setActiveTab("DISPATCH")}
           testID="tab-dispatch"
         >
-          <ArrowRightLeft size={16} color={activeTab === "DISPATCH" ? "#059669" : "#64748B"} />
-          <Text style={[styles.tabText, activeTab === "DISPATCH" && styles.tabTextActive]}>
+          <ArrowRightLeft size={16} color={activeTab === "DISPATCH" ? "#0284C7" : "#64748B"} />
+          <Text style={[styles.tabBtnText, activeTab === "DISPATCH" && styles.tabBtnTextActive]}>
             Despachar Traslado
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "IN_TRANSIT" && styles.tabButtonActive]}
-          onPress={() => setActiveTab("IN_TRANSIT")}
+          style={[styles.tabBtn, activeTab === "TRANSIT" && styles.tabBtnActive]}
+          onPress={() => setActiveTab("TRANSIT")}
           testID="tab-in-transit"
         >
-          <Truck size={16} color={activeTab === "IN_TRANSIT" ? "#059669" : "#64748B"} />
-          <Text style={[styles.tabText, activeTab === "IN_TRANSIT" && styles.tabTextActive]}>
-            En Tránsito ({transfers.filter((t) => t.status === "IN_TRANSIT").length})
+          <Truck size={16} color={activeTab === "TRANSIT" ? "#0284C7" : "#64748B"} />
+          <Text style={[styles.tabBtnText, activeTab === "TRANSIT" && styles.tabBtnTextActive]}>
+            En Tránsito ({inTransitTransfers.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "ADJUSTMENT" && styles.tabButtonActive]}
+          style={[styles.tabBtn, activeTab === "SUGGESTIONS" && styles.tabBtnActive]}
+          onPress={() => setActiveTab("SUGGESTIONS")}
+          testID="tab-suggestions"
+        >
+          <Zap size={16} color={activeTab === "SUGGESTIONS" ? "#D97706" : "#64748B"} />
+          <Text style={[styles.tabBtnText, activeTab === "SUGGESTIONS" && styles.tabBtnTextActive]}>
+            ⚡ Rebalanceo ({suggestions.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabBtn, activeTab === "ADJUSTMENT" && styles.tabBtnActive]}
           onPress={() => setActiveTab("ADJUSTMENT")}
           testID="tab-adjustment"
         >
-          <PackageMinus size={16} color={activeTab === "ADJUSTMENT" ? "#DC2626" : "#64748B"} />
-          <Text style={[styles.tabText, activeTab === "ADJUSTMENT" && styles.tabTextActive]}>
+          <PackageMinus size={16} color={activeTab === "ADJUSTMENT" ? "#0284C7" : "#64748B"} />
+          <Text style={[styles.tabBtnText, activeTab === "ADJUSTMENT" && styles.tabBtnTextActive]}>
             Averías y Mermas
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Mensajes de Feedback o Error */}
-      {feedback && (
-        <View style={styles.feedbackSuccess} testID="transfer-success-banner">
-          <CircleCheck size={16} color="#059669" />
-          <Text style={styles.feedbackSuccessText}>{feedback}</Text>
-        </View>
-      )}
+      <ScrollView style={styles.dialogBody} contentContainerStyle={{ paddingBottom: 24 }}>
+        {feedback && (
+          <View style={styles.feedbackBanner} testID="transfer-success-banner">
+            <CircleCheck size={18} color="#059669" />
+            <Text style={styles.feedbackText}>{feedback}</Text>
+          </View>
+        )}
 
-      {errorMessage && (
-        <View style={styles.feedbackError} testID="transfer-error-banner">
-          <TriangleAlert size={16} color="#DC2626" />
-          <Text style={styles.feedbackErrorText}>{errorMessage}</Text>
-        </View>
-      )}
+        {errorMessage && (
+          <View style={styles.errorBanner} testID="transfer-error-banner">
+            <TriangleAlert size={18} color="#DC2626" />
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
 
-      <ScrollView style={styles.bodyScroll}>
-        {/* TAB 1: DESPACHAR TRASLADO */}
+        {/* PESTAÑA 1: DESPACHAR TRASLADO */}
         {activeTab === "DISPATCH" && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionSubtitle}>
-              Mueve stock entre sucursales o bodegas satélite con registro de trazabilidad en Kardex
+          <View style={styles.formContainer}>
+            <Text style={styles.formHelp}>
+              Despacha mercancía desde una bodega central o sede secundaria. El stock se deducirá
+              inmediatamente del origen y quedará en tránsito hasta su recepción.
             </Text>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Bodega de Origen</Text>
-              <select
-                value={fromWarehouseId}
-                onChange={(e) => setFromWarehouseId(e.target.value)}
-                style={styles.htmlSelect as any}
-                aria-label="Bodega de Origen"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
+            <View style={styles.rowTwoCols}>
+              <View style={styles.col}>
+                <Text style={styles.label}>Bodega Origen (Remitente):</Text>
+                <select
+                  aria-label="Bodega Origen"
+                  value={fromWarehouseId}
+                  onChange={(e) => setFromWarehouseId(e.target.value)}
+                  style={selectStyle}
+                  data-testid="select-from-warehouse"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </View>
+
+              <View style={styles.col}>
+                <Text style={styles.label}>Bodega Destino (Receptora):</Text>
+                <select
+                  aria-label="Bodega Destino"
+                  value={toWarehouseId}
+                  onChange={(e) => setToWarehouseId(e.target.value)}
+                  style={selectStyle}
+                  data-testid="select-to-warehouse"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </View>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Bodega de Destino</Text>
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.label}>Producto a Trasladar:</Text>
               <select
-                value={toWarehouseId}
-                onChange={(e) => setToWarehouseId(e.target.value)}
-                style={styles.htmlSelect as any}
-                aria-label="Bodega de Destino"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Producto a Trasladar</Text>
-              <select
+                aria-label="Producto a Trasladar"
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
-                style={styles.htmlSelect as any}
-                aria-label="Producto a Trasladar"
-              >
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.sku}) — Stock disp: {(p.stockQtyMilli ?? 0) / 1000} un
-                  </option>
-                ))}
-              </select>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Cantidad a Enviar (Unidades)</Text>
-              <TextInput
-                style={styles.input}
-                value={transferQty}
-                onChangeText={setTransferQty}
-                keyboardType="numeric"
-                placeholder="Ej. 15"
-                placeholderTextColor="#94A3B8"
-                testID="input-transfer-qty"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.btnPrimary}
-              onPress={handleDispatch}
-              disabled={isSubmitting}
-              testID="btn-dispatch-transfer"
-            >
-              <Truck size={18} color="#FFFFFF" />
-              <Text style={styles.btnPrimaryText}>Despachar Traslado a Ruta</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* TAB 2: EN TRÁNSITO / RECEPCIÓN */}
-        {activeTab === "IN_TRANSIT" && (
-          <View style={styles.tabContent}>
-            {receivingTransfer ? (
-              <View style={styles.receivingCard}>
-                <Text style={styles.receivingCardTitle}>
-                  Confirmar Recepción de Traslado #{receivingTransfer.id.slice(0, 8)}
-                </Text>
-                <Text style={styles.receivingCardSub}>
-                  Producto: {receivingTransfer.productName || receivingTransfer.productId} • Enviado: {receivingTransfer.sentQtyMilli / 1000} un
-                </Text>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Cantidad Realmente Recibida</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={receivedQty}
-                    onChangeText={setReceivedQty}
-                    placeholder={`Esperado: ${receivingTransfer.sentQtyMilli / 1000}`}
-                    keyboardType="numeric"
-                    testID="input-received-qty"
-                  />
-                </View>
-
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>Nota / Justificación de Diferencia</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={diffNote}
-                    onChangeText={setDiffNote}
-                    placeholder="Obligatorio si la cantidad recibida difiere de la enviada..."
-                    testID="input-diff-note"
-                  />
-                </View>
-
-                <View style={styles.actionsRow}>
-                  <TouchableOpacity
-                    style={styles.btnPrimary}
-                    onPress={handleConfirmReceive}
-                    disabled={isSubmitting}
-                    testID="btn-confirm-receive"
-                  >
-                    <CircleCheck size={16} color="#FFFFFF" />
-                    <Text style={styles.btnPrimaryText}>Guardar Entrada de Almacén</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.btnSecondary}
-                    onPress={() => setReceivingTransfer(null)}
-                  >
-                    <Text style={styles.btnSecondaryText}>Cancelar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : transfers.length === 0 ? (
-              <Text style={styles.emptyText}>No hay traslados activos en tránsito.</Text>
-            ) : (
-              transfers.map((t) => (
-                <View key={t.id} style={styles.transferCard} testID={`transfer-card-${t.id}`}>
-                  <View style={styles.transferCardHeader}>
-                    <View>
-                      <Text style={styles.transferCardTitle}>
-                        #{t.id.slice(0, 8)}: {t.fromWarehouseId} ➔ {t.toWarehouseId}
-                      </Text>
-                      <Text style={styles.transferCardProduct}>
-                        {t.productName || t.productId} • {t.sentQtyMilli / 1000} unidades enviadas
-                      </Text>
-                    </View>
-                    <span
-                      style={{
-                        padding: "3px 8px",
-                        borderRadius: 9999,
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        backgroundColor: t.status === "IN_TRANSIT" ? "#FEF3C7" : "#DCFCE7",
-                        color: t.status === "IN_TRANSIT" ? "#92400E" : "#166534"
-                      }}
-                    >
-                      {t.status === "IN_TRANSIT" ? "En Ruta" : t.status}
-                    </span>
-                  </View>
-
-                  {t.status === "IN_TRANSIT" && (
-                    <TouchableOpacity
-                      style={styles.btnReceiveSmall}
-                      onPress={() => {
-                        setReceivingTransfer(t);
-                        setReceivedQty((t.sentQtyMilli / 1000).toString());
-                      }}
-                      testID={`btn-receive-${t.id}`}
-                    >
-                      <CircleCheck size={14} color="#059669" />
-                      <Text style={styles.btnReceiveSmallText}>Recibir en Bodega Destino</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  {t.diffNote && (
-                    <Text style={styles.diffNoteText}>
-                      ⚠️ Novedad: {t.diffNote}
-                    </Text>
-                  )}
-                </View>
-              ))
-            )}
-          </View>
-        )}
-
-        {/* TAB 3: AVERÍAS, MERMAS Y VENCIMIENTOS */}
-        {activeTab === "ADJUSTMENT" && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionSubtitle}>
-              Baja legal de inventario por deterioro, rotura o caducidad exigiendo motivo para auditoría DIAN
-            </Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Tipo de Ajuste</Text>
-              <select
-                value={adjustmentKind}
-                onChange={(e) => setAdjustmentKind(e.target.value as any)}
-                style={styles.htmlSelect as any}
-                aria-label="Tipo de Ajuste"
-              >
-                <option value="ADJUSTMENT_DAMAGED">Avería / Dañado (Rotura, empaque roto)</option>
-                <option value="ADJUSTMENT_EXPIRED">Vencido / Caducado (Fecha de vencimiento cumplida)</option>
-                <option value="ADJUSTMENT_SHRINKAGE">Merma / Deshidratación (Pérdida natural de peso)</option>
-              </select>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Bodega Afectada</Text>
-              <select
-                value={adjustmentWarehouseId}
-                onChange={(e) => setAdjustmentWarehouseId(e.target.value)}
-                style={styles.htmlSelect as any}
-                aria-label="Bodega Afectada"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Producto</Text>
-              <select
-                value={adjustmentProductId}
-                onChange={(e) => setAdjustmentProductId(e.target.value)}
-                style={styles.htmlSelect as any}
-                aria-label="Producto de Avería"
+                style={selectStyle}
+                data-testid="select-transfer-product"
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -527,40 +397,316 @@ export function WarehouseTransfersModal({
               </select>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Cantidad a Descontar (Unidades)</Text>
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.label}>Cantidad a Despachar (Unidades / Kilos):</Text>
               <TextInput
-                style={styles.input}
+                style={styles.textInput}
+                keyboardType="numeric"
+                value={transferQty}
+                onChangeText={setTransferQty}
+                placeholder="Ej: 10"
+                accessibilityLabel="Cantidad a trasladar"
+                testID="input-transfer-qty"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, isSubmitting && styles.btnDisabled]}
+              onPress={handleDispatch}
+              disabled={isSubmitting}
+              testID="btn-dispatch-transfer"
+            >
+              <Truck size={18} color="#FFFFFF" />
+              <Text style={styles.btnPrimaryText}>
+                {isSubmitting ? "Despachando..." : "Confirmar Despacho y Generar Remisión"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* PESTAÑA 2: EN TRÁNSITO / RECEPCIÓN */}
+        {activeTab === "TRANSIT" && (
+          <View style={styles.formContainer}>
+            <Text style={styles.formHelp}>
+              Confirma la llegada física de la mercancía. Si faltan unidades o llegaron deterioradas, ingresa
+              la cantidad exacta recibida y la nota de diferencia.
+            </Text>
+
+            {inTransitTransfers.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <CircleCheck size={28} color="#10B981" />
+                <Text style={styles.emptyTitle}>No hay traslados en tránsito</Text>
+                <Text style={styles.emptySub}>Todos los envíos entre bodegas han sido recibidos.</Text>
+              </View>
+            ) : (
+              <>
+                <View style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                  {inTransitTransfers.map((t) => (
+                    <View
+                      key={t.id}
+                      style={{
+                        padding: 10,
+                        backgroundColor: "#FFFFFF",
+                        borderWidth: 1,
+                        borderColor: "#CBD5E1",
+                        borderRadius: 6,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                      }}
+                    >
+                      <View>
+                        <Text style={{ fontWeight: "700", fontSize: 13, color: "#0F172A" }}>
+                          #{t.id}: {t.fromWarehouseId} ➔ {t.toWarehouseId}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: "#64748B" }}>
+                          {t.productName || t.productId} • Cantidad: {t.sentQtyMilli / 1000} un.
+                        </Text>
+                      </View>
+                      <button
+                        type="button"
+                        style={{
+                          padding: "6px 12px",
+                          backgroundColor: "#0284C7",
+                          color: "#FFF",
+                          border: "none",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          fontSize: "0.8rem",
+                          fontWeight: 600
+                        }}
+                        onClick={() => {
+                          setSelectedTransferId(t.id);
+                          setReceivedQty((t.sentQtyMilli / 1000).toString());
+                        }}
+                        data-testid={`btn-receive-${t.id}`}
+                      >
+                        Recibir
+                      </button>
+                    </View>
+                  ))}
+                </View>
+
+                {selectedTransferId && (
+                  <View style={{ marginTop: 14, backgroundColor: "#F8FAFC", padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#E2E8F0" }}>
+                    <Text style={{ fontWeight: "700", fontSize: 14, marginBottom: 8, color: "#0F172A" }}>
+                      Confirmar Recepción de Traslado #{selectedTransferId}
+                    </Text>
+
+                    <Text style={styles.label}>Cantidad Recibida Efectivamente:</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      keyboardType="numeric"
+                      value={receivedQty}
+                      onChangeText={setReceivedQty}
+                      placeholder="Cantidad recibida"
+                      testID="input-received-qty"
+                    />
+
+                    <Text style={[styles.label, { marginTop: 10 }]}>Nota de Discrepancia / Faltante (si aplica):</Text>
+                    <TextInput
+                      style={[styles.textInput, { height: 60 }]}
+                      multiline
+                      value={diffNote}
+                      onChangeText={setDiffNote}
+                      placeholder="Ej: Llegó 1 bolsa rota en transporte..."
+                      testID="input-diff-note"
+                    />
+
+                    <TouchableOpacity
+                      style={[styles.btnSuccess, isSubmitting && styles.btnDisabled]}
+                      onPress={handleReceive}
+                      disabled={isSubmitting}
+                      testID="btn-confirm-receive"
+                    >
+                      <CircleCheck size={18} color="#FFFFFF" />
+                      <Text style={styles.btnPrimaryText}>
+                        {isSubmitting ? "Recibiendo..." : "Confirmar Recepción en Bodega"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
+        {/* PESTAÑA 3: SUGERENCIAS DE REBALANCEO (HU-304 / HU-356) */}
+        {activeTab === "SUGGESTIONS" && (
+          <View style={styles.formContainer}>
+            <Text style={styles.formHelp}>
+              El motor de inventario detecta sedes satélite donde el stock cayó por debajo del mínimo de seguridad
+              y busca automáticamente bodegas con excedentes para balancear la carga.
+            </Text>
+
+            {suggestions.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <CircleCheck size={28} color="#10B981" />
+                <Text style={styles.emptyTitle}>Inventario Óptimo</Text>
+                <Text style={styles.emptySub}>No se detectan quiebres de stock ni desbalances entre sedes.</Text>
+              </View>
+            ) : (
+              <View style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {suggestions.map((sugg, idx) => (
+                  <View
+                    key={`${sugg.productId}-${idx}`}
+                    style={{
+                      backgroundColor: "#FFFFFF",
+                      borderWidth: 1,
+                      borderColor: sugg.priority === "CRITICAL" ? "#FCA5A5" : "#FDE68A",
+                      borderLeftWidth: 4,
+                      borderLeftColor: sugg.priority === "CRITICAL" ? "#EF4444" : "#F59E0B",
+                      borderRadius: 8,
+                      padding: 12
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                      <Text style={{ fontWeight: "700", fontSize: 15, color: "#0F172A" }}>
+                        {sugg.productName || sugg.productId}
+                      </Text>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          backgroundColor: sugg.priority === "CRITICAL" ? "#FEE2E2" : "#FEF3C7",
+                          color: sugg.priority === "CRITICAL" ? "#DC2626" : "#B45309"
+                        }}
+                      >
+                        {sugg.priority === "CRITICAL" ? "🔴 QUIEBRE CRÍTICO" : "🟡 BAJO MÍNIMO"}
+                      </span>
+                    </View>
+
+                    <Text style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>
+                      Déficit en <strong>{sugg.toWarehouseId}</strong> ({sugg.deficitQtyMilli / 1000} un.) • Excedente en <strong>{sugg.fromWarehouseId}</strong> ({sugg.availableSurplusMilli / 1000} un. disponibles)
+                    </Text>
+
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                      <Text style={{ fontSize: 13, fontWeight: "600", color: "#0284C7" }}>
+                        Sugerido a trasladar: {sugg.suggestedQtyMilli / 1000} unidades
+                      </Text>
+                      <button
+                        type="button"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          backgroundColor: "#0284C7",
+                          color: "#FFFFFF",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "6px 12px",
+                          cursor: "pointer",
+                          fontSize: "0.82rem",
+                          fontWeight: 600
+                        }}
+                        onClick={() => handleApplySuggestion(sugg)}
+                        data-testid={`btn-apply-suggestion-${sugg.productId}`}
+                      >
+                        ⚡ Despachar Traslado
+                      </button>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* PESTAÑA 4: AVERÍAS, MERMAS Y VENCIMIENTOS */}
+        {activeTab === "ADJUSTMENT" && (
+          <View style={styles.formContainer}>
+            <Text style={styles.formHelp}>
+              Baja legal de inventario por deterioro, avería, vencimiento o merma física.
+              Cumplimiento estricto de la DIAN Art. 616 E.T. con justificación obligatoria.
+            </Text>
+
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.label}>Tipo de Baja / Ajuste Legal:</Text>
+              <select
+                aria-label="Tipo de Ajuste"
+                value={adjustmentKind}
+                onChange={(e) => setAdjustmentKind(e.target.value as any)}
+                style={selectStyle}
+                data-testid="select-adjustment-kind"
+              >
+                <option value="ADJUSTMENT_DAMAGED">Avería / Producto Roto o Deteriorado</option>
+                <option value="ADJUSTMENT_EXPIRED">Vencimiento / Fecha Límite Cumplida</option>
+                <option value="ADJUSTMENT_SHRINKAGE">Merma Operativa / Descongelación / Merma Granel</option>
+              </select>
+            </View>
+
+            <View style={styles.rowTwoCols}>
+              <View style={styles.col}>
+                <Text style={styles.label}>Bodega Afectada:</Text>
+                <select
+                  aria-label="Bodega Afectada"
+                  value={adjustmentWarehouseId}
+                  onChange={(e) => setAdjustmentWarehouseId(e.target.value)}
+                  style={selectStyle}
+                  data-testid="select-adjustment-warehouse"
+                >
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </View>
+
+              <View style={styles.col}>
+                <Text style={styles.label}>Producto:</Text>
+                <select
+                  aria-label="Producto a Ajustar"
+                  value={adjustmentProductId}
+                  onChange={(e) => setAdjustmentProductId(e.target.value)}
+                  style={selectStyle}
+                  data-testid="select-adjustment-product"
+                >
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.label}>Cantidad a Dar de Baja:</Text>
+              <TextInput
+                style={styles.textInput}
+                keyboardType="numeric"
                 value={adjustmentQty}
                 onChangeText={setAdjustmentQty}
-                keyboardType="numeric"
-                placeholder="Ej. 2"
-                placeholderTextColor="#94A3B8"
+                placeholder="Ej: 2"
                 testID="input-adj-qty"
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Motivo o Justificación Detallada</Text>
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.label}>Motivo Legal / Explicativo (Obligatorio DIAN):</Text>
               <TextInput
-                style={[styles.input, { height: 72 }]}
+                style={[styles.textInput, { height: 60 }]}
+                multiline
                 value={adjustmentReason}
                 onChangeText={setAdjustmentReason}
-                multiline
-                placeholder="Ej. Se rompieron 2 botellas de vidrio al descargar la estiba..."
-                placeholderTextColor="#94A3B8"
+                placeholder="Ej: Frasco de vidrio quebrado al descargar estiba..."
                 testID="input-adj-reason"
               />
             </View>
 
             <TouchableOpacity
-              style={[styles.btnPrimary, { backgroundColor: "#DC2626" }]}
+              style={[styles.btnDanger, isSubmitting && styles.btnDisabled]}
               onPress={handleRecordAdjustment}
               disabled={isSubmitting}
               testID="btn-record-adjustment"
             >
               <PackageMinus size={18} color="#FFFFFF" />
-              <Text style={styles.btnPrimaryText}>Registrar Ajuste en Kardex</Text>
+              <Text style={styles.btnPrimaryText}>
+                {isSubmitting ? "Registrando..." : "Registrar Baja y Asentar en Kardex Fiscal"}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -570,23 +716,31 @@ export function WarehouseTransfersModal({
 }
 
 const htmlDialogStyle: React.CSSProperties = {
-  padding: 0,
-  borderRadius: 16,
-  border: "none",
+  position: "fixed",
+  inset: 0,
+  margin: "auto",
+  maxWidth: 620,
+  width: "92%",
+  maxHeight: "88vh",
+  borderRadius: 12,
+  border: "1px solid #CBD5E1",
   boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-  width: "min(680px, 94vw)",
   backgroundColor: "#FFFFFF",
-  overflow: "hidden",
+  padding: 0,
+  zIndex: 1000,
   overscrollBehavior: "contain"
 };
 
-const htmlCloseBtnStyle: React.CSSProperties = {
-  background: "transparent",
-  border: "none",
-  fontSize: "1.5rem",
-  cursor: "pointer",
-  color: "#64748B",
-  padding: 4
+const selectStyle: React.CSSProperties = {
+  width: "100%",
+  height: 40,
+  borderRadius: 6,
+  border: "1px solid #CBD5E1",
+  padding: "0 10px",
+  backgroundColor: "#FFFFFF",
+  fontSize: "0.9rem",
+  color: "#0F172A",
+  boxSizing: "border-box"
 };
 
 const styles = StyleSheet.create({
@@ -594,227 +748,172 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#F8FAFC",
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0"
+    borderBottomColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC"
   },
-  dialogHeaderTitle: {
+  headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10
   },
-  title: {
-    fontSize: 18,
+  modalTitle: {
+    fontSize: 16,
     fontWeight: "700",
     color: "#0F172A"
   },
-  tabNav: {
+  tabsRow: {
     flexDirection: "row",
+    backgroundColor: "#F1F5F9",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF"
+    borderBottomColor: "#E2E8F0"
   },
-  tabButton: {
+  tabBtn: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 2,
     borderBottomColor: "transparent"
   },
-  tabButtonActive: {
-    borderBottomColor: "#059669"
+  tabBtnActive: {
+    backgroundColor: "#FFFFFF",
+    borderBottomColor: "#0284C7"
   },
-  tabText: {
-    fontSize: 13,
-    fontWeight: "500",
+  tabBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
     color: "#64748B"
   },
-  tabTextActive: {
-    color: "#059669",
-    fontWeight: "700"
+  tabBtnTextActive: {
+    color: "#0284C7"
   },
-  bodyScroll: {
-    maxHeight: 520,
-    padding: 20
+  dialogBody: {
+    padding: 16
   },
-  tabContent: {
-    gap: 14
+  formContainer: {
+    marginTop: 4
   },
-  sectionSubtitle: {
+  formHelp: {
     fontSize: 13,
     color: "#64748B",
-    marginBottom: 4
+    marginBottom: 12,
+    lineHeight: 18
   },
-  formGroup: {
-    gap: 6
+  rowTwoCols: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8
+  },
+  col: {
+    flex: 1
   },
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#334155"
+    color: "#334155",
+    marginBottom: 4
   },
-  htmlSelect: {
-    width: "100%",
-    height: 42,
-    borderRadius: 8,
-    borderColor: "#CBD5E1",
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: "#0F172A",
-    backgroundColor: "#FFFFFF"
-  },
-  input: {
-    height: 42,
-    borderRadius: 8,
+  textInput: {
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    paddingHorizontal: 12,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    height: 40,
     fontSize: 14,
-    color: "#0F172A",
-    backgroundColor: "#FFFFFF"
+    backgroundColor: "#FFFFFF",
+    color: "#0F172A"
   },
   btnPrimary: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    height: 44,
-    backgroundColor: "#059669",
+    backgroundColor: "#0284C7",
+    paddingVertical: 12,
     borderRadius: 8,
-    marginTop: 8
+    marginTop: 18
+  },
+  btnSuccess: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#059669",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 14
+  },
+  btnDanger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#DC2626",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 18
+  },
+  btnDisabled: {
+    opacity: 0.6
   },
   btnPrimaryText: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600"
   },
-  btnSecondary: {
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    paddingHorizontal: 16
-  },
-  btnSecondaryText: {
-    color: "#475569",
-    fontSize: 14,
-    fontWeight: "600"
-  },
-  feedbackSuccess: {
+  feedbackBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: "#ECFDF5",
     borderWidth: 1,
     borderColor: "#A7F3D0",
+    borderRadius: 8,
     padding: 10,
-    marginHorizontal: 20,
-    marginTop: 14,
-    borderRadius: 8
+    marginBottom: 12
   },
-  feedbackSuccessText: {
-    fontSize: 13,
+  feedbackText: {
     color: "#065F46",
+    fontSize: 13,
     fontWeight: "500"
   },
-  feedbackError: {
+  errorBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: "#FEF2F2",
     borderWidth: 1,
     borderColor: "#FECACA",
+    borderRadius: 8,
     padding: 10,
-    marginHorizontal: 20,
-    marginTop: 14,
-    borderRadius: 8
+    marginBottom: 12
   },
-  feedbackErrorText: {
-    fontSize: 13,
+  errorText: {
     color: "#991B1B",
+    fontSize: 13,
     fontWeight: "500"
   },
-  transferCard: {
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#F8FAFC",
-    gap: 10
-  },
-  transferCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start"
-  },
-  transferCardTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A"
-  },
-  transferCardProduct: {
-    fontSize: 13,
-    color: "#64748B",
-    marginTop: 2
-  },
-  btnReceiveSmall: {
-    flexDirection: "row",
+  emptyBox: {
     alignItems: "center",
-    gap: 6,
-    alignSelf: "flex-start",
-    backgroundColor: "#ECFDF5",
+    padding: 24,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6
+    borderColor: "#E2E8F0"
   },
-  btnReceiveSmallText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#065F46"
-  },
-  diffNoteText: {
-    fontSize: 12,
-    color: "#DC2626",
-    backgroundColor: "#FEF2F2",
-    padding: 6,
-    borderRadius: 6
-  },
-  receivingCard: {
-    padding: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#059669",
-    backgroundColor: "#F0FDF4",
-    gap: 12
-  },
-  receivingCardTitle: {
+  emptyTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#065F46"
-  },
-  receivingCardSub: {
-    fontSize: 13,
-    color: "#047857"
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 10,
+    color: "#0F172A",
     marginTop: 8
   },
-  emptyText: {
-    textAlign: "center",
-    color: "#94A3B8",
-    paddingVertical: 30,
-    fontSize: 14
+  emptySub: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2
   }
 });
