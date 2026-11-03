@@ -92,10 +92,12 @@
       height: 10px;
       border-radius: 50%;
       background-color: var(--success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
     }
 
     .status-dot.offline {
       background-color: var(--warning);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
     }
 
     /* Layout Principal de 2 Columnas */
@@ -133,11 +135,12 @@
       color: var(--text-main);
       font-size: 1.1rem;
       outline: none;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .search-input:focus {
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
     }
 
     .category-tabs {
@@ -159,6 +162,7 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
+      min-height: 40px;
     }
 
     .category-btn.active, .category-btn:hover {
@@ -185,7 +189,7 @@
       flex-direction: column;
       justify-content: space-between;
       cursor: pointer;
-      transition: transform 0.1s ease, border-color 0.1s ease;
+      transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
       min-height: 120px;
     }
 
@@ -195,6 +199,7 @@
 
     .product-card:hover {
       border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .product-name {
@@ -247,45 +252,50 @@
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
+      padding: 4px 8px;
     }
 
     .cart-items {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 16px;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .cart-empty {
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
       color: var(--text-muted);
+      text-align: center;
       gap: 8px;
-      font-size: 0.9rem;
     }
 
     .cart-item {
-      background-color: rgba(15, 23, 42, 0.4);
-      border: 1px solid var(--surface-border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
       align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background-color: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
     }
 
     .item-info {
-      flex: 1;
+      overflow: hidden;
     }
 
     .item-title {
-      font-weight: 600;
       font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .item-sub {
@@ -297,21 +307,21 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      margin: 0 12px;
     }
 
     .qty-btn {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 6px;
-      background-color: var(--surface);
-      border: 1px solid var(--surface-border);
+      background-color: var(--surface-hover);
       color: var(--text-main);
-      font-weight: bold;
-      cursor: pointer;
+      border: 1px solid var(--surface-border);
+      font-size: 1.1rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
 
     .qty-btn:active {
@@ -319,17 +329,20 @@
     }
 
     .item-total {
+      font-size: 0.95rem;
       font-weight: 700;
-      font-size: 1rem;
-      min-width: 80px;
       text-align: right;
+      min-width: 75px;
     }
 
-    /* Resumen Financiero y Botón de Cobro */
+    /* Resumen de Totales e Impuestos */
     .cart-summary {
+      background-color: var(--bg);
       border-top: 1px solid var(--surface-border);
       padding: 16px;
-      background-color: rgba(15, 23, 42, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .summary-line {
@@ -337,102 +350,104 @@
       justify-content: space-between;
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-bottom: 6px;
     }
 
     .summary-total {
       display: flex;
       justify-content: space-between;
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: var(--primary);
-      margin-top: 10px;
-      margin-bottom: 14px;
-      padding-top: 8px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 6px;
+      padding-top: 6px;
       border-top: 1px dashed var(--surface-border);
     }
 
     .checkout-btn {
-      width: 100%;
-      height: 54px;
+      margin-top: 10px;
+      height: 52px;
       background-color: var(--primary);
       color: #ffffff;
       border: none;
       border-radius: 10px;
-      font-size: 1.2rem;
-      font-weight: 800;
+      font-size: 1.15rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-      transition: background-color 0.15s ease;
+      justify-content: space-between;
+      padding: 0 20px;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
     }
 
-    .checkout-btn:hover {
+    .checkout-btn:hover:not(:disabled) {
       background-color: var(--primary-hover);
     }
 
     .checkout-btn:disabled {
-      background-color: var(--surface-border);
-      color: var(--text-muted);
-      box-shadow: none;
+      opacity: 0.5;
       cursor: not-allowed;
     }
 
-    /* Barra Inferior de Atajos de Teclado */
+    /* Barra de Atajos Rápidos Inferior */
     footer {
       background-color: var(--surface);
       border-top: 1px solid var(--surface-border);
-      padding: 0 16px;
       height: 60px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-around;
+      padding: 0 16px;
+      gap: 6px;
       overflow-x: auto;
     }
 
     .shortcut-btn {
-      background-color: rgba(15, 23, 42, 0.6);
+      background-color: var(--bg);
       border: 1px solid var(--surface-border);
       color: var(--text-main);
-      padding: 8px 12px;
       border-radius: 8px;
+      padding: 8px 12px;
       font-size: 0.8rem;
       font-weight: 600;
-      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
+      cursor: pointer;
       white-space: nowrap;
+      transition: all 0.15s ease;
+      min-height: 44px;
     }
 
     .shortcut-btn:hover {
       background-color: var(--surface-hover);
-      border-color: var(--text-muted);
+      border-color: var(--primary);
+    }
+
+    .shortcut-btn:active {
+      transform: scale(0.96);
     }
 
     .key-tag {
       background-color: var(--surface-border);
-      color: #ffffff;
+      color: var(--text-main);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: bold;
     }
 
-    /* Modales Nativos con <dialog> - Modern Web Guidance */
+    /* Modales Nativos con <dialog> - Conforme a Modern Web Guidance */
     dialog {
       background-color: var(--surface);
       color: var(--text-main);
       border: 1px solid var(--surface-border);
       border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       margin: auto;
-      max-width: 480px;
-      width: 90%;
+      max-width: 540px;
+      width: 92%;
     }
 
     dialog:modal {
@@ -440,7 +455,7 @@
     }
 
     dialog::backdrop {
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(4px);
       overflow: hidden;
       overscroll-behavior: contain;
@@ -456,6 +471,7 @@
     .dialog-title {
       font-size: 1.25rem;
       font-weight: 700;
+      color: var(--text-main);
     }
 
     .close-btn {
@@ -465,12 +481,19 @@
       font-size: 1.5rem;
       cursor: pointer;
       line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .close-btn:hover {
+      color: var(--text-main);
+      background-color: var(--surface-hover);
     }
 
     .dialog-body {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .dialog-footer {
@@ -482,22 +505,43 @@
 
     .btn {
       height: 44px;
-      padding: 0 20px;
+      padding: 0 18px;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       border: none;
       font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
     }
 
     .btn-primary {
       background-color: var(--primary);
       color: #ffffff;
     }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
 
     .btn-secondary {
       background-color: var(--surface-hover);
       color: var(--text-main);
+      border: 1px solid var(--surface-border);
+    }
+    .btn-secondary:hover {
+      background-color: var(--surface-border);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: #ffffff;
     }
 
     /* Teclado Numérico para Cobro y PIN */
@@ -505,7 +549,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .numpad-btn {
@@ -521,6 +565,38 @@
 
     .numpad-btn:active {
       background-color: var(--primary);
+    }
+
+    /* Tiquete Térmico Monospace para Previsualización ESC/POS */
+    .thermal-receipt-preview {
+      background-color: #fffdf5;
+      color: #111827;
+      font-family: "Courier New", Courier, monospace;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      max-height: 380px;
+      overflow-y: auto;
+      border-top: 3px dashed #cbd5e1;
+      border-bottom: 3px dashed #cbd5e1;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .thermal-receipt-preview pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Animación de apertura de cajón monedero */
+    @keyframes drawerPop {
+      0% { transform: translateY(0); opacity: 0.7; }
+      50% { transform: translateY(-8px); opacity: 1; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .drawer-active-pulse {
+      animation: drawerPop 0.35s ease-out;
     }
   </style>
 </head>
@@ -543,6 +619,9 @@
       <div class="status-item">
         <span>Turno: <strong id="shift-id">#004</strong></span>
       </div>
+      <button class="shortcut-btn" id="btn-header-drawer" title="Probar apertura de cajón (RJ11)" style="padding: 4px 10px; min-height: 32px;">
+        <span>🗄️ Cajón</span>
+      </button>
     </div>
   </header>
 
@@ -555,7 +634,7 @@
           type="text" 
           id="product-search" 
           class="search-input" 
-          placeholder="Escanear código de barras o buscar producto por nombre [F2]..."
+          placeholder="Escanear código de barras o buscar producto [F2]..."
           autofocus
         >
       </div>
@@ -601,6 +680,10 @@
           <span>INC (Impoconsumo 8%):</span>
           <span id="txt-inc">$0 COP</span>
         </div>
+        <div class="summary-line" id="discount-row" style="display: none; color: var(--warning);">
+          <span>Descuento Aplicado:</span>
+          <span id="txt-discount">-$0 COP</span>
+        </div>
         <div class="summary-total">
           <span>TOTAL:</span>
           <span id="txt-total">$0 COP</span>
@@ -613,20 +696,20 @@
     </section>
   </main>
 
-  <!-- Barra de Atajos Rápidos -->
+  <!-- Barra de Atajos Rápidos Inferior -->
   <footer>
     <button class="shortcut-btn" id="btn-f1"><span class="key-tag">F1</span> Ayuda</button>
-    <button class="shortcut-btn" id="btn-f2"><span class="key-tag">F2</span> Buscar [Filtro]</button>
+    <button class="shortcut-btn" id="btn-f2"><span class="key-tag">F2</span> Buscar</button>
     <button class="shortcut-btn" id="btn-f3"><span class="key-tag">F3</span> Descuento</button>
-    <button class="shortcut-btn" id="btn-f4"><span class="key-tag">F4</span> Poner en Espera</button>
-    <button class="shortcut-btn" id="btn-f5"><span class="key-tag">F5</span> Cobrar Venta</button>
-    <button class="shortcut-btn" id="btn-f6"><span class="key-tag">F6</span> Fiado / Cartera</button>
+    <button class="shortcut-btn" id="btn-f4"><span class="key-tag">F4</span> Espera</button>
+    <button class="shortcut-btn" id="btn-f5"><span class="key-tag">F5</span> Cobrar</button>
+    <button class="shortcut-btn" id="btn-f6"><span class="key-tag">F6</span> Fiados (Ley 1581)</button>
     <button class="shortcut-btn" id="btn-f7"><span class="key-tag">F7</span> Devolución</button>
     <button class="shortcut-btn" id="btn-f8"><span class="key-tag">F8</span> Arqueo Ciego</button>
-    <button class="shortcut-btn" id="btn-f12"><span class="key-tag">F12</span> Bloquear Pantalla</button>
+    <button class="shortcut-btn" id="btn-f12"><span class="key-tag">F12</span> Bloquear</button>
   </footer>
 
-  <!-- Modal de Cobro y Pagos Mixtos (Modern Web Guidance: closedby="any" & aria-labelledby) -->
+  <!-- Modal de Cobro y Pagos Mixtos (closedby="any" & aria-labelledby) -->
   <dialog id="modal-checkout" closedby="any" aria-labelledby="modal-checkout-title">
     <div class="dialog-header">
       <h2 id="modal-checkout-title" class="dialog-title">Cobrar Venta</h2>
@@ -637,28 +720,27 @@
         Total a Pagar: <span id="modal-pay-total" style="color: var(--primary); font-size: 1.4rem;">$0 COP</span>
       </div>
 
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
         <button class="btn btn-secondary active" style="flex: 1;" id="pay-mode-cash">Efectivo</button>
         <button class="btn btn-secondary" style="flex: 1;" id="pay-mode-transfer">Transferencia</button>
         <button class="btn btn-secondary" style="flex: 1;" id="pay-mode-fiado">Fiado</button>
       </div>
 
-      <div style="margin-top: 10px;">
-        <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Recibido en Efectivo:</label>
+      <div id="cash-payment-fields" style="margin-top: 6px;">
+        <label for="cash-received-input" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Recibido en Efectivo:</label>
         <input type="text" id="cash-received-input" class="search-input" style="font-size: 1.3rem; font-weight: bold; text-align: right;" value="0">
-      </div>
 
-      <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; margin-top: 6px;">
-        <span>Cambio / Vueltas:</span>
-        <span id="cash-change-txt" style="color: var(--warning);">$0 COP</span>
-      </div>
+        <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; margin-top: 6px;">
+          <span>Cambio / Vueltas:</span>
+          <span id="cash-change-txt" style="color: var(--warning);">$0 COP</span>
+        </div>
 
-      <!-- Teclado rápido de billetes colombianos -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px;">
-        <button class="category-btn" onclick="addCash(10000)">$10.000</button>
-        <button class="category-btn" onclick="addCash(20000)">$20.000</button>
-        <button class="category-btn" onclick="addCash(50000)">$50.000</button>
-        <button class="category-btn" onclick="addCash(100000)">$100.000</button>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px;">
+          <button class="category-btn" onclick="addCash(10000)">$10.000</button>
+          <button class="category-btn" onclick="addCash(20000)">$20.000</button>
+          <button class="category-btn" onclick="addCash(50000)">$50.000</button>
+          <button class="category-btn" onclick="addCash(100000)">$100.000</button>
+        </div>
       </div>
     </div>
     <div class="dialog-footer">
@@ -667,14 +749,14 @@
     </div>
   </dialog>
 
-  <!-- Modal de Bloqueo / Desbloqueo por PIN (HU-027..HU-032, closedby="none" de seguridad) -->
+  <!-- Modal de Bloqueo / Desbloqueo por PIN (closedby="none" de seguridad) -->
   <dialog id="modal-pin-lock" closedby="none" aria-labelledby="modal-pin-title">
     <div class="dialog-header">
       <h2 id="modal-pin-title" class="dialog-title">Terminal Bloqueada</h2>
     </div>
     <div class="dialog-body" style="text-align: center;">
       <p style="font-size: 0.9rem; color: var(--text-muted);">Ingrese su PIN de 4 dígitos para continuar</p>
-      <input type="password" id="pin-input" class="search-input" style="letter-spacing: 12px; font-size: 2rem; text-align: center; margin: 10px 0;" maxlength="4" readonly>
+      <input type="password" id="pin-input" class="search-input" style="letter-spacing: 12px; font-size: 2rem; text-align: center; margin: 10px 0;" maxlength="4" readonly aria-label="PIN de seguridad">
       <div class="numpad">
         <button class="numpad-btn" onclick="pressPin('1')">1</button>
         <button class="numpad-btn" onclick="pressPin('2')">2</button>
@@ -689,7 +771,244 @@
         <button class="numpad-btn" onclick="pressPin('0')">0</button>
         <button class="numpad-btn" style="color: var(--primary);" onclick="submitPin()">OK</button>
       </div>
-      <p id="pin-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 8px; display: none;">PIN incorrecto. Intentos restantes: 4</p>
+      <p id="pin-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 8px; display: none;">PIN incorrecto.</p>
+    </div>
+  </dialog>
+
+  <!-- Modal Fiados y Cartera (F6 - Ley 1581 & Ley 2300) -->
+  <dialog id="modal-fiados" closedby="any" aria-labelledby="modal-fiados-title">
+    <div class="dialog-header">
+      <h2 id="modal-fiados-title" class="dialog-title">Clientes y Fiados (Ley 1581)</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-fiados').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <label for="customer-select" style="font-size: 0.85rem; color: var(--text-muted);">Seleccionar Cliente de Cartera:</label>
+      <select id="customer-select" class="search-input" style="height: 44px; padding: 0 10px; background-color: var(--surface);">
+        <option value="CUST_CARMEN">Doña Carmen Torres — C.C. 52.345.678</option>
+        <option value="CUST_PEDRO">Don Pedro Gómez — C.C. 19.876.543</option>
+        <option value="CUST_MARTA">Sra. Marta Ruiz — C.C. 41.567.890</option>
+      </select>
+
+      <div style="background-color: var(--bg); padding: 12px; border-radius: 8px; border: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span style="color: var(--text-muted);">Cupo Autorizado:</span>
+          <strong id="cust-credit-limit">$150.000 COP</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span style="color: var(--text-muted);">Deuda Actual en Cartera:</span>
+          <strong id="cust-current-debt" style="color: var(--danger);">$45.000 COP</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.95rem; border-top: 1px dashed var(--surface-border); padding-top: 4px;">
+          <span>Cupo Disponible:</span>
+          <strong id="cust-available" style="color: var(--primary);">$105.000 COP</strong>
+        </div>
+        <div style="margin-top: 4px; font-size: 0.75rem; color: var(--primary); display: flex; align-items: center; gap: 4px;">
+          <span>✓ Habeas Data y Política de Cobro Autorizada (Ley 1581 / Ley 2300)</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <button class="btn btn-primary" style="flex: 1;" id="btn-charge-credit">Cargar Carrito a Fiado</button>
+        <button class="btn btn-secondary" style="flex: 1;" id="btn-pay-credit">Abonar a Deuda</button>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-fiados').close()">Cerrar</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Arqueo Ciego de Caja (F8 - EP-05) -->
+  <dialog id="modal-arqueo" closedby="any" aria-labelledby="modal-arqueo-title">
+    <div class="dialog-header">
+      <h2 id="modal-arqueo-title" class="dialog-title">Arqueo Ciego — Cierre de Turno</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-arqueo').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        Conteo físico a ciegas: Ingrese la cantidad de cada denominación sin ver el saldo esperado por sistema.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$100.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="10000000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$50.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="5000000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$20.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="2000000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$10.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="1000000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$5.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="500000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$2.000 x</label>
+          <input type="number" class="search-input denom-input" data-val="200000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$1.000 (Moneda) x</label>
+          <input type="number" class="search-input denom-input" data-val="100000" style="height: 36px;" min="0" value="0">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: var(--text-muted);">$500 (Moneda) x</label>
+          <input type="number" class="search-input denom-input" data-val="50000" style="height: 36px;" min="0" value="0">
+        </div>
+      </div>
+
+      <div style="background-color: var(--bg); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; font-weight: 700;">
+        <span>Total Físico Contado:</span>
+        <span id="txt-blind-counted" style="color: var(--primary); font-size: 1.1rem;">$0 COP</span>
+      </div>
+
+      <div id="blind-result-box" style="display: none; background-color: var(--bg); padding: 12px; border-radius: 8px; border: 1px solid var(--surface-border);">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span>Esperado según Ventas:</span>
+          <strong id="txt-expected-cash">$0 COP</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; margin-top: 4px;">
+          <span>Diferencia (Descuadre):</span>
+          <strong id="txt-diff-cash" style="color: var(--warning);">$0 COP</strong>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-arqueo').close()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-submit-blind-count">Cerrar Turno e Imprimir Reporte Z</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Carritos en Espera (F4) -->
+  <dialog id="modal-hold" closedby="any" aria-labelledby="modal-hold-title">
+    <div class="dialog-header">
+      <h2 id="modal-hold-title" class="dialog-title">Carritos en Espera</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-hold').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <button class="btn btn-primary" id="btn-hold-current">Poner Carrito Actual en Espera</button>
+      <div id="held-carts-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">
+        <div style="color: var(--text-muted); text-align: center; padding: 16px;">No hay carritos en espera</div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-hold').close()">Cerrar</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Descuento (F3) -->
+  <dialog id="modal-discount" closedby="any" aria-labelledby="modal-discount-title">
+    <div class="dialog-header">
+      <h2 id="modal-discount-title" class="dialog-title">Aplicar Descuento</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-discount').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <label for="discount-percent-input" style="font-size: 0.85rem; color: var(--text-muted);">Porcentaje de Descuento (1% a 20%):</label>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary" onclick="setDiscountPercent(5)">5%</button>
+        <button class="btn btn-secondary" onclick="setDiscountPercent(10)">10% (Máx Cajero)</button>
+        <button class="btn btn-secondary" onclick="setDiscountPercent(15)">15% (Supervisor)</button>
+        <button class="btn btn-secondary" onclick="setDiscountPercent(20)">20% (Supervisor)</button>
+      </div>
+      <input type="number" id="discount-percent-input" class="search-input" value="5" min="0" max="50">
+      <div id="sup-pin-discount-box" style="display: none;">
+        <label for="sup-discount-pin" style="font-size: 0.85rem; color: var(--warning);">PIN de Supervisor Requerido (>10%):</label>
+        <input type="password" id="sup-discount-pin" class="search-input" placeholder="PIN Supervisor (9999)" maxlength="4">
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-discount').close()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-apply-discount">Aplicar Descuento</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Devolución / Anulación (F7) -->
+  <dialog id="modal-return" closedby="any" aria-labelledby="modal-return-title">
+    <div class="dialog-header">
+      <h2 id="modal-return-title" class="dialog-title">Devolución / Anulación de Comprobante</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-return').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <label for="return-receipt-code" style="font-size: 0.85rem; color: var(--text-muted);">Código de Comprobante a Anular:</label>
+      <input type="text" id="return-receipt-code" class="search-input" placeholder="ej. C01-000042">
+
+      <label for="return-reason" style="font-size: 0.85rem; color: var(--text-muted);">Motivo:</label>
+      <select id="return-reason" class="search-input" style="height: 44px; padding: 0 10px; background-color: var(--surface);">
+        <option value="DEFECTIVE">Producto en mal estado / vencido</option>
+        <option value="TYPO">Error en digitación de venta</option>
+        <option value="DISSATISFACTION">Cambio o desistimiento del cliente</option>
+      </select>
+
+      <label for="return-sup-pin" style="font-size: 0.85rem; color: var(--warning);">Autorización de Supervisor (PIN):</label>
+      <input type="password" id="return-sup-pin" class="search-input" placeholder="PIN Supervisor (9999)" maxlength="4">
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-return').close()">Cancelar</button>
+      <button class="btn btn-danger" id="btn-confirm-return">Anular y Reembolsar</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Ayuda de Atajos (F1) -->
+  <dialog id="modal-help" closedby="any" aria-labelledby="modal-help-title">
+    <div class="dialog-header">
+      <h2 id="modal-help-title" class="dialog-title">Atajos de Teclado del POS</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-help').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+        <tr style="border-bottom: 1px solid var(--surface-border);">
+          <th style="text-align: left; padding: 6px;">Tecla</th>
+          <th style="text-align: left; padding: 6px;">Acción</th>
+        </tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F1</span></td><td>Guía de atajos de teclado</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F2</span></td><td>Foco en búsqueda y escaneo de códigos de barra</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F3</span></td><td>Aplicar descuento al carrito (hasta 10% cajero, >10% supervisor)</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F4</span></td><td>Poner carrito actual en espera o recuperar</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F5</span></td><td>Abrir cobro de la venta (efectivo, transferencia o fiado)</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F6</span></td><td>Gestión de clientes de cartera y fiados (Ley 1581)</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F7</span></td><td>Devolución o anulación con PIN de supervisor</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F8</span></td><td>Arqueo ciego de caja y emisión de Reporte Z</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">F12</span></td><td>Bloqueo inmediato de pantalla</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">Enter</span></td><td>Agregar producto al buscar o confirmar cobro</td></tr>
+        <tr><td style="padding: 6px;"><span class="key-tag">Esc</span></td><td>Cerrar ventana modal activa</td></tr>
+      </table>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-primary" onclick="document.getElementById('modal-help').close()">Entendido</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Previsualización de Comprobante ESC/POS y Cajón Monedero -->
+  <dialog id="modal-receipt" closedby="any" aria-labelledby="modal-receipt-title" style="max-width: 480px;">
+    <div class="dialog-header">
+      <h2 id="modal-receipt-title" class="dialog-title">Comprobante de Venta ESC/POS</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-receipt').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn btn-secondary active" id="btn-paper-58" style="padding: 4px 10px; min-height: 32px; font-size: 0.75rem;">58 mm (32 col)</button>
+        <button class="btn btn-secondary" id="btn-paper-80" style="padding: 4px 10px; min-height: 32px; font-size: 0.75rem;">80 mm (48 col)</button>
+      </div>
+      <div class="thermal-receipt-preview" id="thermal-receipt-content">
+        <!-- Renderizado dinámico de la tirilla térmica -->
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary" style="flex: 1;" id="btn-kick-drawer">
+          <span>🗄️ Abrir Cajón (RJ11)</span>
+        </button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="playScanSound('success'); alert('✓ Reimpresión enviada al spooler ESC/POS.');">
+          <span>🖨️ Imprimir Ticket</span>
+        </button>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-receipt').close()">Cerrar</button>
     </div>
   </dialog>
 
@@ -711,13 +1030,87 @@
       { id: "PROD_CHOCOLATE", barcode: "7701234012", name: "Chocolate Corona x500g", category: "ABARROTES", priceCents: 750000, taxType: "IVA_5" }
     ];
 
-    // Estado del Carrito Actual
+    // Estado Global del POS
     let cart = [];
+    let heldCarts = [];
+    let currentDiscountPercent = 0;
     let pinBuffer = "";
     let failedPinAttempts = 0;
+    let selectedPaperWidth = 58;
+    let shiftExpectedCashCents = 15000000; // Base inicial $150.000 COP
+
+    // Clientes de Cartera Mock
+    const CUSTOMERS = {
+      CUST_CARMEN: { name: "Doña Carmen Torres", doc: "52.345.678", limitCents: 15000000, debtCents: 4500000 },
+      CUST_PEDRO: { name: "Don Pedro Gómez", doc: "19.876.543", limitCents: 20000000, debtCents: 12000000 },
+      CUST_MARTA: { name: "Sra. Marta Ruiz", doc: "41.567.890", limitCents: 10000000, debtCents: 0 }
+    };
 
     function formatCOP(cents) {
       return "$" + (cents / 100).toLocaleString("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    // Sintetizador Web Audio API (Cero dependencias externas para retail POS)
+    let audioCtx = null;
+    function playScanSound(kind = "success") {
+      try {
+        if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (!audioCtx) return;
+        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+
+        if (kind === "success") {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(880, now);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (kind === "drawer") {
+          // Sonido de golpe mecánico y apertura de resorte de cajón monedero
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+
+          // Ping metálico de pestillo
+          const oscPing = audioCtx.createOscillator();
+          const gainPing = audioCtx.createGain();
+          oscPing.connect(gainPing);
+          gainPing.connect(audioCtx.destination);
+          oscPing.type = "sine";
+          oscPing.frequency.setValueAtTime(1200, now + 0.04);
+          gainPing.gain.setValueAtTime(0.12, now + 0.04);
+          gainPing.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+          oscPing.start(now + 0.04);
+          oscPing.stop(now + 0.14);
+        } else {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(220, now);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+      } catch {}
     }
 
     // Renderizar Catálogo de Productos
@@ -763,6 +1156,7 @@
       } else {
         cart.push({ product: prod, qtyMilli: 1000, discountCents: 0 });
       }
+      playScanSound("success");
       renderCart();
     }
 
@@ -775,15 +1169,15 @@
       renderCart();
     }
 
-    // Calcular Totales de Impuestos (Motor Exacto en Centavos)
+    // Calcular Totales de Impuestos (Motor en Centavos con Redondeo $50 COP)
     function calculateTotals() {
-      let subtotalCents = 0;
+      let subtotalGrossCents = 0;
       let ivaCents = 0;
       let incCents = 0;
 
       for (const item of cart) {
         const lineTotal = Math.round((item.product.priceCents * item.qtyMilli) / 1000);
-        subtotalCents += lineTotal;
+        subtotalGrossCents += lineTotal;
 
         if (item.product.taxType === "IVA_19") {
           ivaCents += Math.round(lineTotal * 0.19 / 1.19);
@@ -794,10 +1188,17 @@
         }
       }
 
-      const totalCents = subtotalCents;
-      const netSubtotalCents = totalCents - ivaCents - incCents;
+      const discountAmountCents = currentDiscountPercent > 0 
+        ? Math.round((subtotalGrossCents * currentDiscountPercent) / 100) 
+        : 0;
 
-      return { totalCents, netSubtotalCents, ivaCents, incCents };
+      const rawTotalCents = subtotalGrossCents - discountAmountCents;
+      // Redondeo legal a $50 COP (múltiplo de 5000 centavos)
+      const roundingCents = rawTotalCents > 0 ? -(rawTotalCents % 5000) : 0;
+      const totalCents = rawTotalCents + roundingCents;
+      const netSubtotalCents = subtotalGrossCents - ivaCents - incCents;
+
+      return { totalCents, netSubtotalCents, ivaCents, incCents, discountAmountCents, roundingCents };
     }
 
     // Renderizar Carrito
@@ -815,6 +1216,7 @@
         document.getElementById("txt-inc").textContent = "$0 COP";
         document.getElementById("txt-total").textContent = "$0 COP";
         document.getElementById("btn-total-preview").textContent = "$0";
+        document.getElementById("discount-row").style.display = "none";
         return;
       }
 
@@ -829,9 +1231,9 @@
             <div class="item-sub">${formatCOP(item.product.priceCents)} c/u</div>
           </div>
           <div class="qty-controls">
-            <button class="qty-btn" onclick="updateQty(${idx}, -1000)">-</button>
+            <button class="qty-btn" onclick="updateQty(${idx}, -1000)" aria-label="Disminuir cantidad">-</button>
             <span style="font-weight: bold; min-width: 28px; text-align: center;">${item.qtyMilli / 1000}</span>
-            <button class="qty-btn" onclick="updateQty(${idx}, 1000)">+</button>
+            <button class="qty-btn" onclick="updateQty(${idx}, 1000)" aria-label="Aumentar cantidad">+</button>
           </div>
           <div class="item-total">${formatCOP(itemLineTotal)}</div>
         `;
@@ -844,12 +1246,22 @@
       document.getElementById("txt-inc").textContent = formatCOP(totals.incCents) + " COP";
       document.getElementById("txt-total").textContent = formatCOP(totals.totalCents) + " COP";
       document.getElementById("btn-total-preview").textContent = formatCOP(totals.totalCents);
+
+      const discRow = document.getElementById("discount-row");
+      if (totals.discountAmountCents > 0) {
+        discRow.style.display = "flex";
+        document.getElementById("txt-discount").textContent = `-${formatCOP(totals.discountAmountCents)} (${currentDiscountPercent}%)`;
+      } else {
+        discRow.style.display = "none";
+      }
+
       document.getElementById("btn-checkout").disabled = false;
     }
 
     // Vaciar Carrito
     document.getElementById("btn-clear-cart").onclick = () => {
       cart = [];
+      currentDiscountPercent = 0;
       renderCart();
     };
 
@@ -877,7 +1289,6 @@
       const totals = calculateTotals();
       const received = (parseInt(document.getElementById("cash-received-input").value) || 0) * 100;
       const rawChange = Math.max(0, received - totals.totalCents);
-      // Redondeo legal obligatorio a $50 COP (multiplos de 5.000 centavos)
       const change = Math.round(rawChange / 5000) * 5000;
       const diff = change - rawChange;
       const diffText = diff !== 0 ? ` (Ajuste $50: ${diff > 0 ? "+" : ""}${diff / 100})` : "";
@@ -887,11 +1298,93 @@
     document.getElementById("cash-received-input").oninput = updateChange;
 
     document.getElementById("btn-confirm-payment").onclick = () => {
-      alert("✓ Venta registrada e impresa con éxito.\nTransacción guardada en Outbox local (xid8).");
+      const totals = calculateTotals();
+      shiftExpectedCashCents += totals.totalCents;
+      playScanSound("success");
       document.getElementById("modal-checkout").close();
+      showReceiptPreview(totals);
       cart = [];
+      currentDiscountPercent = 0;
       renderCart();
     };
+
+    // Generador y Previsualización de Comprobante ESC/POS
+    function showReceiptPreview(totals) {
+      const cols = selectedPaperWidth === 58 ? 32 : 48;
+      const receiptNo = "C01-" + Math.floor(100000 + Math.random() * 900000);
+      const nowStr = new Date().toLocaleString("es-CO");
+      const cudeHash = "4f8a9b2c" + Array(88).fill("0").join("");
+
+      let text = "";
+      text += centerText("TIENDA LA GRAN ESQUINA", cols) + "\n";
+      text += centerText("NIT: 900.123.456-7  Régimen Simple", cols) + "\n";
+      text += centerText("Carrera 7 # 45-12, Bogotá", cols) + "\n";
+      text += centerText("DOC. EQUIVALENTE POS: " + receiptNo, cols) + "\n";
+      text += centerText("Fecha: " + nowStr, cols) + "\n";
+      text += "-".repeat(cols) + "\n";
+
+      for (const item of cart) {
+        const itemLineTotal = Math.round((item.product.priceCents * item.qtyMilli) / 1000);
+        const desc = `${item.qtyMilli/1000}x ${item.product.name}`;
+        const amt = formatCOP(itemLineTotal);
+        text += formatTwoCols(desc, amt, cols) + "\n";
+      }
+
+      text += "-".repeat(cols) + "\n";
+      text += formatTwoCols("Subtotal:", formatCOP(totals.netSubtotalCents), cols) + "\n";
+      text += formatTwoCols("IVA Consolidado:", formatCOP(totals.ivaCents), cols) + "\n";
+      text += formatTwoCols("INC Impoconsumo:", formatCOP(totals.incCents), cols) + "\n";
+      if (totals.discountAmountCents > 0) {
+        text += formatTwoCols("Descuento:", "-" + formatCOP(totals.discountAmountCents), cols) + "\n";
+      }
+      text += formatTwoCols("TOTAL A PAGAR:", formatCOP(totals.totalCents), cols) + "\n";
+      text += "-".repeat(cols) + "\n";
+      text += centerText("CUDE: " + cudeHash.slice(0, 32) + "...", cols) + "\n";
+      text += centerText("[ CÓDIGO QR DIAN VERIFICABLE ]", cols) + "\n";
+      text += centerText("¡Gracias por su compra!", cols) + "\n";
+
+      document.getElementById("thermal-receipt-content").innerHTML = `<pre>${text}</pre>`;
+      document.getElementById("modal-receipt").showModal();
+    }
+
+    function centerText(str, cols) {
+      if (str.length >= cols) return str.slice(0, cols);
+      const pad = Math.floor((cols - str.length) / 2);
+      return " ".repeat(pad) + str;
+    }
+
+    function formatTwoCols(left, right, cols) {
+      const space = cols - left.length - right.length;
+      if (space <= 0) return left.slice(0, cols - right.length - 1) + " " + right;
+      return left + " ".repeat(space) + right;
+    }
+
+    // Botones de Ancho de Papel
+    document.getElementById("btn-paper-58").onclick = () => {
+      selectedPaperWidth = 58;
+      document.getElementById("btn-paper-58").classList.add("active");
+      document.getElementById("btn-paper-80").classList.remove("active");
+      const totals = calculateTotals();
+      showReceiptPreview(totals);
+    };
+
+    document.getElementById("btn-paper-80").onclick = () => {
+      selectedPaperWidth = 80;
+      document.getElementById("btn-paper-80").classList.add("active");
+      document.getElementById("btn-paper-58").classList.remove("active");
+      const totals = calculateTotals();
+      showReceiptPreview(totals);
+    };
+
+    // Disparar Pulso de Cajón Monedero RJ11
+    function triggerDrawerKick() {
+      playScanSound("drawer");
+      const btn = document.getElementById("btn-header-drawer");
+      btn.classList.add("drawer-active-pulse");
+      setTimeout(() => btn.classList.remove("drawer-active-pulse"), 400);
+    }
+    document.getElementById("btn-kick-drawer").onclick = triggerDrawerKick;
+    document.getElementById("btn-header-drawer").onclick = triggerDrawerKick;
 
     // Control de PIN de Seguridad (HU-027)
     function openLock() {
@@ -915,9 +1408,12 @@
 
     function submitPin() {
       if (pinBuffer === "1234") {
+        playScanSound("success");
         document.getElementById("modal-pin-lock").close();
         pinBuffer = "";
+        failedPinAttempts = 0;
       } else {
+        playScanSound("error");
         failedPinAttempts++;
         const rem = 5 - failedPinAttempts;
         const err = document.getElementById("pin-error");
@@ -930,13 +1426,226 @@
       }
     }
 
-    // Seguridad: Prevenir bypass de pantalla bloqueada con tecla Esc (HU-027)
+    // Prevenir bypass de pantalla bloqueada con tecla Esc
     const pinModal = document.getElementById("modal-pin-lock");
     pinModal.addEventListener("cancel", (e) => {
       e.preventDefault();
     });
 
-    // Fallback Light-Dismiss para navegadores sin soporte nativo a closedby="any"
+    // Modal Fiados y Cartera (F6)
+    document.getElementById("btn-f6").onclick = () => {
+      updateCustomerDisplay();
+      document.getElementById("modal-fiados").showModal();
+    };
+
+    document.getElementById("customer-select").onchange = updateCustomerDisplay;
+
+    function updateCustomerDisplay() {
+      const selKey = document.getElementById("customer-select").value;
+      const c = CUSTOMERS[selKey];
+      if (!c) return;
+      document.getElementById("cust-credit-limit").textContent = formatCOP(c.limitCents);
+      document.getElementById("cust-current-debt").textContent = formatCOP(c.debtCents);
+      const avail = Math.max(0, c.limitCents - c.debtCents);
+      document.getElementById("cust-available").textContent = formatCOP(avail);
+    }
+
+    document.getElementById("btn-charge-credit").onclick = () => {
+      const selKey = document.getElementById("customer-select").value;
+      const c = CUSTOMERS[selKey];
+      const totals = calculateTotals();
+      if (cart.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+      }
+      const avail = c.limitCents - c.debtCents;
+      if (totals.totalCents > avail) {
+        playScanSound("error");
+        alert(`❌ CUPO EXCEDIDO: La venta (${formatCOP(totals.totalCents)}) supera el cupo disponible del cliente (${formatCOP(avail)}).`);
+        return;
+      }
+      c.debtCents += totals.totalCents;
+      playScanSound("success");
+      alert(`✓ Venta fiada autorizada a ${c.name}.\nNuevo saldo en cartera: ${formatCOP(c.debtCents)} COP.`);
+      document.getElementById("modal-fiados").close();
+      cart = [];
+      currentDiscountPercent = 0;
+      renderCart();
+    };
+
+    document.getElementById("btn-pay-credit").onclick = () => {
+      const selKey = document.getElementById("customer-select").value;
+      const c = CUSTOMERS[selKey];
+      const raw = prompt(`Ingrese valor de abono para ${c.name} (Saldo: ${formatCOP(c.debtCents)}):`, "20000");
+      if (!raw) return;
+      const abonoCents = (parseInt(raw.replace(/\D/g, "")) || 0) * 100;
+      if (abonoCents <= 0) return;
+      c.debtCents = Math.max(0, c.debtCents - abonoCents);
+      shiftExpectedCashCents += abonoCents;
+      playScanSound("success");
+      alert(`✓ Abono registrado con éxito. Comprobante de ingreso emitido.\nNuevo saldo: ${formatCOP(c.debtCents)} COP.`);
+      updateCustomerDisplay();
+    };
+
+    // Modal Arqueo Ciego (F8)
+    document.getElementById("btn-f8").onclick = () => {
+      document.getElementById("blind-result-box").style.display = "none";
+      document.querySelectorAll(".denom-input").forEach(i => i.value = "0");
+      updateBlindCountSum();
+      document.getElementById("modal-arqueo").showModal();
+    };
+
+    function updateBlindCountSum() {
+      let sum = 0;
+      document.querySelectorAll(".denom-input").forEach(inp => {
+        const qty = parseInt(inp.value) || 0;
+        const val = parseInt(inp.getAttribute("data-val")) || 0;
+        sum += qty * val;
+      });
+      document.getElementById("txt-blind-counted").textContent = formatCOP(sum) + " COP";
+      return sum;
+    }
+
+    document.querySelectorAll(".denom-input").forEach(inp => inp.oninput = updateBlindCountSum);
+
+    document.getElementById("btn-submit-blind-count").onclick = () => {
+      const counted = updateBlindCountSum();
+      const expected = shiftExpectedCashCents;
+      const diff = counted - expected;
+
+      document.getElementById("txt-expected-cash").textContent = formatCOP(expected) + " COP";
+      const diffEl = document.getElementById("txt-diff-cash");
+      if (diff === 0) {
+        diffEl.textContent = "$0 COP (Cuadrado Perfecto ✓)";
+        diffEl.style.color = "var(--success)";
+      } else if (diff > 0) {
+        diffEl.textContent = `+${formatCOP(diff)} COP (Sobrante)`;
+        diffEl.style.color = "var(--primary)";
+      } else {
+        diffEl.textContent = `-${formatCOP(Math.abs(diff))} COP (Faltante)`;
+        diffEl.style.color = "var(--danger)";
+      }
+      document.getElementById("blind-result-box").style.display = "block";
+      playScanSound("drawer");
+      alert("✓ Reporte Z generado con éxito. Turno cerrado en base local.");
+    };
+
+    // Modal Carritos en Espera (F4)
+    document.getElementById("btn-f4").onclick = () => {
+      renderHeldCarts();
+      document.getElementById("modal-hold").showModal();
+    };
+
+    document.getElementById("btn-hold-current").onclick = () => {
+      if (cart.length === 0) {
+        alert("El carrito está vacío. No hay nada para retener.");
+        return;
+      }
+      heldCarts.push({
+        id: "HOLD_" + Date.now(),
+        time: new Date().toLocaleTimeString("es-CO"),
+        items: [...cart],
+        totals: calculateTotals()
+      });
+      cart = [];
+      currentDiscountPercent = 0;
+      renderCart();
+      playScanSound("success");
+      renderHeldCarts();
+      alert("✓ Carrito puesto en espera.");
+    };
+
+    function renderHeldCarts() {
+      const container = document.getElementById("held-carts-list");
+      if (heldCarts.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 16px;">No hay carritos en espera</div>`;
+        return;
+      }
+      container.innerHTML = "";
+      heldCarts.forEach((h, idx) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; background-color: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--surface-border);";
+        div.innerHTML = `
+          <div>
+            <strong>Carrito #${idx + 1} (${h.time})</strong>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">${h.items.length} artículos — ${formatCOP(h.totals.totalCents)}</div>
+          </div>
+          <button class="btn btn-primary" style="height: 34px; padding: 0 12px; font-size: 0.8rem;" onclick="recoverHeldCart(${idx})">Recuperar</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.recoverHeldCart = (idx) => {
+      const recovered = heldCarts.splice(idx, 1)[0];
+      if (recovered) {
+        cart = recovered.items;
+        renderCart();
+        playScanSound("success");
+        document.getElementById("modal-hold").close();
+      }
+    };
+
+    // Modal Descuento (F3)
+    document.getElementById("btn-f3").onclick = () => {
+      document.getElementById("modal-discount").showModal();
+    };
+
+    window.setDiscountPercent = (pct) => {
+      document.getElementById("discount-percent-input").value = pct;
+      const supBox = document.getElementById("sup-pin-discount-box");
+      supBox.style.display = pct > 10 ? "block" : "none";
+    };
+
+    document.getElementById("discount-percent-input").oninput = (e) => {
+      const val = parseInt(e.target.value) || 0;
+      document.getElementById("sup-pin-discount-box").style.display = val > 10 ? "block" : "none";
+    };
+
+    document.getElementById("btn-apply-discount").onclick = () => {
+      const pct = parseInt(document.getElementById("discount-percent-input").value) || 0;
+      if (pct > 10) {
+        const pin = document.getElementById("sup-discount-pin").value;
+        if (pin !== "9999") {
+          playScanSound("error");
+          alert("❌ PIN de supervisor incorrecto (requerido para descuentos mayores al 10%).");
+          return;
+        }
+      }
+      currentDiscountPercent = pct;
+      playScanSound("success");
+      renderCart();
+      document.getElementById("modal-discount").close();
+    };
+
+    // Modal Devolución / Anulación (F7)
+    document.getElementById("btn-f7").onclick = () => {
+      document.getElementById("modal-return").showModal();
+    };
+
+    document.getElementById("btn-confirm-return").onclick = () => {
+      const pin = document.getElementById("return-sup-pin").value;
+      const code = document.getElementById("return-receipt-code").value.trim();
+      if (pin !== "9999") {
+        playScanSound("error");
+        alert("❌ Se requiere PIN de supervisor válido (9999) para anular ventas.");
+        return;
+      }
+      if (!code) {
+        alert("Ingrese el código del comprobante a devolver.");
+        return;
+      }
+      playScanSound("drawer");
+      alert(`✓ Comprobante ${code} anulado con éxito.\nReembolso en efectivo emitido y stock repuesto en kardex.`);
+      document.getElementById("modal-return").close();
+    };
+
+    // Modal Ayuda (F1)
+    document.getElementById("btn-f1").onclick = () => {
+      document.getElementById("modal-help").showModal();
+    };
+
+    // Fallback Light-Dismiss para navegadores antiguos
     if (!("closedBy" in HTMLDialogElement.prototype)) {
       document.querySelectorAll('dialog[closedby="any"]').forEach(dlg => {
         dlg.addEventListener("click", (e) => {
@@ -953,21 +1662,39 @@
 
     // Atajos de Teclado Globales (F1..F12)
     window.addEventListener("keydown", (e) => {
-      if (e.key === "F2") {
+      if (e.key === "F1") {
+        e.preventDefault();
+        document.getElementById("modal-help").showModal();
+      } else if (e.key === "F2") {
         e.preventDefault();
         document.getElementById("product-search").focus();
+      } else if (e.key === "F3") {
+        e.preventDefault();
+        document.getElementById("modal-discount").showModal();
+      } else if (e.key === "F4") {
+        e.preventDefault();
+        renderHeldCarts();
+        document.getElementById("modal-hold").showModal();
       } else if (e.key === "F5") {
         e.preventDefault();
         openCheckout();
+      } else if (e.key === "F6") {
+        e.preventDefault();
+        updateCustomerDisplay();
+        document.getElementById("modal-fiados").showModal();
+      } else if (e.key === "F7") {
+        e.preventDefault();
+        document.getElementById("modal-return").showModal();
+      } else if (e.key === "F8") {
+        e.preventDefault();
+        document.getElementById("modal-arqueo").showModal();
       } else if (e.key === "F12") {
         e.preventDefault();
         openLock();
       } else if (e.key === "Escape") {
-        // Solo cerrar diálogos no protegidos (no cerrar modal-pin-lock)
-        const checkoutModal = document.getElementById("modal-checkout");
-        if (checkoutModal && checkoutModal.open) {
-          checkoutModal.close();
-        }
+        document.querySelectorAll("dialog[closedby='any']").forEach(d => {
+          if (d.open) d.close();
+        });
       }
     });
 
@@ -982,11 +1709,31 @@
       };
     });
 
-    // Búsqueda en Vivo
-    document.getElementById("product-search").oninput = (e) => {
+    // Búsqueda en Vivo y Pistola de Códigos de Barras (Enter)
+    const searchInput = document.getElementById("product-search");
+    searchInput.oninput = (e) => {
       const activeCat = document.querySelector(".category-btn.active")?.getAttribute("data-category") || "ALL";
       renderCatalog(activeCat, e.target.value);
     };
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const raw = searchInput.value.trim();
+        if (!raw) return;
+        const matched = CATALOG.find(p => p.barcode === raw || p.name.toLowerCase() === raw.toLowerCase());
+        if (matched) {
+          addToCart(matched);
+          searchInput.value = "";
+          const activeCat = document.querySelector(".category-btn.active")?.getAttribute("data-category") || "ALL";
+          renderCatalog(activeCat, "");
+        } else {
+          playScanSound("error");
+          searchInput.style.outline = "2px solid var(--danger)";
+          setTimeout(() => { searchInput.style.outline = ""; }, 500);
+        }
+      }
+    });
 
     // Inicialización
     renderCatalog();
