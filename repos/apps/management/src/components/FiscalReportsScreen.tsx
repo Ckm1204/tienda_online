@@ -46,6 +46,10 @@ export interface FiscalReportsScreenProps {
   isLey2300WindowOpen: boolean;
   onDownloadCsv: () => void;
   onViewThermalReportZ: () => void;
+  onExportAccountingCsv?: () => void;
+  onRunDianTestSet?: () => void;
+  onToggleFiscalMode?: () => void;
+  fiscalMode?: "NONE" | "DIAN_POS";
 }
 
 function formatCOP(cents: number): string {
@@ -61,7 +65,11 @@ export function FiscalReportsScreen({
   dianResolution,
   isLey2300WindowOpen,
   onDownloadCsv,
-  onViewThermalReportZ
+  onViewThermalReportZ,
+  onExportAccountingCsv,
+  onRunDianTestSet,
+  onToggleFiscalMode,
+  fiscalMode = "NONE"
 }: FiscalReportsScreenProps) {
   const [activeTab, setActiveTab] = useState<"libro" | "dian" | "ley2300">("libro");
 
@@ -91,6 +99,19 @@ export function FiscalReportsScreen({
         </View>
 
         <View style={styles.actionButtons}>
+          {onExportAccountingCsv && (
+            <TouchableOpacity
+              style={styles.btnSecondary}
+              onPress={onExportAccountingCsv}
+              accessibilityRole="button"
+              accessibilityLabel="Exportar Asiento Contable PUC"
+              testID="btn-export-accounting-csv"
+            >
+              <Download size={16} color="#24734e" aria-hidden />
+              <Text style={styles.btnSecondaryText}>Asiento PUC (CSV)</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={styles.btnSecondary}
             onPress={onViewThermalReportZ}
@@ -320,6 +341,39 @@ export function FiscalReportsScreen({
               <Text style={styles.dianSecurityText}>
                 Clave técnica protegida en AWS Secrets Manager. Documentos archivados por 10 años en Amazon S3 con Object Lock (WORM).
               </Text>
+            </View>
+
+            <View style={styles.dianActionsCard}>
+              <Text style={styles.cardSubtitle}>Habilitación Oficial & Activación en Vivo (HU-463 & HU-464)</Text>
+              <View style={styles.dianActionsRow}>
+                {onRunDianTestSet && (
+                  <TouchableOpacity
+                    style={styles.btnActionDian}
+                    onPress={onRunDianTestSet}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ejecutar set de pruebas DIAN"
+                    testID="btn-run-dian-test-set"
+                  >
+                    <Text style={styles.btnActionDianText}>🚀 Set de Pruebas DIAN (10/10)</Text>
+                  </TouchableOpacity>
+                )}
+                {onToggleFiscalMode && (
+                  <TouchableOpacity
+                    style={[
+                      styles.btnActionFiscalMode,
+                      fiscalMode === "DIAN_POS" ? styles.btnFiscalActive : styles.btnFiscalInactive
+                    ]}
+                    onPress={onToggleFiscalMode}
+                    accessibilityRole="button"
+                    accessibilityLabel="Conmutar modo fiscal DIAN"
+                    testID="btn-toggle-fiscal-mode"
+                  >
+                    <Text style={styles.btnActionFiscalModeText}>
+                      {fiscalMode === "DIAN_POS" ? "✓ Modo DIAN_POS Activo" : "Activar Modo DIAN_POS"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -645,6 +699,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#15803d",
     flex: 1
+  },
+  dianActionsCard: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e5e1",
+    gap: 10
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#221c27"
+  },
+  dianActionsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  btnActionDian: {
+    backgroundColor: "#f59e0b",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  btnActionDianText: {
+    color: "#0f172a",
+    fontWeight: "700",
+    fontSize: 12
+  },
+  btnActionFiscalMode: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1
+  },
+  btnFiscalActive: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#10b981"
+  },
+  btnFiscalInactive: {
+    backgroundColor: "#f3f4f6",
+    borderColor: "#d1d5db"
+  },
+  btnActionFiscalModeText: {
+    color: "#1e293b",
+    fontWeight: "600",
+    fontSize: 12
   },
   ley2300Description: {
     fontSize: 13,

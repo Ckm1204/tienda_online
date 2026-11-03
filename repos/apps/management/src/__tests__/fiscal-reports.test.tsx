@@ -237,4 +237,46 @@ describe("FiscalReportsScreen (Libro Fiscal Art. 616 E.T. & Normativa Colombia)"
 
     expect(screen.getByText(/SUPERADO/)).toBeDefined();
   });
+
+  it("permite exportar asiento contable PUC y ejecutar set de pruebas DIAN / alternar modo fiscal", () => {
+    const handleExportAccounting = vi.fn();
+    const handleRunTestSet = vi.fn();
+    const handleToggleFiscalMode = vi.fn();
+
+    render(
+      <FiscalReportsScreen
+        yearMonth="2026-11"
+        accumulatedYearCents={5000000000}
+        tope3500UvtCents={18375000000}
+        uvtAlertLevel="NORMAL"
+        days={MOCK_DAYS}
+        dianResolution={MOCK_DIAN_RESOLUTION}
+        isLey2300WindowOpen={true}
+        fiscalMode="DIAN_POS"
+        onDownloadCsv={vi.fn()}
+        onViewThermalReportZ={vi.fn()}
+        onExportAccountingCsv={handleExportAccounting}
+        onRunDianTestSet={handleRunTestSet}
+        onToggleFiscalMode={handleToggleFiscalMode}
+      />
+    );
+
+    // 1. Botón de exportar asiento PUC en el encabezado
+    const acctBtn = screen.getByTestId("btn-export-accounting-csv");
+    fireEvent.click(acctBtn);
+    expect(handleExportAccounting).toHaveBeenCalledTimes(1);
+
+    // 2. Navegar a pestaña DIAN y probar acciones
+    const dianTab = screen.getByTestId("tab-dian-resolution");
+    fireEvent.click(dianTab);
+
+    const testSetBtn = screen.getByTestId("btn-run-dian-test-set");
+    fireEvent.click(testSetBtn);
+    expect(handleRunTestSet).toHaveBeenCalledTimes(1);
+
+    const toggleModeBtn = screen.getByTestId("btn-toggle-fiscal-mode");
+    expect(screen.getByText("✓ Modo DIAN_POS Activo")).toBeDefined();
+    fireEvent.click(toggleModeBtn);
+    expect(handleToggleFiscalMode).toHaveBeenCalledTimes(1);
+  });
 });

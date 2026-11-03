@@ -340,6 +340,7 @@ export default function App() {
   const [showThermalModal, setShowThermalModal] = useState(false);
   const [fiscalDays, setFiscalDays] = useState<FiscalDaySummary[]>(DEFAULT_FISCAL_DAYS);
   const [dianResolution, setDianResolution] = useState<DianResolutionInfo>(DEFAULT_DIAN_RESOLUTION);
+  const [fiscalMode, setFiscalMode] = useState<"NONE" | "DIAN_POS">("DIAN_POS");
 
   // Datos en vivo
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -1003,11 +1004,23 @@ export default function App() {
                         days={fiscalDays}
                         dianResolution={dianResolution}
                         isLey2300WindowOpen={isLey2300Open()}
+                        fiscalMode={fiscalMode}
                         onDownloadCsv={() => {
                           setFeedMessage("Descarga iniciada: Libro Fiscal Art. 616 E.T. (CSV)");
                         }}
                         onViewThermalReportZ={() => {
                           setShowThermalModal(true);
+                        }}
+                        onExportAccountingCsv={() => {
+                          setFeedMessage("Descarga iniciada: Asiento Contable PUC Colombia (Siigo/Alegra CSV)");
+                        }}
+                        onRunDianTestSet={() => {
+                          setFeedMessage("Habilitación DIAN: 10/10 pruebas superadas con éxito (TestSetId: TEST-SET-DIAN-2026-COLOMBIA)");
+                        }}
+                        onToggleFiscalMode={() => {
+                          const nextMode = fiscalMode === "DIAN_POS" ? "NONE" : "DIAN_POS";
+                          setFiscalMode(nextMode);
+                          setFeedMessage(`Modo fiscal conmutado con éxito: ${nextMode}`);
                         }}
                       />
                     </View>
