@@ -1,7 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { OnlineApiClient, OnlineSession } from "./online-session";
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
 
 export const onlineSession = new OnlineSession(async (signal) => {
   if (!apiUrl) return false;

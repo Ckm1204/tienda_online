@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Store from "lucide-react-native/icons/store";
-import CircleHelp from "lucide-react-native/icons/circle-help";
+import MessageCircle from "lucide-react-native/icons/message-circle";
 import LogOut from "lucide-react-native/icons/log-out";
 import Sparkles from "lucide-react-native/icons/sparkles";
 import Plus from "lucide-react-native/icons/plus";
@@ -19,7 +19,7 @@ import ShieldAlert from "lucide-react-native/icons/shield-alert";
 import QrCode from "lucide-react-native/icons/qr-code";
 import Check from "lucide-react-native/icons/check";
 import Lock from "lucide-react-native/icons/lock";
-import Unlock from "lucide-react-native/icons/unlock";
+import LockOpen from "lucide-react-native/icons/lock-open";
 
 import { OnlineGate } from "./src/components/OnlineGate";
 import { onlineSession } from "./src/network/runtime";
@@ -416,7 +416,7 @@ export default function App() {
               accessibilityRole="button"
               accessibilityLabel="Centro de Ayuda y WhatsApp"
             >
-              <CircleHelp size={20} color="#24734e" aria-hidden />
+              <MessageCircle size={20} color="#24734e" aria-hidden />
               <Text style={styles.helpButtonText}>Ayuda</Text>
             </TouchableOpacity>
 
@@ -464,7 +464,7 @@ export default function App() {
                     />
                   ) : (
                     <View style={styles.loginCard}>
-                      <Text role="heading" style={styles.loginTitle}>
+                      <Text role="heading" accessibilityRole="header" style={styles.loginTitle}>
                         Portal de Administración
                       </Text>
                       <Text style={styles.loginSubtitle}>
@@ -518,7 +518,7 @@ export default function App() {
                     <View style={styles.dashboardView}>
                       <View style={styles.viewHeader}>
                         <View>
-                          <Text role="heading" style={styles.viewTitle}>
+                          <Text role="heading" accessibilityRole="header" style={styles.viewTitle}>
                             Resumen Operativo
                           </Text>
                           <Text style={styles.viewSubtitle}>
@@ -851,7 +851,7 @@ export default function App() {
                                   </>
                                 ) : (
                                   <>
-                                    <Unlock size={16} color="#15803d" aria-hidden />
+                                    <LockOpen size={16} color="#15803d" aria-hidden />
                                     <Text style={styles.textUnlocked}>Activo</Text>
                                   </>
                                 )}
@@ -983,21 +983,22 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: "#f8fafc" },
+  page: { flex: 1, backgroundColor: "#f8fafc", width: "100%", maxWidth: "100%", overflow: "hidden" },
   header: {
-    minHeight: 70,
+    minHeight: 64,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
+    maxWidth: "100%"
   },
-  headerBrand: { flexDirection: "row", alignItems: "center", gap: 12 },
+  headerBrand: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", flexShrink: 1 },
   brand: {
     fontFamily: "DMSans_600SemiBold",
     fontSize: 20,
@@ -1403,12 +1404,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: "#e2e8f0",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
+    maxWidth: "100%"
   },
   footerText: { fontFamily: "DMSans_400Regular", fontSize: 12, color: "#64748b" }
 });
