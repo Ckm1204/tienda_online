@@ -231,6 +231,83 @@ Expuesto solo en un host separado con allow-list de IP y MFA obligatorio. Toda o
 | GET | `/v1/platform/health` · `/v1/platform/metrics` (MRR, churn, mora, conversiones) | Operación y negocio |
 | POST | `/v1/platform/support-access` | Acceso temporal de soporte (JIT) |
 
+### 4.1 Contratos de la Consola del Super Admin (Épica 12)
+
+#### 4.1.1 `POST /v1/platform/tenants` (Saga de Alta Orquestada JIT)
+Ejecuta de forma atómica la creación de tienda, sucursal `MAIN`, terminal `CAJA-01`, entitlements por plan y usuario `OWNER` con token de activación.
+
+- **Cabeceras:** `Authorization: Bearer <jwt-platform-super-admin>`
+- **Cuerpo (`application/json`):**
+```json
+{
+  "businessName": "Supermercado El Cóndor",
+  "documentType": "NIT",
+  "documentNumber": "901555888",
+  "nitDv": 3,
+  "planCode": "NEGOCIO",
+  "ownerEmail": "gerencia@elcondor.co",
+  "ownerPhone": "+573101234567",
+  "trialDays": 15
+}
+```
+- **Validación:** El campo `nitDv` es validado con el algoritmo Módulo 11 oficial de la DIAN (Art. 555-2 E.T.). Si no coincide, retorna `400 INVALID_NIT_DV`.
+- **Respuesta 201 Created:**
+```json
+{
+  "tenantId": "01a1a246-a060-7c7c-9063-7024c0619319",
+  "mainBranchId": "01a1a246-a060-7c7e-85a0-0d12e345a1b2",
+  "terminalCode": "CAJA-01",
+  "terminalId": "01a1a246-a060-7c82-a69c-d26ce233525a",
+  "activationToken": "act_01a1a246-a060-7c85-98f1-c456a789b0c1",
+  "ownerUserId": "usr-01a1a246-a060-7c88-b7d2-e567b890c1d2"
+}
+```
+
+#### 4.1.2 `POST /v1/platform/local-licenses` (Emisión de Licencia Edición Local)
+Genera una licencia perpetua o por suscripción para la Edición Local standalone sin internet.
+
+- **Cuerpo (`application/json`):**
+```json
+{
+  "tenant_id": "01a1a246-a060-7c7c-9063-7024c0619319",
+  "edition": "LOCAL_PLUS",
+  "terminals_allowed": 3,
+  "duration_days": 365
+}
+```
+- **Respuesta 201 Created:**
+```json
+{
+  "license_id": "lic-01a1a246-99aa-88bb",
+  "serial_key": "TDL-149C5-86BB3-C0BF9-9278E",
+  "serial_last4": "9278E",
+  "edition": "LOCAL_PLUS",
+  "terminals_allowed": 3,
+  "expires_at_iso": "2027-11-03T11:00:00.000Z"
+}
+```
+> **Nota de Seguridad:** La clave `serial_key` completa en texto claro solo se retorna una única vez en la respuesta `201`. Consultas posteriores (`GET /v1/platform/local-licenses`) solo exponen `serial_last4`.
+
+#### 4.1.3 `POST /v1/platform/support-access` (Acceso JIT 30 Minutos)
+Autoriza una sesión de soporte técnico con permisos de solo lectura o intervención supervisada durante 30 minutos (1.800 s), exigiendo motivo justificado para estricto cumplimiento con la SIC y Ley 1581 (Habeas Data).
+
+- **Cuerpo (`application/json`):**
+```json
+{
+  "tenant_id": "01a1a246-a060-7c7c-9063-7024c0619319",
+  "reason": "Auditoría de discrepancia de sincronización ticket #4812"
+}
+```
+- **Respuesta 200 OK:**
+```json
+{
+  "session_id": "01a1a249-ada0-776b-ad3a-4d0554a31ced",
+  "tenant_id": "01a1a246-a060-7c7c-9063-7024c0619319",
+  "expires_at_iso": "2026-11-03T11:30:00.000Z",
+  "expires_in_seconds": 1800
+}
+```
+
 ## 5. Webhooks entrantes
 
 | Origen | Ruta | Validación |
