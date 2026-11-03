@@ -203,4 +203,89 @@ export class EinvoicingController {
       };
     }
   }
+
+  /**
+   * HU-463: Asistente y ejecutor del Set de Pruebas de Habilitación DIAN (TestSetId).
+   */
+  async runTestSet(req: HttpRequest): Promise<HttpResponse> {
+    if (!this.einvoicingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const body = req.body as any;
+
+    if (!body || !body.testSetId) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "MISSING_TEST_SET_ID" }
+      };
+    }
+
+    try {
+      const result = this.einvoicingService.contingencyWorm.runTestSetHabilitation({
+        tenantId: safeTenantId,
+        testSetId: String(body.testSetId),
+        totalRequired: body.totalRequired ? Number(body.totalRequired) : 10
+      });
+
+      return {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: result
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: err.message ?? "TEST_SET_EXECUTION_FAILED" }
+      };
+    }
+  }
+
+  /**
+   * HU-464: Activación en caliente de fiscal_mode = DIAN_POS sin alterar comprobantes anteriores.
+   */
+  async switchFiscalMode(req: HttpRequest): Promise<HttpResponse> {
+    if (!this.einvoicingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const claims = req.claims!;
+    const safeTenantId = claims.tid!;
+    const body = req.body as any;
+
+    if (!body || !body.fiscalMode || (body.fiscalMode !== "NONE" && body.fiscalMode !== "DIAN_POS")) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "INVALID_FISCAL_MODE" }
+      };
+    }
+
+    try {
+      const result = this.einvoicingService.contingencyWorm.switchFiscalMode(safeTenantId, body.fiscalMode);
+      return {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: result
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: err.message ?? "FISCAL_MODE_SWITCH_FAILED" }
+      };
+    }
+  }
 }

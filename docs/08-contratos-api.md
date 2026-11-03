@@ -145,6 +145,8 @@ Solo `GET`. Parámetros comunes: `branch_id`, `terminal_id`, `from`, `to`, `grou
 | `POST` | `/v1/app/einvoicing/cude` | Calcula hash CUDE canónico SHA-384 (96 caracteres) y URL de búsqueda QR en VPFE DIAN |
 | `POST` | `/v1/app/einvoicing/ubl-preview` | Construye y previsualiza documento XML oficial en esquema OASIS UBL 2.1 |
 | `GET` | `/v1/app/einvoicing/contingency` | Estado de contingencia Tipo 4 y archivo inmutable WORM de 10 años en Amazon S3 |
+| `POST` | `/v1/app/einvoicing/test-set` | Ejecuta el Set de Pruebas de Habilitación DIAN con TestSetId oficial (HU-463) |
+| `POST` | `/v1/app/einvoicing/fiscal-mode` | Conmuta en caliente el modo fiscal (NONE <-> DIAN_POS) sin alterar comprobantes anteriores (HU-464) |
 
 ## 3c. Activación de la Edición Local — `device-service` (`/v1/local-activation/*`)
 

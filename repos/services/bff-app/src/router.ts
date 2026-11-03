@@ -166,6 +166,20 @@ export class BffRouter {
         body: { error: "EINVOICING_UNAVAILABLE" }
       };
     }
+    if (method === "POST" && cleanPath === "/v1/app/einvoicing/test-set") {
+      return this.controllers.einvoicingController?.runTestSet(req) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
+    }
+    if (method === "POST" && cleanPath === "/v1/app/einvoicing/fiscal-mode") {
+      return this.controllers.einvoicingController?.switchFiscalMode(req) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
+    }
 
     // --- Cajas / Terminales ---
     if (method === "GET" && cleanPath === "/v1/app/terminals") {

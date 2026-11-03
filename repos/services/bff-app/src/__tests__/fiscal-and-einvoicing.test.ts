@@ -355,5 +355,41 @@ describe("BFF: Integración Fiscal Colombiana (Art. 616 E.T. & Facturación DIAN
     expect(ublRes.headers?.["Content-Type"]).toContain("application/xml");
     expect(ublRes.body).toContain("<Invoice");
     expect(ublRes.body).toContain("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2");
+
+    // 7. Ejecutar Set de Pruebas de Habilitación DIAN (TestSetId) vía BFF (HU-463)
+    const testSetReq: HttpRequest = {
+      method: "POST",
+      path: "/v1/app/einvoicing/test-set",
+      ip: "127.0.0.1",
+      headers: authHeaders,
+      claims,
+      body: {
+        testSetId: "TEST-SET-DIAN-2026-COLOMBIA",
+        totalRequired: 10
+      }
+    };
+    const testSetRes = await bff.handleRequest(testSetReq, nowMs);
+    expect(testSetRes.status).toBe(200);
+    const testSetBody = testSetRes.body as any;
+    expect(testSetBody.completed).toBe(true);
+    expect(testSetBody.passedCount).toBe(10);
+    expect(testSetBody.testSetId).toBe("TEST-SET-DIAN-2026-COLOMBIA");
+
+    // 8. Conmutación en caliente de modo fiscal (NONE -> DIAN_POS) (HU-464)
+    const switchReq: HttpRequest = {
+      method: "POST",
+      path: "/v1/app/einvoicing/fiscal-mode",
+      ip: "127.0.0.1",
+      headers: authHeaders,
+      claims,
+      body: {
+        fiscalMode: "DIAN_POS"
+      }
+    };
+    const switchRes = await bff.handleRequest(switchReq, nowMs);
+    expect(switchRes.status).toBe(200);
+    const switchBody = switchRes.body as any;
+    expect(switchBody.newMode).toBe("DIAN_POS");
+    expect(switchBody.previousMode).toBe("NONE");
   });
 });
