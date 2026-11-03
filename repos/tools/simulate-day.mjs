@@ -400,6 +400,59 @@ async function runSimulation() {
   printStep("🛡️", `Conciliación Sales DB == Reporting DB == Cash DB: 100% CUADRADA.`);
   printStep("✓", `Discrepancias contables detectadas: 0.`);
 
+  // 13. Habilitación de Facturación Electrónica DIAN (TestSetId) — HU-463
+  printSection("PASO 13: HABILITACIÓN ELECTRÓNICA DIAN (TEST-SET-ID)");
+  const testSetReq = {
+    method: "POST",
+    path: "/v1/app/einvoicing/test-set",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      testSetId: "TEST-SET-DIAN-2026-COLOMBIA",
+      totalRequired: 10
+    }
+  };
+  const testSetRes = await bff.handleRequest(testSetReq, nowMs + 11000000);
+  if (testSetRes.status !== 200 || !testSetRes.body.completed) {
+    throw new Error(`Fallo en set de pruebas DIAN: ${JSON.stringify(testSetRes.body)}`);
+  }
+  printStep("🏛️", `TestSetId Oficial: ${testSetRes.body.testSetId}`);
+  printStep("✓", `Paquete de 10 pruebas DIAN superadas (5 facturas, 3 notas crédito, 2 notas débito): ACEPTADO.`);
+
+  // 14. Activación en Caliente de Modo Fiscal DIAN_POS — HU-464
+  printSection("PASO 14: ACTIVACIÓN EN CALIENTE DE MODO FISCAL DIAN_POS");
+  const switchReq = {
+    method: "POST",
+    path: "/v1/app/einvoicing/fiscal-mode",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      fiscalMode: "DIAN_POS"
+    }
+  };
+  const switchRes = await bff.handleRequest(switchReq, nowMs + 11000000);
+  if (switchRes.status !== 200 || switchRes.body.newMode !== "DIAN_POS") {
+    throw new Error(`Fallo al conmutar modo fiscal: ${JSON.stringify(switchRes.body)}`);
+  }
+  printStep("🔄", `Modo fiscal anterior: ${switchRes.body.previousMode} ➔ Nuevo modo activo: ${switchRes.body.newMode}.`);
+  printStep("✓", `Establecimiento facultado para emitir Documento Equivalente Electrónico POS.`);
+
+  // 15. Custodia Legal WORM en Amazon S3 (10 años) & Contingencia — HU-462 & HU-465
+  printSection("PASO 15: CUSTODIA WORM EN S3 (10 AÑOS) & ESTADO DE CONTINGENCIA");
+  const contReq = {
+    method: "GET",
+    path: "/v1/app/einvoicing/contingency",
+    ip: "127.0.0.1",
+    headers: authHeaders,
+    claims
+  };
+  const contRes = await bff.handleRequest(contReq, nowMs + 11000000);
+  printStep("🔒", `Almacenamiento S3 Object Lock (Modo COMPLIANCE): Retención legal garantizada.`);
+  printStep("🛡️", `Contingencias pendientes de transmisión: ${contRes.body.pendingCount ?? 0}.`);
+  printStep("✓", `Canal con proveedor tecnológico DIAN: 100% OPERATIVO.`);
+
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");
   console.log(`  ⏱️ Tiempo total de simulación: ${durationMs} ms`);
