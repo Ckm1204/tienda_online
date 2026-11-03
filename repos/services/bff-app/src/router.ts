@@ -149,6 +149,20 @@ export class BffRouter {
         body: { error: "EINVOICING_UNAVAILABLE" }
       };
     }
+    if (method === "POST" && cleanPath === "/v1/app/einvoicing/cude") {
+      return this.controllers.einvoicingController?.calculateCude(req) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
+    }
+    if (method === "POST" && cleanPath === "/v1/app/einvoicing/ubl-preview") {
+      return this.controllers.einvoicingController?.generateUblXml(req) ?? {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_UNAVAILABLE" }
+      };
+    }
 
     // --- Cajas / Terminales ---
     if (method === "GET" && cleanPath === "/v1/app/terminals") {

@@ -122,4 +122,85 @@ export class EinvoicingController {
       body: summary
     };
   }
+
+  /**
+   * HU-137, HU-383: Cálculo en línea de hash CUDE en SHA-384 y generación de URL QR oficial DIAN.
+   */
+  async calculateCude(req: HttpRequest): Promise<HttpResponse> {
+    if (!this.einvoicingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const body = req.body as any;
+    if (!body || !body.doc_number || !body.issuer_nit) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "MISSING_REQUIRED_FIELDS" }
+      };
+    }
+
+    try {
+      const cude = this.einvoicingService.fiscalEngine.calculateCude({
+        doc_number: String(body.doc_number),
+        issue_date: String(body.issue_date ?? new Date().toISOString().slice(0, 10)),
+        issue_time: String(body.issue_time ?? "12:00:00-05:00"),
+        subtotal_cents: Number(body.subtotal_cents ?? 0),
+        tax_iva_cents: Number(body.tax_iva_cents ?? 0),
+        tax_inc_cents: Number(body.tax_inc_cents ?? 0),
+        total_cents: Number(body.total_cents ?? 0),
+        issuer_nit: String(body.issuer_nit),
+        acquirer_doc: String(body.acquirer_doc ?? "222222222222"),
+        technical_key_or_pin: String(body.technical_key_or_pin ?? "test_technical_key"),
+        environment_type: body.environment_type === "2" ? "2" : "1"
+      });
+
+      const qrUrl = this.einvoicingService.fiscalEngine.generateDianQrUrl(cude);
+
+      return {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: { cude, qr_url: qrUrl }
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: err.message ?? "CUDE_CALCULATION_FAILED" }
+      };
+    }
+  }
+
+  /**
+   * HU-138, HU-386: Generación y previsualización de documento UBL 2.1 oficial DIAN (XML).
+   */
+  async generateUblXml(req: HttpRequest): Promise<HttpResponse> {
+    if (!this.einvoicingService) {
+      return {
+        status: 501,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "EINVOICING_SERVICE_UNAVAILABLE" }
+      };
+    }
+
+    const body = req.body as any;
+    try {
+      const xml = this.einvoicingService.ubl.buildUblXml(body);
+      return {
+        status: 200,
+        headers: { "Content-Type": "application/xml; charset=utf-8" },
+        body: xml
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: err.message ?? "UBL_GENERATION_FAILED" }
+      };
+    }
+  }
 }

@@ -212,5 +212,86 @@ describe("BFF: Integración Fiscal Colombiana (Art. 616 E.T. & Facturación DIAN
     const contRes = await bff.handleRequest(contReq, nowMs);
     expect(contRes.status).toBe(200);
     expect((contRes.body as any).total_documents).toBeDefined();
+
+    // 5. Calcular CUDE y URL del código QR DIAN vía BFF
+    const cudeReq: HttpRequest = {
+      method: "POST",
+      path: "/v1/app/einvoicing/cude",
+      ip: "127.0.0.1",
+      headers: authHeaders,
+      claims,
+      body: {
+        doc_number: "POS-001001",
+        issue_date: "2026-11-02",
+        issue_time: "14:30:00-05:00",
+        subtotal_cents: 100_000_00,
+        tax_iva_cents: 19_000_00,
+        tax_inc_cents: 0,
+        total_cents: 119_000_00,
+        issuer_nit: "901234567",
+        acquirer_doc: "222222222222",
+        technical_key_or_pin: "test_technical_key",
+        environment_type: "1"
+      }
+    };
+
+    const cudeRes = await bff.handleRequest(cudeReq, nowMs);
+    expect(cudeRes.status).toBe(200);
+    const cudeBody = cudeRes.body as any;
+    expect(cudeBody.cude).toHaveLength(96);
+    expect(cudeBody.qr_url).toContain("catalogo-vpfe.dian.gov.co");
+
+    // 6. Generar documento XML UBL 2.1 oficial vía BFF
+    const ublReq: HttpRequest = {
+      method: "POST",
+      path: "/v1/app/einvoicing/ubl-preview",
+      ip: "127.0.0.1",
+      headers: authHeaders,
+      claims,
+      body: {
+        kind: "POS_EQUIVALENT",
+        prefix: "POS",
+        number: 1001,
+        cude: cudeBody.cude,
+        issue_date: "2026-11-02",
+        issue_time: "14:30:00-05:00",
+        issuer: {
+          nit: "901234567",
+          dv: "1",
+          legal_name: "Tienda La Esmeralda SAS",
+          trade_name: "La Esmeralda",
+          address: "Cra 15 # 45-20",
+          city_code: "11001"
+        },
+        acquirer: {
+          doc_type: "222222222222",
+          doc_number: "222222222222",
+          name: "Consumidor Final"
+        },
+        payment_mean: "10",
+        lines: [
+          {
+            id: "1",
+            name: "Arroz Diana 1kg",
+            qty_milli: 1000,
+            unit_code: "H87",
+            unit_price_cents: 100_000_00,
+            total_cents: 119_000_00,
+            tax_kind: "01",
+            tax_rate_bp: 1900,
+            tax_amount_cents: 19_000_00
+          }
+        ],
+        subtotal_cents: 100_000_00,
+        tax_cents: 19_000_00,
+        total_cents: 119_000_00
+      }
+    };
+
+    const ublRes = await bff.handleRequest(ublReq, nowMs);
+    expect(ublRes.status).toBe(200);
+    expect(ublRes.headers?.["Content-Type"]).toContain("application/xml");
+    expect(ublRes.body).toContain("<Invoice");
+    expect(ublRes.body).toContain("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2");
   });
 });
