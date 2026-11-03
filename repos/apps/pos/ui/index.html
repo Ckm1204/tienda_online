@@ -877,6 +877,9 @@
           <span>Diferencia (Descuadre):</span>
           <strong id="txt-diff-cash" style="color: var(--warning);">$0 COP</strong>
         </div>
+        <button class="btn btn-secondary" id="btn-view-report-z" style="margin-top: 10px; width: 100%; font-size: 0.8rem; padding: 8px;">
+          🖨️ Ver Tiquete Térmico Reporte Z (Fiscal Art. 616 E.T.)
+        </button>
       </div>
     </div>
     <div class="dialog-footer">
@@ -1527,8 +1530,61 @@
       }
       document.getElementById("blind-result-box").style.display = "block";
       playScanSound("drawer");
+      lastBlindCountResult = { counted, expected, diff };
       alert("✓ Reporte Z generado con éxito. Turno cerrado en base local.");
     };
+
+    let lastBlindCountResult = null;
+
+    document.getElementById("btn-view-report-z").onclick = () => {
+      if (!lastBlindCountResult) {
+        lastBlindCountResult = { counted: 27500000, expected: 30000000, diff: -2500000 };
+      }
+      showReportZPreview(lastBlindCountResult.counted, lastBlindCountResult.expected, lastBlindCountResult.diff);
+    };
+
+    function showReportZPreview(counted, expected, diff) {
+      const cols = selectedPaperWidth === 58 ? 32 : 48;
+      const nowStr = new Date().toLocaleString("es-CO");
+      const fmt = (cents) => "$" + (cents / 100).toLocaleString("es-CO");
+
+      let text = "";
+      text += centerText("TIENDA LA GRAN ESQUINA", cols) + "\n";
+      text += centerText("NIT: 900.123.456-7  Régimen Simple", cols) + "\n";
+      text += centerText("CIERRE FISCAL — REPORTE Z", cols) + "\n";
+      text += centerText("(Art. 616 del Estatuto Tributario)", cols) + "\n";
+      text += centerText("Fecha/Hora: " + nowStr, cols) + "\n";
+      text += centerText("Caja: CAJA-01 • Cajero: Carlos Gómez", cols) + "\n";
+      text += "=".repeat(cols) + "\n";
+      text += formatTwoCols("Consecutivo Inicial:", "POS-00101", cols) + "\n";
+      text += formatTwoCols("Consecutivo Final:", "POS-00115", cols) + "\n";
+      text += formatTwoCols("Total Transacciones:", "15", cols) + "\n";
+      text += "-".repeat(cols) + "\n";
+      text += centerText("DESGLOSE TRIBUTARIO", cols) + "\n";
+      text += formatTwoCols("Gravado 19%:", fmt(12500000), cols) + "\n";
+      text += formatTwoCols("Gravado 5%:", fmt(3400000), cols) + "\n";
+      text += formatTwoCols("Exento Canasta:", fmt(4100000), cols) + "\n";
+      text += formatTwoCols("Excluido de IVA:", fmt(2200000), cols) + "\n";
+      text += formatTwoCols("Impoconsumo (INC 8%):", fmt(1800000), cols) + "\n";
+      text += "-".repeat(cols) + "\n";
+      text += formatTwoCols("VENTAS BRUTAS:", fmt(24000000), cols) + "\n";
+      text += formatTwoCols("Devoluciones:", "-" + fmt(500000), cols) + "\n";
+      text += formatTwoCols("VENTAS NETAS TURNO:", fmt(23500000), cols) + "\n";
+      text += "=".repeat(cols) + "\n";
+      text += centerText("BALANCE Y ARQUEO CIEGO", cols) + "\n";
+      text += formatTwoCols("Fondo Inicial Caja:", fmt(10000000), cols) + "\n";
+      text += formatTwoCols("Efectivo Esperado:", fmt(expected), cols) + "\n";
+      text += formatTwoCols("Efectivo Declarado:", fmt(counted), cols) + "\n";
+      const diffStr = diff === 0 ? "CUADRADO ($0)" : (diff > 0 ? "+" + fmt(diff) + " (Sobrante)" : "-" + fmt(Math.abs(diff)) + " (Faltante)");
+      text += formatTwoCols("Diferencia:", diffStr, cols) + "\n";
+      text += "=".repeat(cols) + "\n";
+      text += centerText("Tope 3.500 UVT: Normal (< 80%)", cols) + "\n";
+      text += centerText("Registro legal de operaciones", cols) + "\n";
+      text += centerText("Software TienditaOnline v2026.1", cols) + "\n";
+
+      document.getElementById("thermal-receipt-content").innerHTML = `<pre>${text}</pre>`;
+      document.getElementById("modal-receipt").showModal();
+    }
 
     // Modal Carritos en Espera (F4)
     document.getElementById("btn-f4").onclick = () => {
