@@ -505,7 +505,55 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     }, t0 + 1000);
     expect(supFail.status).toBe(409);
 
-    // 2. Castigo de cartera (Write-off) con Step-up MFA
+    // 2. HU-446: Con deuda activa, validación de Ley 2300 en horario nocturno (3am) prohíbe el contacto (OUTSIDE_HOURS)
+    const checkNight = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/contact-check`,
+      ip: "190.14.20.1",
+      headers: {},
+      claims: claimsRecentMfa,
+      body: { channel: "SMS", targetIsDebtorOrCodebtor: true }
+    }, t0 + 1500); // 3:53 AM Colombia
+    expect(checkNight.status).toBe(200);
+    expect((checkNight.body as any).allowed).toBe(false);
+    expect((checkNight.body as any).code).toBe("OUTSIDE_HOURS");
+
+    // En horario hábil legal (9:53 AM), el contacto es autorizado
+    const tDay = t0 + 6 * 3600 * 1000; // 09:53 AM Colombia
+    const checkDay = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/contact-check`,
+      ip: "190.14.20.1",
+      headers: {},
+      claims: claimsRecentMfa,
+      body: { channel: "SMS", targetIsDebtorOrCodebtor: true }
+    }, tDay);
+    expect(checkDay.status).toBe(200);
+    expect((checkDay.body as any).allowed).toBe(true);
+
+    const logRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/contact-log`,
+      ip: "190.14.20.1",
+      headers: {},
+      claims: claimsRecentMfa,
+      body: { channel: "SMS", targetIsDebtorOrCodebtor: true, notes: "Recordatorio amable de cuota" }
+    }, tDay + 100);
+    expect(logRes.status).toBe(201);
+    expect((logRes.body as any).contactId).toBeDefined();
+
+    const auditRes = await bff.handleRequest({
+      method: "GET",
+      path: `/v1/app/customers/${cust.id}/contact-audit`,
+      ip: "190.14.20.1",
+      headers: {},
+      claims: claimsRecentMfa
+    }, tDay + 200);
+    expect(auditRes.status).toBe(200);
+    expect(Array.isArray(auditRes.body)).toBe(true);
+    expect((auditRes.body as any[]).length).toBe(1);
+
+    // 3. Castigo de cartera (Write-off) con Step-up MFA
     const writeOffRes = await bff.handleRequest({
       method: "POST",
       path: `/v1/app/customers/${cust.id}/write-off`,
@@ -516,7 +564,7 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     }, t0 + 2000);
     expect(writeOffRes.status).toBe(200);
 
-    // 3. Con deuda en $0, la supresión de datos Habeas Data es exitosa
+    // 4. Con deuda en $0, la supresión de datos Habeas Data es exitosa
     const supOk = await bff.handleRequest({
       method: "POST",
       path: `/v1/app/customers/${cust.id}/suppress-data`,
@@ -526,6 +574,19 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     }, t0 + 3000);
     expect(supOk.status).toBe(200);
     expect((supOk.body as any).anonymized).toBe(true);
+
+    // 5. Con deuda en $0, Ley 2300 prohíbe nuevos contactos de cobranza (NO_ACTIVE_DEBT)
+    const checkNoDebt = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/contact-check`,
+      ip: "190.14.20.1",
+      headers: {},
+      claims: claimsRecentMfa,
+      body: { channel: "SMS", targetIsDebtorOrCodebtor: true }
+    }, t0 + 4000);
+    expect(checkNoDebt.status).toBe(200);
+    expect((checkNoDebt.body as any).allowed).toBe(false);
+    expect((checkNoDebt.body as any).code).toBe("NO_ACTIVE_DEBT");
   });
 
   it("HU-357 & HU-358: Calculadora rápida de margen y actualización masiva de precios con Step-up MFA y redondeo $50 COP", async () => {

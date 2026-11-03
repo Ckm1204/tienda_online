@@ -274,6 +274,18 @@ export class BffRouter {
     if (method === "POST" && matchSuppress) {
       return this.controllers.customersController.suppressCustomerData(matchSuppress[1]!, req);
     }
+    const matchContactCheck = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/contact-check$/);
+    if (method === "POST" && matchContactCheck) {
+      return this.controllers.customersController.checkContactAllowed(matchContactCheck[1]!, req, nowMs);
+    }
+    const matchContactLog = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/contact-log$/);
+    if (method === "POST" && matchContactLog) {
+      return this.controllers.customersController.recordContact(matchContactLog[1]!, req, nowMs);
+    }
+    const matchContactAudit = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/contact-audit$/);
+    if (method === "GET" && matchContactAudit) {
+      return this.controllers.customersController.getContactAudit(matchContactAudit[1]!, req);
+    }
 
     return {
       status: 404,

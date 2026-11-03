@@ -104,7 +104,7 @@ Escrituras síncronas contra el servicio dueño. Todo `POST`/`PATCH`/`DELETE` ex
 | POST | `/v1/app/products/import` → `202` + `GET /v1/app/jobs/{id}` | catalog |
 | GET/POST | `/v1/app/generic-items` (vendidos como genéricos) · `POST …/{id}/create-product` | catalog |
 | GET/POST | `/v1/app/branches/{id}/prices` · `/v1/app/promotions` | catalog |
-| GET/POST/PATCH | `/v1/app/customers` · `PATCH …/{id}/credit` · `POST …/{id}/write-off` | customer |
+| GET/POST/PATCH | `/v1/app/customers` · `PATCH …/{id}/credit` · `POST …/{id}/write-off` · `POST …/{id}/contact-check` · `POST …/{id}/contact-log` · `GET …/{id}/contact-audit` | customer |
 | POST | `/v1/app/inventory/receipts` · `/v1/app/inventory/adjustments` · `/v1/app/inventory/counts` · `/v1/app/inventory/transfers` | inventory |
 | GET | `/v1/app/inventory/levels?branch_id=` | inventory |
 | GET/POST | `/v1/app/payments/reconciliation` | sales |
