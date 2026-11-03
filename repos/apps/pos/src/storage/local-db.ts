@@ -2,9 +2,10 @@ import crypto from "node:crypto";
 import { rawCanonicalSha256Hex } from "@tiendita/contracts";
 
 /**
- * FT-02.1 — Almacenamiento Cifrado SQLCipher, Snapshots, Purga Segura y Diagnóstico Local
- * Cubre: HU-019, HU-020, HU-021, HU-022, HU-156, HU-157, HU-158, HU-282, HU-350, HU-351,
- *        HU-352, HU-373, HU-466, HU-467, HU-491, HU-492, HU-494.
+ * FT-02.1 — Almacenamiento Cifrado SQLCipher, Snapshots, Purga Segura, Diagnóstico Local
+ * y Protección Anti-Retroceso del Reloj (Anti-Clock-Tampering).
+ * Cubre: HU-019, HU-020, HU-021, HU-022, HU-032, HU-156, HU-157, HU-158, HU-282, HU-350,
+ *        HU-351, HU-352, HU-373, HU-466, HU-467, HU-491, HU-492, HU-494.
  */
 
 export interface OsKeystoreProvider {
@@ -80,8 +81,36 @@ export class EncryptedPosStorage {
   public readonly outbox: OutboxLocalRow[] = [];
   public readonly auditLog: LocalAuditRow[] = [];
   public readonly snapshots: LocalSnapshotMetadata[] = [];
+  public maxSeenOccurredAtMs = 0;
 
   constructor(private readonly keystore: OsKeystoreProvider) {}
+
+  /**
+   * Anti-Clock-Tampering Guard (HU-032):
+   * Verifica que las operaciones registradas localmente mantengan estricta monotonía temporal.
+   * Si el reloj del sistema operativo retrocede más allá de la holgura permitida (5 segundos para NTP),
+   * rechaza inmediatamente la escritura evitando alteración fraudulenta de turnos o kardex.
+   */
+  assertMonotonicClock(occurredAtMs: number, allowableSkewMs = 5000): void {
+    if (this.maxSeenOccurredAtMs > 0 && occurredAtMs < this.maxSeenOccurredAtMs - allowableSkewMs) {
+      throw new Error(
+        `409 CLOCK_TAMPERING_DETECTED: El reloj del sistema operativo (${occurredAtMs}) retrocedió en el tiempo respecto al último registro verificado (${this.maxSeenOccurredAtMs})`
+      );
+    }
+    if (occurredAtMs > this.maxSeenOccurredAtMs) {
+      this.maxSeenOccurredAtMs = occurredAtMs;
+    }
+  }
+
+  appendOutboxEvent(event: OutboxLocalRow, allowableSkewMs = 5000): void {
+    this.assertMonotonicClock(event.occurred_at, allowableSkewMs);
+    this.outbox.push(event);
+  }
+
+  appendAuditEntry(entry: LocalAuditRow, allowableSkewMs = 5000): void {
+    this.assertMonotonicClock(entry.occurred_at, allowableSkewMs);
+    this.auditLog.push(entry);
+  }
 
   /**
    * HU-352: Single instance lock — si ya hay una instancia abierta, enfoca la ventana actual y no abre otra.
@@ -145,7 +174,8 @@ export class EncryptedPosStorage {
     const dump = JSON.stringify({
       schemaVersion: this.schemaVersion,
       outbox: this.outbox,
-      auditLog: this.auditLog
+      auditLog: this.auditLog,
+      maxSeenOccurredAtMs: this.maxSeenOccurredAtMs
     });
     const sha256 = rawCanonicalSha256Hex(dump);
     const meta: LocalSnapshotMetadata = {
@@ -174,10 +204,12 @@ export class EncryptedPosStorage {
       schemaVersion: number;
       outbox: OutboxLocalRow[];
       auditLog: LocalAuditRow[];
+      maxSeenOccurredAtMs?: number;
     };
     this.schemaVersion = parsed.schemaVersion;
     this.outbox.splice(0, this.outbox.length, ...parsed.outbox);
     this.auditLog.splice(0, this.auditLog.length, ...parsed.auditLog);
+    this.maxSeenOccurredAtMs = parsed.maxSeenOccurredAtMs ?? 0;
     this.integrityHealthy = true;
     return latest;
   }

@@ -375,4 +375,87 @@ describe("ÉPICA 02 — App Instalable (Tauri): Base Local, Seguridad, Enrolamie
     expect(diag.allHealthy).toBe(true);
     expect(Object.keys(diag.checks)).toHaveLength(7);
   });
+it("FT-02.1 / HU-032: previene clock-tampering y retrocesos temporales en local storage outbox y auditLog", () => {
+    const storage = new EncryptedPosStorage(new InMemoryOsKeystore());
+    storage.openWithKeystore();
+
+    const t0 = 1_760_000_000_000;
+    storage.appendOutboxEvent({
+      event_id: "ev-01",
+      terminal_seq: 1,
+      event_type: "sale.completed",
+      schema_version: 1,
+      payload: "{}",
+      payload_hash: "sha256:abc",
+      occurred_at: t0,
+      hlc: "1",
+      status: "PENDING",
+      attempts: 0,
+      last_error: null,
+      sent_at: null
+    });
+    expect(storage.maxSeenOccurredAtMs).toBe(t0);
+
+    // Escritura 2 segundos en el futuro -> Permitido
+    storage.appendAuditEntry({
+      id: "aud-01",
+      actor_id: "usr-1",
+      approved_by: null,
+      action: "sale.create",
+      entity_id: "s-1",
+      data: {},
+      occurred_at: t0 + 2000,
+      prev_hash: null,
+      hash: "h1"
+    });
+    expect(storage.maxSeenOccurredAtMs).toBe(t0 + 2000);
+
+    // Micro-desviación de 2 segundos atrás (dentro de allowableSkewMs = 5000) -> Permitido
+    storage.appendOutboxEvent({
+      event_id: "ev-02",
+      terminal_seq: 2,
+      event_type: "sale.completed",
+      schema_version: 1,
+      payload: "{}",
+      payload_hash: "sha256:def",
+      occurred_at: t0 + 1000,
+      hlc: "2",
+      status: "PENDING",
+      attempts: 0,
+      last_error: null,
+      sent_at: null
+    });
+
+    // Intento de manipulación de reloj hacia el pasado (> 5 segundos atrás) -> Rechazado con 409
+    expect(() =>
+      storage.appendOutboxEvent({
+        event_id: "ev-tampered",
+        terminal_seq: 3,
+        event_type: "sale.completed",
+        schema_version: 1,
+        payload: "{}",
+        payload_hash: "sha256:xxx",
+        occurred_at: t0 - 60_000,
+        hlc: "3",
+        status: "PENDING",
+        attempts: 0,
+        last_error: null,
+        sent_at: null
+      })
+    ).toThrow(/409 CLOCK_TAMPERING_DETECTED/);
+
+    expect(() =>
+      storage.appendAuditEntry({
+        id: "aud-tampered",
+        actor_id: "usr-1",
+        approved_by: null,
+        action: "sale.create",
+        entity_id: "s-2",
+        data: {},
+        occurred_at: t0 - 30_000,
+        prev_hash: null,
+        hash: "h2"
+      })
+    ).toThrow(/409 CLOCK_TAMPERING_DETECTED/);
+  });
 });
