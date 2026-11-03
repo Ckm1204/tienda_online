@@ -79,7 +79,7 @@ fn test_local_license_trial_expiry() {
 }
 
 #[test]
-fn test_tdbak_manifest_serialization() {
+fn test_tdbak_manifest_serialization() -> Result<(), Box<dyn std::error::Error>> {
     let manifest = TdbakManifest {
         format_version: 1,
         backup_id: "tdbak-uuid-123".to_string(),
@@ -96,7 +96,8 @@ fn test_tdbak_manifest_serialization() {
         sha256_checksum: "a".repeat(64),
     };
 
-    let serialized = serde_json::to_string(&manifest).expect("json serialize");
-    let deserialized: TdbakManifest = serde_json::from_str(&serialized).expect("json deserialize");
+    let serialized = serde_json::to_string(&manifest)?;
+    let deserialized: TdbakManifest = serde_json::from_str(&serialized)?;
     assert_eq!(manifest, deserialized);
+    Ok(())
 }
