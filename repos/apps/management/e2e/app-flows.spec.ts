@@ -68,5 +68,22 @@ test.describe("E2E Web Management & Platform Console Flows", () => {
       await expect(page.getByText(/suscripción|facturación|plan/i).first()).toBeVisible();
     }
   });
+
+  test("módulo de libro fiscal (Art. 616 E.T.) y monitor 3.500 UVT", async ({ page }) => {
+    await page.goto("/");
+    const fiscalLink = page.getByTestId("nav-item-fiscal");
+    if (await fiscalLink.isVisible()) {
+      await fiscalLink.click();
+      await expect(page.getByText(/libro fiscal/i).first()).toBeVisible();
+      await expect(page.getByText(/3\.500 uvt/i).first()).toBeVisible();
+
+      // Probar navegación a la pestaña de Resoluciones DIAN
+      const dianTab = page.getByTestId("tab-dian-resolution");
+      if (await dianTab.isVisible()) {
+        await dianTab.click();
+        await expect(page.getByText(/documento equivalente pos/i).first()).toBeVisible();
+      }
+    }
+  });
 });
 
