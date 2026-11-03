@@ -21,6 +21,6 @@
     "contracts:check": "pnpm -C repos contracts:check",
     "license:check": "pnpm -C repos license:check",
     "smoke:test": "pnpm -C repos smoke:test",
-    "audit:all": "pnpm contracts:check && pnpm test && pnpm test:rust && pnpm simulate:day"
+    "audit:all": "pnpm contracts:check && pnpm test && pnpm test:rust && pnpm simulate && pnpm simulate:day"
   }
 }
