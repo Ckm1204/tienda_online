@@ -85,5 +85,20 @@ test.describe("E2E Web Management & Platform Console Flows", () => {
       }
     }
   });
+
+  test("consola super admin: alternancia de rol a SUPER_ADMIN y navegación a plataforma SaaS", async ({ page }) => {
+    await page.goto("/");
+    const roleSwitcher = page.getByTestId("btn-role-switcher");
+    if (await roleSwitcher.isVisible()) {
+      await roleSwitcher.click();
+      await expect(page.getByText(/super admin|plataforma saas/i).first()).toBeVisible();
+      const platformTab = page.getByTestId("nav-item-platform");
+      if (await platformTab.isVisible()) {
+        await platformTab.click();
+        await expect(page.getByTestId("super-admin-screen")).toBeVisible();
+        await expect(page.getByText(/mrr activo/i).first()).toBeVisible();
+      }
+    }
+  });
 });
 

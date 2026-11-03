@@ -53,6 +53,12 @@ import {
   CustomerContactModal,
   FiadoCustomerContactData
 } from "./src/components/CustomerContactModal";
+import {
+  SuperAdminScreen,
+  SuperAdminMetrics,
+  PlatformTenantItem,
+  LocalLicenseItem
+} from "./src/components/SuperAdminScreen";
 import { ManagementAuthService, ManagementUser } from "./src/auth/auth-state";
 
 // Datos iniciales de demostración para tienda de barrio típica colombiana
@@ -77,6 +83,85 @@ const DEFAULT_USER: ManagementUser = {
     "billing.write"
   ]
 };
+
+const SUPER_ADMIN_USER: ManagementUser = {
+  id: "usr-super-admin-001",
+  fullName: "Super Admin Plataforma",
+  email: "admin@tiendita.co",
+  roleCode: "SUPER_ADMIN",
+  permissions: [
+    "platform.admin",
+    "reports.read",
+    "billing.read",
+    "billing.write",
+    "tenant.write"
+  ]
+};
+
+const INITIAL_PLATFORM_METRICS: SuperAdminMetrics = {
+  mrrCents: 1598000000, // $15.980.000 COP
+  activeTenants: 124,
+  trialTenants: 38,
+  pastDueTenants: 5,
+  restrictedTenants: 2,
+  suspendedTenants: 1
+};
+
+const INITIAL_PLATFORM_TENANTS: PlatformTenantItem[] = [
+  {
+    id: "01a1a246-a060-7c7c-9063-7024c0619319",
+    nit: "901555888-3",
+    legalName: "Tienda La Esmeralda",
+    plan: "NEGOCIO",
+    status: "ACTIVE",
+    branchesCount: 1,
+    terminalsCount: 2,
+    graceExtensionsCount: 0
+  },
+  {
+    id: "01a1a246-b071-8d8d-8174-8135d1720420",
+    nit: "900123456-1",
+    legalName: "Supermercado El Roble",
+    plan: "PRO",
+    status: "ACTIVE",
+    branchesCount: 3,
+    terminalsCount: 6,
+    graceExtensionsCount: 1
+  },
+  {
+    id: "01a1a246-c082-9e9e-7285-9246e2831531",
+    nit: "800987654-2",
+    legalName: "Minimarket Los Paisas",
+    plan: "BASICO",
+    status: "PAST_DUE",
+    branchesCount: 1,
+    terminalsCount: 1,
+    graceExtensionsCount: 0
+  },
+  {
+    id: "01a1a246-d093-afaf-6396-0357f3942642",
+    nit: "901444333-7",
+    legalName: "Abarrotes Don Lucho",
+    plan: "NEGOCIO",
+    status: "TRIAL",
+    branchesCount: 1,
+    terminalsCount: 1,
+    graceExtensionsCount: 0
+  }
+];
+
+const INITIAL_LOCAL_LICENSES: LocalLicenseItem[] = [
+  {
+    id: "lic-001",
+    tenantId: "offline-tenant-choco",
+    edition: "LOCAL_PLUS",
+    terminalsAllowed: 2,
+    serialLast4: "9278E",
+    status: "ACTIVE",
+    issuedAtMs: Date.now() - 86400000 * 10,
+    expiresAtMs: Date.now() + 86400000 * 355
+  }
+];
 
 const INITIAL_PRODUCTS: ProductItem[] = [
   {
@@ -348,6 +433,11 @@ export default function App() {
   const [contactingCustomer, setContactingCustomer] = useState<FiadoCustomerContactData | null>(null);
   const [customerWeeklyContacts, setCustomerWeeklyContacts] = useState<Record<string, number>>({});
 
+  // Datos de Plataforma SaaS (Super Admin - Épica 12)
+  const [platformMetrics, setPlatformMetrics] = useState<SuperAdminMetrics>(INITIAL_PLATFORM_METRICS);
+  const [platformTenants, setPlatformTenants] = useState<PlatformTenantItem[]>(INITIAL_PLATFORM_TENANTS);
+  const [platformLicenses, setPlatformLicenses] = useState<LocalLicenseItem[]>(INITIAL_LOCAL_LICENSES);
+
   // Datos en vivo
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemRow[]>(INITIAL_INVENTORY_ITEMS);
@@ -551,17 +641,49 @@ export default function App() {
             </TouchableOpacity>
 
             {currentUser ? (
-              <View style={styles.userProfilePill}>
-                <Text style={styles.userName}>{currentUser.fullName}</Text>
+              <>
                 <TouchableOpacity
-                  style={styles.logoutBtn}
-                  onPress={() => setCurrentUser(null)}
+                  style={[
+                    styles.roleSwitcherBtn,
+                    currentUser.roleCode === "SUPER_ADMIN" && styles.roleSwitcherSuperAdmin
+                  ]}
+                  onPress={() => {
+                    if (currentUser.roleCode === "SUPER_ADMIN") {
+                      setCurrentUser(DEFAULT_USER);
+                      setActiveSection("dashboard");
+                      setFeedMessage("Cambiado a modo Dueño de Tienda (Don Pedro Pérez).");
+                    } else {
+                      setCurrentUser(SUPER_ADMIN_USER);
+                      setActiveSection("platform");
+                      setFeedMessage("Cambiado a modo Consola Super Admin & Plataforma SaaS.");
+                    }
+                  }}
                   accessibilityRole="button"
-                  accessibilityLabel="Cerrar sesión"
+                  accessibilityLabel="Alternar entre modo Dueño y modo Super Admin"
+                  testID="btn-role-switcher"
                 >
-                  <LogOut size={16} color="#69656c" aria-hidden />
+                  <Text
+                    style={[
+                      styles.roleSwitcherText,
+                      currentUser.roleCode === "SUPER_ADMIN" && styles.roleSwitcherSuperAdminText
+                    ]}
+                  >
+                    {currentUser.roleCode === "SUPER_ADMIN" ? "🛡️ Super Admin" : "🏪 Dueño Tienda"}
+                  </Text>
                 </TouchableOpacity>
-              </View>
+
+                <View style={styles.userProfilePill}>
+                  <Text style={styles.userName}>{currentUser.fullName}</Text>
+                  <TouchableOpacity
+                    style={styles.logoutBtn}
+                    onPress={() => setCurrentUser(null)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Cerrar sesión"
+                  >
+                    <LogOut size={16} color="#69656c" aria-hidden />
+                  </TouchableOpacity>
+                </View>
+              </>
             ) : null}
           </View>
         </View>
@@ -632,6 +754,19 @@ export default function App() {
                         accessibilityLabel="Ingreso Rápido de Demostración"
                       >
                         <Text style={styles.demoLoginText}>⚡ Ingreso Rápido Demo (Dueño)</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.demoLoginBtn, { marginTop: 6, borderColor: "#99f6e4", backgroundColor: "#f0fdfa" }]}
+                        onPress={() => {
+                          setCurrentUser(SUPER_ADMIN_USER);
+                          setActiveSection("platform");
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Ingreso Rápido Demo Super Admin"
+                        testID="btn-demo-login-superadmin"
+                      >
+                        <Text style={[styles.demoLoginText, { color: "#0f766e" }]}>🛡️ Ingreso Rápido Demo (Super Admin)</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -1062,6 +1197,103 @@ export default function App() {
                           const nextMode = fiscalMode === "DIAN_POS" ? "NONE" : "DIAN_POS";
                           setFiscalMode(nextMode);
                           setFeedMessage(`Modo fiscal conmutado con éxito: ${nextMode}`);
+                        }}
+                      />
+                    </View>
+                  )}
+
+                  {/* SECCIÓN 9: PLATAFORMA SAAS & CONSOLA SUPER ADMIN (ÉPICA 12) */}
+                  {activeSection === "platform" && (
+                    <View style={styles.sectionWrapper}>
+                      <SuperAdminScreen
+                        metrics={platformMetrics}
+                        tenants={platformTenants}
+                        localLicenses={platformLicenses}
+                        onCreateTenantSaga={async (data) => {
+                          const newTenantId = `tenant-${Date.now()}`;
+                          const newTerminalCode = "CAJA-01";
+                          const actToken = `act_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+                          const newTenant: PlatformTenantItem = {
+                            id: newTenantId,
+                            nit: `${data.documentNumber}-${data.nitDv ?? 0}`,
+                            legalName: data.businessName,
+                            plan: data.planCode,
+                            status: "TRIAL",
+                            branchesCount: 1,
+                            terminalsCount: 1,
+                            graceExtensionsCount: 0
+                          };
+                          setPlatformTenants((prev) => [newTenant, ...prev]);
+                          setPlatformMetrics((prev) => ({
+                            ...prev,
+                            trialTenants: prev.trialTenants + 1
+                          }));
+                          return {
+                            tenantId: newTenantId,
+                            activationToken: actToken,
+                            terminalCode: newTerminalCode
+                          };
+                        }}
+                        onSuspendTenant={async (tenantId, _reason) => {
+                          setPlatformTenants((prev) =>
+                            prev.map((t) => (t.id === tenantId ? { ...t, status: "SUSPENDED" } : t))
+                          );
+                          setPlatformMetrics((prev) => ({
+                            ...prev,
+                            activeTenants: Math.max(0, prev.activeTenants - 1),
+                            suspendedTenants: prev.suspendedTenants + 1
+                          }));
+                        }}
+                        onReactivateTenant={async (tenantId) => {
+                          setPlatformTenants((prev) =>
+                            prev.map((t) => (t.id === tenantId ? { ...t, status: "ACTIVE" } : t))
+                          );
+                          setPlatformMetrics((prev) => ({
+                            ...prev,
+                            suspendedTenants: Math.max(0, prev.suspendedTenants - 1),
+                            activeTenants: prev.activeTenants + 1
+                          }));
+                        }}
+                        onGrantGraceExtension={async (tenantId, _extraDays, _reason) => {
+                          setPlatformTenants((prev) =>
+                            prev.map((t) =>
+                              t.id === tenantId
+                                ? {
+                                    ...t,
+                                    graceExtensionsCount: t.graceExtensionsCount + 1,
+                                    status: "ACTIVE"
+                                  }
+                                : t
+                            )
+                          );
+                        }}
+                        onIssueLocalLicense={async (data) => {
+                          const licId = `lic-${Date.now()}`;
+                          const randomHex = Math.random().toString(16).slice(2, 7).toUpperCase();
+                          const serial = `TDL-${randomHex}-86BB3-C0BF9-${randomHex}`;
+                          const newLic: LocalLicenseItem = {
+                            id: licId,
+                            tenantId: data.tenantId,
+                            edition: data.edition,
+                            terminalsAllowed: data.terminalsAllowed,
+                            serialLast4: serial.slice(-5),
+                            status: "ACTIVE",
+                            issuedAtMs: Date.now(),
+                            expiresAtMs: Date.now() + data.durationDays * 86400000
+                          };
+                          setPlatformLicenses((prev) => [newLic, ...prev]);
+                          return { licenseId: licId, serialKey: serial };
+                        }}
+                        onRequestJitSupport={async (tenantId, _reason) => {
+                          const sessId = `01a1a249-ada0-776b-ad3a-${tenantId.slice(0, 12)}`;
+                          return { sessionId: sessId, expiresAtMs: Date.now() + 1800000 };
+                        }}
+                        onRunDunningScheduler={async () => {
+                          return {
+                            evaluatedCount: platformTenants.length,
+                            restrictedCount: 1,
+                            suspendedCount: 0
+                          };
                         }}
                       />
                     </View>
@@ -1671,6 +1903,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 10
+  },
+  roleSwitcherBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+    backgroundColor: "#f0fdf4"
+  },
+  roleSwitcherSuperAdmin: {
+    borderColor: "#99f6e4",
+    backgroundColor: "#f0fdfa"
+  },
+  roleSwitcherText: {
+    fontFamily: "DMSans_600SemiBold",
+    fontSize: 12,
+    color: "#24734e"
+  },
+  roleSwitcherSuperAdminText: {
+    color: "#0f766e"
   },
   footer: {
     flexDirection: "row",

@@ -8,6 +8,7 @@ import Monitor from "lucide-react-native/icons/monitor";
 import UserCheck from "lucide-react-native/icons/user-check";
 import User from "lucide-react-native/icons/user";
 import Scale from "lucide-react-native/icons/scale";
+import ShieldCheck from "lucide-react-native/icons/shield-check";
 import type { ManagementUser } from "../auth/auth-state";
 
 export type NavigationSection =
@@ -18,7 +19,8 @@ export type NavigationSection =
   | "terminals"
   | "users"
   | "fiscal"
-  | "profile";
+  | "profile"
+  | "platform";
 
 export interface NavigationItem {
   id: NavigationSection;
@@ -26,6 +28,7 @@ export interface NavigationItem {
   icon: React.ComponentType<{ size?: number; color?: string; "aria-hidden"?: boolean }>;
   requiredPermission?: string;
   disallowedRoles?: string[];
+  allowedRoles?: string[];
 }
 
 export const ALL_NAV_ITEMS: NavigationItem[] = [
@@ -36,11 +39,15 @@ export const ALL_NAV_ITEMS: NavigationItem[] = [
   { id: "terminals", label: "Cajas", icon: Monitor, requiredPermission: "terminal.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "users", label: "Empleados", icon: UserCheck, requiredPermission: "user.read", disallowedRoles: ["ACCOUNTANT"] },
   { id: "fiscal", label: "Libro Fiscal", icon: Scale, requiredPermission: "reports.read" },
-  { id: "profile", label: "Mi Perfil", icon: User }
+  { id: "profile", label: "Mi Perfil", icon: User },
+  { id: "platform", label: "Plataforma SaaS", icon: ShieldCheck, allowedRoles: ["SUPER_ADMIN"] }
 ];
 
 export function resolveVisibleNavItems(user: ManagementUser): NavigationItem[] {
   return ALL_NAV_ITEMS.filter((item) => {
+    if (item.allowedRoles && !item.allowedRoles.includes(user.roleCode)) {
+      return false;
+    }
     if (item.disallowedRoles && item.disallowedRoles.includes(user.roleCode)) {
       return false;
     }
