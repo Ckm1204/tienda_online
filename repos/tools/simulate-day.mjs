@@ -55,7 +55,18 @@ async function runSimulation() {
     aud: "mgmt-app",
     role: "OWNER",
     roles: ["OWNER"],
-    perms: ["reports.read", "sales.read", "catalog.read", "customer.credit_manage", "customer.read", "sales.create"]
+    perms: [
+      "reports.read",
+      "sales.read",
+      "catalog.read",
+      "customer.credit_manage",
+      "customer.read",
+      "sales.create",
+      "terminal.read",
+      "terminal.manage",
+      "user.read",
+      "user.manage"
+    ]
   };
 
   const authHeaders = {
@@ -65,6 +76,11 @@ async function runSimulation() {
   // 1. Inicializar la Plataforma Gateway BFF y sus 14 microservicios
   printSection("PASO 1: BOOTSTRAP DE PLATAFORMA & PASARELA BFF");
   const bff = new BffApp();
+  bff.identityService.tenantLimits.set(tenantId, {
+    max_users: 10,
+    allowed_roles: ["OWNER", "STORE_MANAGER", "CASHIER", "ACCOUNTANT"]
+  });
+  bff.deviceService.tenantMaxTerminals.set(tenantId, 5);
   printStep("✓", "Pasarela BFF inicializada con 14 microservicios en memoria.");
   printStep("✓", "Circuit Breakers, Cache de reportes y Almacén de Idempotencia activos.");
 
@@ -749,6 +765,105 @@ async function runSimulation() {
     }
   }, nowMs + 13300000);
   printStep("🛡️", `Sesión JIT autorizada con expiración de 30 min: ${jitRes.body.session.id}. Motivo registrado en auditoría inmutable.`);
+
+  // ============================================================================
+  // PASO 20: GESTIÓN DE TERMINALES, HARDWARE & ABONOS DE CARTERA (ÉPICA 04, 05, 06 & 10)
+  // ============================================================================
+  printSection("PASO 20: GESTIÓN DE TERMINALES, HARDWARE & ABONOS DE CARTERA (ÉPICA 04, 05, 06 & 10)");
+
+  // 20.1 Telemetría y Salud de Periféricos de Caja
+  const diagRes = await bff.handleRequest({
+    method: "GET",
+    path: `/v1/app/terminals/${terminalId}/diagnostics`,
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 14000000);
+  if (diagRes.status !== 200) {
+    throw new Error(`Error consultando diagnóstico de terminal: ${JSON.stringify(diagRes.body)}`);
+  }
+  const periph = diagRes.body.peripherals;
+  printStep("🖨️", `Impresora Térmica: ${periph.printer.model} [Estado: ${periph.printer.status}, Papel: ${periph.printer.paperLevel}].`);
+  printStep("⚖️", `Balanza de Mostrador: ${periph.scale.model} [Calibrada: OK, Tara: ${periph.scale.tareGrams}g].`);
+  printStep("💵", `Cajón Monedero: ${periph.drawer.model} [Sensor: ${periph.drawer.status}, Aperturas hoy: ${periph.drawer.kicksToday}].`);
+
+  // 20.2 Test Print ESC/POS y Pulso de Apertura RJ-11
+  const testPrintRes = await bff.handleRequest({
+    method: "POST",
+    path: `/v1/app/terminals/${terminalId}/test-print`,
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 14100000);
+  printStep("✓", `Orden ESC/POS de ticket de prueba: ${testPrintRes.body.message}`);
+
+  const testDrawerRes = await bff.handleRequest({
+    method: "POST",
+    path: `/v1/app/terminals/${terminalId}/test-drawer`,
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 14200000);
+  printStep("✓", `Pulso solenoide RJ-11: ${testDrawerRes.body.message}`);
+
+  // 20.3 Registro de Abono a Cartera de Fiado con Comprobante Legal REC (Ley 1581)
+  const custBefore = bff.customerService.customers.get(debtorCustomer.id);
+  const balBeforeCents = custBefore.balance_cents; // $145.000 COP
+  const abonoCents = 5000000; // $50.000 COP
+
+  const paymentRes = await bff.handleRequest({
+    method: "POST",
+    path: `/v1/app/customers/${debtorCustomer.id}/payments`,
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      amountCents: abonoCents,
+      method: "NEQUI",
+      reference: "NEQ-TRX-20261103"
+    }
+  }, nowMs + 14300000);
+  if (paymentRes.status !== 201) {
+    throw new Error(`Error registrando abono a fiado: ${JSON.stringify(paymentRes.body)}`);
+  }
+  const pay = paymentRes.body;
+  printStep("💳", `Abono de $${(abonoCents / 100).toLocaleString("es-CO")} COP recibido de ${pay.customerName} vía ${pay.method}.`);
+  printStep("🧾", `Comprobante emitido: ${pay.receiptNumber} • Saldo Anterior: $${(pay.previousBalanceCents / 100).toLocaleString("es-CO")} ➔ Nuevo Saldo: $${(pay.newBalanceCents / 100).toLocaleString("es-CO")} COP.`);
+  printStep("🛡️", `Cláusula legal: "${pay.legalNotice}". Saldo en base de datos: $${(custBefore.balance_cents / 100).toLocaleString("es-CO")} COP.`);
+
+  // 20.4 Seguridad de Empleados: Detección de PIN débil y Creación con Argon2id
+  const weakPinRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/users",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      fullName: "Cajero Débil",
+      email: "debil@tienda.co",
+      roleCode: "CASHIER",
+      initialPin: "1234" // Débil
+    }
+  }, nowMs + 14400000);
+  if (weakPinRes.status !== 400 || weakPinRes.body.error !== "WEAK_PIN") {
+    throw new Error(`El BFF debió rechazar el PIN débil "1234": ${JSON.stringify(weakPinRes.body)}`);
+  }
+  printStep("🛡️", `Intento de creación con PIN secuencial "1234" bloqueado con error WEAK_PIN.`);
+
+  const goodUserRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/users",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      fullName: "Yurany Andrea Silva",
+      email: "yurany@tiendita.co",
+      roleCode: "CASHIER",
+      initialPin: "8520" // Válido
+    }
+  }, nowMs + 14500000);
+  printStep("👤", `Cajera creada exitosamente: "${goodUserRes.body.full_name}" con rol ${goodUserRes.body.role_code} y PIN Argon2id.`);
 
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

@@ -308,6 +308,81 @@ Autoriza una sesión de soporte técnico con permisos de solo lectura o interven
 }
 ```
 
+### 4.2 Endpoints de Hardware de Periféricos y Abonos de Cartera (`bff-app`)
+
+#### 4.2.1 Abonos a Cartera de Fiado (`POST /v1/app/customers/{id}/payments`)
+- **Permiso requerido:** `customer.credit_manage`
+- **Cuerpo (JSON):**
+```json
+{
+  "amountCents": 5000000,
+  "method": "NEQUI",
+  "reference": "NEQ-TRX-20261103"
+}
+```
+- **Respuesta 201 Created:**
+```json
+{
+  "success": true,
+  "receiptNumber": "REC-2026-81000",
+  "customerId": "cust-02",
+  "customerName": "Don Carlos Ramírez (Taller)",
+  "previousBalanceCents": 14500000,
+  "amountPaidCents": 5000000,
+  "newBalanceCents": 9500000,
+  "method": "NEQUI",
+  "reference": "NEQ-TRX-20261103",
+  "receivedBy": "Don Pedro Pérez",
+  "occurredAt": "2026-11-03T14:30:00.000Z",
+  "legalNotice": "Recibo de abono a cartera expedido de conformidad con la Ley 1581 de 2012 y Art. 616 del E.T."
+}
+```
+
+#### 4.2.2 Telemetría de Periféricos de Caja (`GET /v1/app/terminals/{id}/diagnostics`)
+- **Permiso requerido:** `terminal.read`
+- **Respuesta 200 OK:**
+```json
+{
+  "terminalId": "term-01",
+  "code": "CAJA-01",
+  "status": "ONLINE",
+  "peripherals": {
+    "printer": {
+      "model": "ESC/POS 80mm Direct Thermal",
+      "status": "READY",
+      "paperLevel": "FULL",
+      "cutterOk": true,
+      "temperatureC": 38
+    },
+    "scale": {
+      "model": "Systel Croma Serial/USB (Protocolo Dibal)",
+      "status": "READY",
+      "calibrated": true,
+      "tareGrams": 0
+    },
+    "drawer": {
+      "model": "RJ-11 Solenoid Kick 24V",
+      "status": "CLOSED",
+      "kicksToday": 24
+    },
+    "scanner": {
+      "model": "Zebra DS2208 2D Barcode (USB-HID)",
+      "status": "CONNECTED"
+    }
+  },
+  "syncEngine": {
+    "outboxPendingCount": 0,
+    "circuitBreakerState": "CLOSED",
+    "lastSyncAgoSec: 8,
+    "averageLatencyMs": 34
+  }
+}
+```
+
+#### 4.2.3 Prueba de Impresión y Cajón Monedero
+- `POST /v1/app/terminals/{id}/test-print`: Emite ticket de prueba ESC/POS con código de corte y alineación.
+- `POST /v1/app/terminals/{id}/test-drawer`: Emite pulso eléctrico RJ-11 (24V 100ms) al solenoide del cajón.
+
 ## 5. Webhooks entrantes
 
 | Origen | Ruta | Validación |

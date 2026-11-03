@@ -314,6 +314,18 @@ export class BffRouter {
     if (method === "POST" && matchForceClose) {
       return this.controllers.terminalsController.forceCloseShift(matchForceClose[1]!, req);
     }
+    const matchDiag = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/diagnostics$/);
+    if (method === "GET" && matchDiag) {
+      return this.controllers.terminalsController.getTerminalDiagnostics(matchDiag[1]!, req);
+    }
+    const matchPrint = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/test-print$/);
+    if (method === "POST" && matchPrint) {
+      return this.controllers.terminalsController.testPrint(matchPrint[1]!, req);
+    }
+    const matchDrawer = cleanPath.match(/^\/v1\/app\/terminals\/([a-zA-Z0-9_-]+)\/test-drawer$/);
+    if (method === "POST" && matchDrawer) {
+      return this.controllers.terminalsController.testDrawer(matchDrawer[1]!, req);
+    }
 
     // --- Usuarios / Empleados ---
     if (method === "GET" && cleanPath === "/v1/app/users") {
@@ -399,6 +411,10 @@ export class BffRouter {
     const matchContactAudit = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/contact-audit$/);
     if (method === "GET" && matchContactAudit) {
       return this.controllers.customersController.getContactAudit(matchContactAudit[1]!, req);
+    }
+    const matchPayment = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/payments$/);
+    if (method === "POST" && matchPayment) {
+      return this.controllers.customersController.recordPayment(matchPayment[1]!, req, nowMs);
     }
 
     // --- Notificaciones Multicanal y Ley 2300 ---

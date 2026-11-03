@@ -20,6 +20,7 @@ import QrCode from "lucide-react-native/icons/qr-code";
 import Check from "lucide-react-native/icons/check";
 import Lock from "lucide-react-native/icons/lock";
 import LockOpen from "lucide-react-native/icons/lock-open";
+import Banknote from "lucide-react-native/icons/banknote";
 
 import { OnlineGate } from "./src/components/OnlineGate";
 import { onlineSession } from "./src/network/runtime";
@@ -53,6 +54,19 @@ import {
   CustomerContactModal,
   FiadoCustomerContactData
 } from "./src/components/CustomerContactModal";
+import {
+  CustomerDebtPaymentModal,
+  PaymentReceiptResult
+} from "./src/components/CustomerDebtPaymentModal";
+import {
+  TerminalsScreen,
+  TerminalItem
+} from "./src/components/TerminalsScreen";
+import {
+  UsersScreen,
+  EmployeeItem,
+  StoreRoleCode
+} from "./src/components/UsersScreen";
 import {
   SuperAdminScreen,
   SuperAdminMetrics,
@@ -431,6 +445,7 @@ export default function App() {
   const [dianResolution, setDianResolution] = useState<DianResolutionInfo>(DEFAULT_DIAN_RESOLUTION);
   const [fiscalMode, setFiscalMode] = useState<"NONE" | "DIAN_POS">("DIAN_POS");
   const [contactingCustomer, setContactingCustomer] = useState<FiadoCustomerContactData | null>(null);
+  const [payingCustomer, setPayingCustomer] = useState<FiadoCustomer | null>(null);
   const [customerWeeklyContacts, setCustomerWeeklyContacts] = useState<Record<string, number>>({});
 
   // Datos de Plataforma SaaS (Super Admin - Épica 12)
@@ -472,17 +487,17 @@ export default function App() {
   ]);
 
   // Terminales de caja
-  const [terminals, setTerminals] = useState<PosTerminal[]>([
-    { id: "term-01", code: "CAJA-01", name: "Caja Principal Entrada", status: "ONLINE", lastSync: "Hace 12 seg" },
-    { id: "term-02", code: "CAJA-02", name: "Caja Pasillo 2 (Abarrotes)", status: "ONLINE", lastSync: "Hace 45 seg" }
+  const [terminals, setTerminals] = useState<TerminalItem[]>([
+    { id: "term-01", code: "CAJA-01", name: "Caja Principal Entrada", status: "ONLINE", lastSync: "Hace 12 seg", receiptPrefix: "B01" },
+    { id: "term-02", code: "CAJA-02", name: "Caja Pasillo 2 (Abarrotes)", status: "ONLINE", lastSync: "Hace 45 seg", receiptPrefix: "B02" }
   ]);
   const [enrollmentQr, setEnrollmentQr] = useState<string | null>(null);
 
   // Empleados y cajeros
-  const [employees, setEmployees] = useState<StoreEmployee[]>([
-    { id: "emp-01", fullName: "Don Pedro Pérez", role: "Dueño / Administrador", pinSet: true, isLocked: false },
-    { id: "emp-02", fullName: "Brayan Stiven Peña", role: "Cajero Turno Mañana", pinSet: true, isLocked: false },
-    { id: "emp-03", fullName: "Yurany Andrea Silva", role: "Cajera Turno Tarde", pinSet: true, isLocked: false }
+  const [employees, setEmployees] = useState<EmployeeItem[]>([
+    { id: "emp-01", fullName: "Don Pedro Pérez", email: "pedro@tiendita.co", role: "OWNER", pinSet: true, isLocked: false },
+    { id: "emp-02", fullName: "Brayan Stiven Peña", email: "brayan@tiendita.co", role: "CASHIER", pinSet: true, isLocked: false },
+    { id: "emp-03", fullName: "Yurany Andrea Silva", email: "yurany@tiendita.co", role: "STORE_MANAGER", pinSet: true, isLocked: false }
   ]);
 
   const triggerStepUpMfa = (action: () => void) => {
@@ -970,6 +985,17 @@ export default function App() {
                                   {hasDebt ? (
                                     <>
                                       <TouchableOpacity
+                                        style={styles.paymentBtn}
+                                        onPress={() => setPayingCustomer(c)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`Registrar abono de ${c.name}`}
+                                        testID={`btn-abono-${c.id}`}
+                                      >
+                                        <Banknote size={14} color="#15803d" aria-hidden />
+                                        <Text style={styles.paymentBtnText}>Abonar</Text>
+                                      </TouchableOpacity>
+
+                                      <TouchableOpacity
                                         style={styles.contactBtn}
                                         onPress={() =>
                                           setContactingCustomer({
@@ -1019,133 +1045,70 @@ export default function App() {
                     </View>
                   )}
 
-                  {/* SECCIÓN 5: TERMINALES / CAJAS */}
+                  {/* SECCIÓN 5: TERMINALES / CAJAS (ÉPICA 02, 04, 08 & 10) */}
                   {activeSection === "terminals" && (
                     <View style={styles.sectionWrapper} testID="terminals-screen">
-                      <View style={styles.viewHeader}>
-                        <View>
-                          <Text role="heading" style={styles.viewTitle}>
-                            Cajas Registradoras POS
-                          </Text>
-                          <Text style={styles.viewSubtitle}>
-                            Terminales autorizadas, sincronización bidireccional y enrolamiento seguro
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          style={styles.actionBtnPrimary}
-                          onPress={handleGenerateEnrollmentQr}
-                          accessibilityRole="button"
-                          accessibilityLabel="Generar QR de Enrolamiento"
-                        >
-                          <QrCode size={18} color="#ffffff" aria-hidden />
-                          <Text style={styles.actionBtnPrimaryText}>Nuevo Enrolamiento</Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      {enrollmentQr ? (
-                        <View style={styles.qrEnrollmentCard}>
-                          <Text style={styles.qrTitle}>Código de Activación de Terminal</Text>
-                          <Text style={styles.qrCodeText}>{enrollmentQr}</Text>
-                          <Text style={styles.qrSubtitle}>
-                            Escanea este código desde la app POS en Windows/Linux para autorizar la caja.
-                            Expira en 15 minutos con token TOTP firmado por KMS.
-                          </Text>
-                          <TouchableOpacity
-                            style={styles.qrCloseBtn}
-                            onPress={() => setEnrollmentQr(null)}
-                          >
-                            <Text style={styles.qrCloseBtnText}>Cerrar</Text>
-                          </TouchableOpacity>
-                        </View>
-                      ) : null}
-
-                      <View style={styles.terminalList}>
-                        {terminals.map((t) => (
-                          <View key={t.id} style={styles.terminalCard}>
-                            <View>
-                              <Text style={styles.terminalCode}>{t.code}</Text>
-                              <Text style={styles.terminalName}>{t.name}</Text>
-                              <Text style={styles.terminalMeta}>Último Sync: {t.lastSync}</Text>
-                            </View>
-
-                            <View style={styles.terminalRight}>
-                              <View
-                                style={[
-                                  styles.statusPill,
-                                  t.status === "ONLINE"
-                                    ? styles.statusOnline
-                                    : t.status === "REVOKED"
-                                      ? styles.statusRevoked
-                                      : styles.statusOffline
-                                ]}
-                              >
-                                <Text style={styles.statusPillText}>{t.status}</Text>
-                              </View>
-
-                              {t.status !== "REVOKED" ? (
-                                <TouchableOpacity
-                                  style={styles.revokeBtn}
-                                  onPress={() => handleRevokeTerminal(t.id)}
-                                  accessibilityRole="button"
-                                  accessibilityLabel="Revocar terminal con Step-up MFA"
-                                >
-                                  <Text style={styles.revokeBtnText}>Revocar (MFA)</Text>
-                                </TouchableOpacity>
-                              ) : null}
-                            </View>
-                          </View>
-                        ))}
-                      </View>
+                      <TerminalsScreen
+                        terminals={terminals}
+                        onGenerateEnrollment={async () => {
+                          const code = `ENR-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+                          setEnrollmentQr(code);
+                          return code;
+                        }}
+                        onRevokeTerminal={async (termId) => {
+                          triggerStepUpMfa(() => {
+                            setTerminals((prev) =>
+                              prev.map((t) => (t.id === termId ? { ...t, status: "REVOKED" } : t))
+                            );
+                            setFeedMessage(`Terminal ${termId} revocada correctamente con verificación Step-up MFA.`);
+                          });
+                        }}
+                        onTestPrint={async (termId) => {
+                          return {
+                            success: true,
+                            message: `Ticket de prueba ESC/POS (80mm) emitido con éxito en ${termId}.`
+                          };
+                        }}
+                        onTestDrawer={async (termId) => {
+                          return {
+                            success: true,
+                            message: `Pulso eléctrico RJ-11 (24V 100ms) enviado al cajón monedero de ${termId}.`
+                          };
+                        }}
+                      />
                     </View>
                   )}
 
-                  {/* SECCIÓN 6: EMPLEADOS Y ROLES */}
+                  {/* SECCIÓN 6: EMPLEADOS Y ROLES (ÉPICA 02, 08 & 10) */}
                   {activeSection === "users" && (
                     <View style={styles.sectionWrapper} testID="users-screen">
-                      <View style={styles.viewHeader}>
-                        <View>
-                          <Text role="heading" style={styles.viewTitle}>
-                            Cajeros y Empleados de Tienda
-                          </Text>
-                          <Text style={styles.viewSubtitle}>
-                            Control de accesos por PIN de 4 dígitos (con sal única Argon2id) y roles
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.employeeList}>
-                        {employees.map((emp) => (
-                          <View key={emp.id} style={styles.employeeCard}>
-                            <View>
-                              <Text style={styles.employeeName}>{emp.fullName}</Text>
-                              <Text style={styles.employeeRole}>{emp.role}</Text>
-                              <Text style={styles.employeePinStatus}>
-                                {emp.pinSet ? "✓ PIN de 4 dígitos configurado" : "⚠ Sin PIN"}
-                              </Text>
-                            </View>
-
-                            <View style={styles.employeeRight}>
-                              <TouchableOpacity
-                                style={[styles.lockToggleBtn, emp.isLocked && styles.btnLocked]}
-                                onPress={() => handleToggleEmployeeLock(emp.id)}
-                                accessibilityRole="button"
-                              >
-                                {emp.isLocked ? (
-                                  <>
-                                    <Lock size={16} color="#dc2626" aria-hidden />
-                                    <Text style={styles.textLocked}>Bloqueado</Text>
-                                  </>
-                                ) : (
-                                  <>
-                                    <LockOpen size={16} color="#15803d" aria-hidden />
-                                    <Text style={styles.textUnlocked}>Activo</Text>
-                                  </>
-                                )}
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
+                      <UsersScreen
+                        employees={employees}
+                        onCreateEmployee={async (data) => {
+                          const newEmp: EmployeeItem = {
+                            id: `emp-${Date.now()}`,
+                            fullName: data.fullName,
+                            email: data.email,
+                            phone: data.phone,
+                            role: data.role,
+                            pinSet: !!data.initialPin,
+                            isLocked: false
+                          };
+                          setEmployees((prev) => [...prev, newEmp]);
+                          setFeedMessage(`Empleado "${data.fullName}" registrado como ${data.role}.`);
+                        }}
+                        onToggleLock={async (userId) => {
+                          setEmployees((prev) =>
+                            prev.map((e) => (e.id === userId ? { ...e, isLocked: !e.isLocked } : e))
+                          );
+                        }}
+                        onResetPin={async (userId, _newPin) => {
+                          setEmployees((prev) =>
+                            prev.map((e) => (e.id === userId ? { ...e, pinSet: true } : e))
+                          );
+                          setFeedMessage(`PIN de 4 dígitos actualizado correctamente (cifrado con Argon2id).`);
+                        }}
+                      />
                     </View>
                   )}
 
@@ -1464,6 +1427,41 @@ export default function App() {
           />
         ) : null}
 
+        {/* MODAL 7: Registro de Abono a Cartera de Fiado */}
+        {payingCustomer ? (
+          <CustomerDebtPaymentModal
+            visible={Boolean(payingCustomer)}
+            customer={payingCustomer}
+            storeName="Tienda La Esmeralda"
+            onClose={() => setPayingCustomer(null)}
+            onConfirmPayment={async (params) => {
+              const cust = customers.find((c) => c.id === params.customerId);
+              const prevBal = cust?.balanceCents ?? 0;
+              const newBal = Math.max(0, prevBal - params.amountCents);
+              setCustomers((prev) =>
+                prev.map((c) => (c.id === params.customerId ? { ...c, balanceCents: newBal } : c))
+              );
+              setFeedMessage(
+                `✓ Abono de $${(params.amountCents / 100).toLocaleString("es-CO")} COP recibido de ${cust?.name}.`
+              );
+              const receiptSeq = Math.floor(1000 + (Date.now() % 90000));
+              return {
+                receiptNumber: `REC-${new Date().getFullYear()}-${receiptSeq}`,
+                customerId: params.customerId,
+                customerName: cust?.name ?? "Cliente",
+                previousBalanceCents: prevBal,
+                amountPaidCents: params.amountCents,
+                newBalanceCents: newBal,
+                method: params.method,
+                reference: params.reference,
+                receivedBy: currentUser?.fullName ?? "Don Pedro Pérez",
+                occurredAt: new Date().toISOString(),
+                legalNotice: "Recibo de abono a cartera expedido de conformidad con la Ley 1581 de 2012 y Art. 616 del E.T."
+              };
+            }}
+          />
+        ) : null}
+
         {/* Pie de Página */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>TienditaOnline v1.2.0 • Edición Colombia</Text>
@@ -1752,6 +1750,18 @@ const styles = StyleSheet.create({
   textDebt: { color: "#dc2626" },
   textZero: { color: "#15803d" },
   customerActionRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+  paymentBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#dcfce7",
+    borderWidth: 1,
+    borderColor: "#86efac",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6
+  },
+  paymentBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: "#15803d" },
   contactBtn: {
     flexDirection: "row",
     alignItems: "center",

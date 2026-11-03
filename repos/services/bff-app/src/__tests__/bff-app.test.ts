@@ -805,4 +805,152 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     expect(docsRes.headers["Content-Type"]).toContain("text/html");
     expect(docsRes.body).toContain("api-reference");
   });
+
+  it("HU-315: registra abono a cartera de fiado con deducción atómica de saldo, validación de sobrepago y emisión de recibo legal", async () => {
+    // 1. Crear cliente con crédito y saldo deudor inicial
+    const cust = bff.customerService.upsertCustomerWithOptionalInitialBalance({
+      tenantId,
+      fullName: "Doña Marina López",
+      docNumber: "51987654",
+      phone: "+573001234567",
+      creditEnabled: true,
+      creditLimitCents: 50000000, // $500.000 COP
+      initialBalanceCents: 0,
+      nowMs: t0
+    });
+
+    // Simular cargo de fiado inicial de $150.000 COP
+    bff.customerService.applyCreditMovementEvent({
+      eventId: newId(t0),
+      tenantId,
+      customerId: cust.id,
+      kind: "CHARGE",
+      deltaCents: 15000000,
+      occurredAtMs: t0
+    });
+    expect(cust.balance_cents).toBe(15000000);
+
+    // 2. Rechazo de abono con monto inválido o superior al saldo deudor
+    const badPayRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/payments`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims: {
+        sub: ownerId,
+        tid: tenantId,
+        roles: ["OWNER"],
+        perms: ["customer.credit_manage"],
+        aud: "mgmt-app"
+      },
+      body: {
+        amountCents: 20000000, // $200.000 > $150.000
+        method: "CASH"
+      }
+    }, t0 + 100);
+    expect(badPayRes.status).toBe(400);
+    expect((badPayRes.body as any).error).toBe("PAYMENT_EXCEEDS_BALANCE");
+
+    // 3. Abono exitoso de $50.000 COP vía NEQUI con comprobante
+    const payRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/customers/${cust.id}/payments`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims: {
+        sub: ownerId,
+        tid: tenantId,
+        roles: ["OWNER"],
+        perms: ["customer.credit_manage"],
+        aud: "mgmt-app"
+      },
+      body: {
+        amountCents: 5000000, // $50.000 COP
+        method: "NEQUI",
+        reference: "NEQ-TRX-998811"
+      }
+    }, t0 + 200);
+    expect(payRes.status).toBe(201);
+    const payBody = payRes.body as any;
+    expect(payBody.success).toBe(true);
+    expect(payBody.receiptNumber).toMatch(/^REC-\d{4}-\d+/);
+    expect(payBody.previousBalanceCents).toBe(15000000);
+    expect(payBody.amountPaidCents).toBe(5000000);
+    expect(payBody.newBalanceCents).toBe(10000000); // Saldo remanente $100.000 COP
+    expect(payBody.method).toBe("NEQUI");
+    expect(payBody.legalNotice).toContain("Ley 1581");
+    expect(cust.balance_cents).toBe(10000000);
+  });
+
+  it("HU-310: consulta telemetría de hardware de periféricos (impresora, balanza, cajón) y despacha pruebas de impresión y apertura", async () => {
+    // 1. Crear terminal
+    const branches = [...bff.tenantService.branches.values()].filter((b) => b.tenant_id === tenantId);
+    const branchId = branches[0]?.id || "branch-01";
+    bff.deviceService.tenantMaxTerminals.set(tenantId, 5);
+    const term = bff.deviceService.createTerminal({
+      tenantId,
+      branchId,
+      warehouseId: "wh-01",
+      code: "CAJA-02",
+      receiptPrefix: "B02"
+    });
+
+    // 2. Consulta de telemetría de hardware
+    const diagRes = await bff.handleRequest({
+      method: "GET",
+      path: `/v1/app/terminals/${term.id}/diagnostics`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims: {
+        sub: ownerId,
+        tid: tenantId,
+        roles: ["OWNER"],
+        perms: ["terminal.read"],
+        aud: "mgmt-app"
+      }
+    }, t0);
+    expect(diagRes.status).toBe(200);
+    const diag = diagRes.body as any;
+    expect(diag.code).toBe("CAJA-02");
+    expect(diag.peripherals.printer.status).toBe("READY");
+    expect(diag.peripherals.scale.calibrated).toBe(true);
+    expect(diag.peripherals.drawer.status).toBe("CLOSED");
+    expect(diag.syncEngine.circuitBreakerState).toBe("CLOSED");
+
+    // 3. Prueba de impresión ESC/POS
+    const printRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/terminals/${term.id}/test-print`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims: {
+        sub: ownerId,
+        tid: tenantId,
+        roles: ["OWNER"],
+        perms: ["terminal.manage"],
+        aud: "mgmt-app"
+      }
+    }, t0);
+    expect(printRes.status).toBe(200);
+    expect((printRes.body as any).success).toBe(true);
+    expect((printRes.body as any).message).toContain("ticket de prueba despachado");
+
+    // 4. Pulso de prueba de cajón monedero
+    const drawerRes = await bff.handleRequest({
+      method: "POST",
+      path: `/v1/app/terminals/${term.id}/test-drawer`,
+      ip: "127.0.0.1",
+      headers: {},
+      claims: {
+        sub: ownerId,
+        tid: tenantId,
+        roles: ["OWNER"],
+        perms: ["terminal.manage"],
+        aud: "mgmt-app"
+      }
+    }, t0);
+    expect(drawerRes.status).toBe(200);
+    expect((drawerRes.body as any).success).toBe(true);
+    expect((drawerRes.body as any).message).toContain("cajón monedero");
+  });
 });
