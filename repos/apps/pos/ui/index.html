@@ -422,7 +422,7 @@
       font-weight: bold;
     }
 
-    /* Modales Nativos con <dialog> */
+    /* Modales Nativos con <dialog> - Modern Web Guidance */
     dialog {
       background-color: var(--surface);
       color: var(--text-main);
@@ -435,9 +435,15 @@
       width: 90%;
     }
 
+    dialog:modal {
+      overscroll-behavior: contain;
+    }
+
     dialog::backdrop {
       background-color: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(4px);
+      overflow: hidden;
+      overscroll-behavior: contain;
     }
 
     .dialog-header {
@@ -870,8 +876,12 @@
     function updateChange() {
       const totals = calculateTotals();
       const received = (parseInt(document.getElementById("cash-received-input").value) || 0) * 100;
-      const change = Math.max(0, received - totals.totalCents);
-      document.getElementById("cash-change-txt").textContent = formatCOP(change) + " COP";
+      const rawChange = Math.max(0, received - totals.totalCents);
+      // Redondeo legal obligatorio a $50 COP (multiplos de 5.000 centavos)
+      const change = Math.round(rawChange / 5000) * 5000;
+      const diff = change - rawChange;
+      const diffText = diff !== 0 ? ` (Ajuste $50: ${diff > 0 ? "+" : ""}${diff / 100})` : "";
+      document.getElementById("cash-change-txt").textContent = formatCOP(change) + " COP" + diffText;
     }
 
     document.getElementById("cash-received-input").oninput = updateChange;
