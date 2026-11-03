@@ -700,4 +700,68 @@ describe("ÉPICAS 03, 04, 05 y 06 — Ventas Offline, Periféricos ESC/POS, Turn
       })
     ).toThrow("RETURN_QTY_EXCEEDS_SOLD_QTY");
   });
+
+  it("Art. 616 E.T.: Maqueta Reporte Z de Cierre Fiscal Diario en tirilla térmica de 80mm y 58mm", () => {
+    const { printer } = setupPosContext();
+
+    const slip80 = printer.renderReportZSlipText({
+      businessName: "Supertienda El Éxito",
+      nit: "900.123.456-7",
+      terminalCode: "CAJA-01",
+      cashSessionId: "sess-uuid-101-202",
+      cashierName: "Carlos Cajero",
+      closedAtIso: "2026-11-02T21:00:00-05:00",
+      firstReceiptCode: "POS-000001",
+      lastReceiptCode: "POS-000045",
+      totalSalesCount: 45,
+      expectedCashCents: 1_250_000_00,
+      declaredCashCents: 1_250_000_00,
+      differenceCents: 0,
+      grossTotalCents: 2_500_000_00,
+      returnsTotalCents: 50_000_00,
+      netTotalCents: 2_450_000_00,
+      taxBreakdown: {
+        gravado19Cents: 1_000_000_00,
+        iva19Cents: 190_000_00,
+        gravado5Cents: 400_000_00,
+        iva5Cents: 20_000_00,
+        exentoCents: 600_000_00,
+        excluidoCents: 240_000_00,
+        inc8Cents: 0
+      },
+      paperWidthMm: 80
+    });
+
+    expect(slip80).toContain("CIERRE FISCAL DIARIO - REPORTE Z");
+    expect(slip80).toContain("(Art. 616 del E.T.)");
+    expect(slip80).toContain("Supertienda El Éxito");
+    expect(slip80).toContain("NIT: 900.123.456-7");
+    expect(slip80).toContain("POS-000001");
+    expect(slip80).toContain("POS-000045");
+    expect(slip80).toContain("Gravado 19%:");
+    expect(slip80).toContain("ARQUEO DE EFECTIVO");
+
+    // En 58 mm (32 columnas)
+    const slip58 = printer.renderReportZSlipText({
+      businessName: "Tienda Don Juan",
+      nit: "800.999.111-2",
+      terminalCode: "CAJA-02",
+      cashSessionId: "sess-58mm",
+      cashierName: "Pedro",
+      closedAtIso: "2026-11-02T21:00:00-05:00",
+      firstReceiptCode: "POS-001",
+      lastReceiptCode: "POS-010",
+      totalSalesCount: 10,
+      expectedCashCents: 100_000_00,
+      declaredCashCents: 100_000_00,
+      differenceCents: 0,
+      grossTotalCents: 100_000_00,
+      returnsTotalCents: 0,
+      netTotalCents: 100_000_00,
+      paperWidthMm: 58
+    });
+    expect(slip58).toContain("CIERRE FISCAL DIARIO - REPORTE Z");
+    expect(slip58.split("\n")[0]?.length).toBe(32);
+  });
 });
+

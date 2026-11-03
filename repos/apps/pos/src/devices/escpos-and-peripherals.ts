@@ -315,6 +315,90 @@ export class EscPosPrinterAndPeripherals {
     return lines.join("\n");
   }
 
+
+  /**
+   * Art. 616 E.T.: Impresión de Reporte Z de Cierre Fiscal Diario en tirilla térmica (58mm o 80mm).
+   */
+  renderReportZSlipText(params: {
+    businessName: string;
+    nit: string;
+    terminalCode: string;
+    cashSessionId: string;
+    cashierName: string;
+    closedAtIso: string;
+    firstReceiptCode: string;
+    lastReceiptCode: string;
+    totalSalesCount: number;
+    expectedCashCents: number;
+    declaredCashCents: number;
+    differenceCents: number;
+    grossTotalCents: number;
+    returnsTotalCents: number;
+    netTotalCents: number;
+    taxBreakdown?: {
+      gravado19Cents?: number;
+      iva19Cents?: number;
+      gravado5Cents?: number;
+      iva5Cents?: number;
+      exentoCents?: number;
+      excluidoCents?: number;
+      inc8Cents?: number;
+    };
+    paperWidthMm?: PaperWidthMm;
+  }): string {
+    const width = params.paperWidthMm ?? this.config.paperWidthMm;
+    const cols = width === 58 ? 32 : 48;
+    const divider = "=".repeat(cols);
+    const subDivider = "-".repeat(cols);
+
+    const padLine = (left: string, right: string) => {
+      const space = Math.max(1, cols - left.length - right.length);
+      return `${left}${" ".repeat(space)}${right}`;
+    };
+
+    const center = (text: string) => {
+      const pad = Math.max(0, Math.floor((cols - text.length) / 2));
+      return " ".repeat(pad) + text;
+    };
+
+    const lines: string[] = [
+      divider,
+      center(sanitizeEscPosUserText(params.businessName)),
+      center(`NIT: ${sanitizeEscPosUserText(params.nit)}`),
+      center("CIERRE FISCAL DIARIO - REPORTE Z"),
+      center("(Art. 616 del E.T.)"),
+      divider,
+      padLine("Terminal:", sanitizeEscPosUserText(params.terminalCode)),
+      padLine("Sesion:", params.cashSessionId.slice(0, 12)),
+      padLine("Cajero:", sanitizeEscPosUserText(params.cashierName)),
+      padLine("Fecha:", params.closedAtIso.slice(0, 16).replace("T", " ")),
+      subDivider,
+      padLine("Comp. Inicial:", params.firstReceiptCode),
+      padLine("Comp. Final:", params.lastReceiptCode),
+      padLine("Total Facturas:", String(params.totalSalesCount)),
+      subDivider,
+      center("DESGLOSE IMPUESTOS"),
+      padLine("Gravado 19%:", formatMoneyCents(params.taxBreakdown?.gravado19Cents ?? 0)),
+      padLine("IVA 19%:", formatMoneyCents(params.taxBreakdown?.iva19Cents ?? 0)),
+      padLine("Gravado 5%:", formatMoneyCents(params.taxBreakdown?.gravado5Cents ?? 0)),
+      padLine("IVA 5%:", formatMoneyCents(params.taxBreakdown?.iva5Cents ?? 0)),
+      padLine("Exento:", formatMoneyCents(params.taxBreakdown?.exentoCents ?? 0)),
+      padLine("Excluido:", formatMoneyCents(params.taxBreakdown?.excluidoCents ?? 0)),
+      padLine("INC 8%:", formatMoneyCents(params.taxBreakdown?.inc8Cents ?? 0)),
+      subDivider,
+      padLine("INGRESOS BRUTOS:", formatMoneyCents(params.grossTotalCents)),
+      padLine("Devoluciones:", formatMoneyCents(params.returnsTotalCents)),
+      padLine("INGRESOS NETOS:", formatMoneyCents(params.netTotalCents)),
+      divider,
+      center("ARQUEO DE EFECTIVO"),
+      padLine("Esperado Gaveta:", formatMoneyCents(params.expectedCashCents)),
+      padLine("Declarado Cajero:", formatMoneyCents(params.declaredCashCents)),
+      padLine("Diferencia:", formatMoneyCents(params.differenceCents)),
+      divider
+    ];
+
+    return lines.join("\n");
+  }
   /**
    * HU-050 & HU-343: Envía a imprimir o encola si no hay papel / está desconectada;
    * al reconectar por USB o poner papel vacía la cola sin duplicar ventas.
