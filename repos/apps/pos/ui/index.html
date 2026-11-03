@@ -619,6 +619,10 @@
       <div class="status-item">
         <span>Turno: <strong id="shift-id">#004</strong></span>
       </div>
+      <div class="status-item" id="dian-status-badge" title="Resolución DIAN No. 18764000001 (POS-000001..POS-050000) - Rango Activo" style="cursor: pointer;" onclick="document.getElementById('modal-dian-resolution').showModal()">
+        <span class="status-dot" style="background: var(--color-success);" id="dian-dot"></span>
+        <span>DIAN: <strong id="dian-range-text">POS #1024</strong> <span class="badge" style="font-size: 10px; background: rgba(56,161,105,0.2); color: #276749; padding: 2px 4px; border-radius: 4px;">48.976 disp.</span></span>
+      </div>
       <button class="shortcut-btn" id="btn-header-drawer" title="Probar apertura de cajón (RJ11)" style="padding: 4px 10px; min-height: 32px;">
         <span>🗄️ Cajón</span>
       </button>
@@ -984,6 +988,52 @@
     </div>
     <div class="dialog-footer">
       <button class="btn btn-primary" onclick="document.getElementById('modal-help').close()">Entendido</button>
+    </div>
+  </dialog>
+
+  <!-- Modal de Información de Resolución y Consecutivos DIAN -->
+  <dialog id="modal-dian-resolution" closedby="any" aria-labelledby="modal-dian-title" style="max-width: 500px;">
+    <div class="dialog-header">
+      <h2 id="modal-dian-title" class="dialog-title">Resolución y Consecutivos DIAN</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-dian-resolution').close()">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div style="background: var(--color-bg); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Resolución No.:</span>
+          <strong>18764000001</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Tipo Documento:</span>
+          <span>Doc. Equivalente POS (Tipo 20)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Prefijo y Rango:</span>
+          <strong>POS (1 a 50.000)</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Consecutivo Actual:</span>
+          <strong style="color: var(--color-success);">POS-001024 (48.976 restantes)</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Vigencia Autorizada:</span>
+          <span>2026-01-15 hasta 2028-01-15 (438 días)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: 6px;">
+          <span style="color: var(--text-muted);">Custodia Clave Técnica:</span>
+          <span style="font-family: monospace; font-size: 0.75rem; color: var(--primary);">arn:aws:secretsmanager:...</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Modo Contingencia:</span>
+          <span class="badge" style="background: rgba(56,161,105,0.15); color: var(--color-success); font-weight: bold;">INACTIVO (Normal)</span>
+        </div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
+        Tope legal por tiquete: 5 UVT ($262.500 COP). Ventas superiores a 5 UVT o con solicitud de crédito fiscal requieren emisión de Factura Electrónica.
+      </p>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-primary" onclick="document.getElementById('modal-dian-resolution').close()">Aceptar</button>
     </div>
   </dialog>
 
