@@ -20,6 +20,7 @@
  */
 
 import zlib from "node:zlib";
+import { calculateNitDv } from "../packages/contracts/dist/index.js";
 import { BffApp } from "../services/bff-app/dist/index.js";
 
 function formatCOP(cents) {
@@ -669,6 +670,85 @@ async function runSimulation() {
     claims
   }, nowMs + 12800000);
   printStep("🛡️", `Eventos en cuarentena en la tienda: ${quarantineRes.body.items.length} (Integridad de datos: 100%).`);
+
+  // 19. Consola del Super Admin, Saga JIT de Tienda y Licenciamiento Local — HU-110, HU-111, HU-121, HU-250 & ÉPICA 12
+  printSection("PASO 19: CONSOLA SUPER ADMIN, SAGA JIT & EDICIÓN LOCAL (ÉPICA 12)");
+
+  const platformClaims = {
+    sub: "super-admin-01",
+    aud: "platform",
+    role: "SUPER_ADMIN",
+    roles: ["SUPER_ADMIN"],
+    perms: ["platform.manage", "tenants.manage", "billing.manage"]
+  };
+
+  // 19.1 Métricas Globales del SaaS (MRR, conteos y salud técnica)
+  const metricsRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/platform/metrics",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims: platformClaims
+  }, nowMs + 13000000);
+  printStep("📊", `Métricas SaaS: MRR activo ${formatCOP(metricsRes.body.mrrCents)}, Tiendas totales: ${metricsRes.body.totalTenants}.`);
+
+  // 19.2 Saga orquestada de alta de nueva tienda con validación NIT Módulo 11
+  const nitNumber = "901555888";
+  const nitDv = calculateNitDv(nitNumber);
+  const sagaRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/platform/tenants",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims: platformClaims,
+    body: {
+      businessName: "Supermercado Los Andes",
+      documentType: "NIT",
+      documentNumber: nitNumber,
+      nitDv,
+      planCode: "NEGOCIO",
+      ownerEmail: "gerencia@losandes.co",
+      ownerPhone: "+573145557799",
+      trialDays: 15
+    }
+  }, nowMs + 13100000);
+  if (sagaRes.status !== 201) {
+    throw new Error(`Fallo en Saga de alta de tienda: ${JSON.stringify(sagaRes.body)}`);
+  }
+  printStep("🚀", `Saga de alta completada: Tienda "${sagaRes.body.tenantId}" [NIT: ${nitNumber}-${nitDv}] en Plan NEGOCIO.`);
+  printStep("✓", `Sucursal MAIN y Terminal ${sagaRes.body.terminalCode} (${sagaRes.body.terminalId}) creados sin registros huérfanos.`);
+  printStep("🔑", `Token de activación despachado al dueño: ${sagaRes.body.activationToken.slice(0, 16)}...`);
+
+  // 19.3 Emisión de serial para Edición Local (Pago Único)
+  const localLicRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/platform/local-licenses",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims: platformClaims,
+    body: {
+      customerName: "Don Gilberto Almacén",
+      customerNitOrCc: "79123456",
+      customerPhone: "+573001234567",
+      edition: "LOCAL_PLUS",
+      receiptPrefix: "L02"
+    }
+  }, nowMs + 13200000);
+  printStep("💾", `Serial Edición Local emitido (HU-121): ${localLicRes.body.license.serialKey} (Edición ${localLicRes.body.license.edition}).`);
+
+  // 19.4 Acceso temporal de soporte Just-In-Time (JIT 30 min)
+  const jitRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/platform/support-access",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims: platformClaims,
+    body: {
+      tenantId: sagaRes.body.tenantId,
+      reason: "Acompañamiento en configuración inicial de báscula serial e impresora térmica"
+    }
+  }, nowMs + 13300000);
+  printStep("🛡️", `Sesión JIT autorizada con expiración de 30 min: ${jitRes.body.session.id}. Motivo registrado en auditoría inmutable.`);
 
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

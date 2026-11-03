@@ -1,5 +1,5 @@
 import type { JwtClaims } from "@tiendita/service-kit";
-import type { TenantService } from "@tiendita/tenant-service";
+import type { TenantService, PlatformBillingAndDunningService } from "@tiendita/tenant-service";
 import type { IdentityService } from "@tiendita/identity-service";
 import type { DeviceService } from "@tiendita/device-service";
 import type { CatalogService } from "@tiendita/catalog-service";
@@ -56,4 +56,5 @@ export interface BffAppDependencies {
   einvoicingService?: EinvoicingService;
   notificationService?: NotificationService;
   syncService?: CloudSyncService;
+  platformBillingService?: PlatformBillingAndDunningService;
 }

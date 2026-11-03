@@ -12,6 +12,7 @@ import type { CustomersController } from "./controllers/customers.controller.js"
 import type { EinvoicingController } from "./controllers/einvoicing.controller.js";
 import type { NotificationsController } from "./controllers/notifications.controller.js";
 import type { SyncController } from "./controllers/sync.controller.js";
+import type { PlatformController } from "./controllers/platform.controller.js";
 
 export interface RouterControllers {
   authController: AuthController;
@@ -26,6 +27,7 @@ export interface RouterControllers {
   einvoicingController?: EinvoicingController;
   notificationsController?: NotificationsController;
   syncController?: SyncController;
+  platformController?: PlatformController;
 }
 
 export class BffRouter {
@@ -123,8 +125,84 @@ export class BffRouter {
       };
     }
 
+    // --- Consola Super Admin (Épica 12) ---
+    if (cleanPath.startsWith("/v1/platform/")) {
+      if (!this.controllers.platformController) {
+        return {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "PLATFORM_UNAVAILABLE" }
+        };
+      }
+
+      if (cleanPath === "/v1/platform/tenants") {
+        if (method === "POST") {
+          return this.controllers.platformController.createTenant(req, nowMs);
+        }
+        if (method === "GET") {
+          return this.controllers.platformController.listTenants(req, nowMs, queryParams);
+        }
+      }
+
+      const tenant360Match = cleanPath.match(/^\/v1\/platform\/tenants\/([^/]+)$/);
+      if (tenant360Match && method === "GET") {
+        return this.controllers.platformController.getTenant360(req, nowMs, tenant360Match[1]!);
+      }
+
+      const suspendMatch = cleanPath.match(/^\/v1\/platform\/tenants\/([^/]+)\/suspend$/);
+      if (suspendMatch && method === "POST") {
+        return this.controllers.platformController.suspendTenant(req, nowMs, suspendMatch[1]!);
+      }
+
+      const reactivateMatch = cleanPath.match(/^\/v1\/platform\/tenants\/([^/]+)\/reactivate$/);
+      if (reactivateMatch && method === "POST") {
+        return this.controllers.platformController.reactivateTenant(req, nowMs, reactivateMatch[1]!);
+      }
+
+      const graceMatch = cleanPath.match(/^\/v1\/platform\/tenants\/([^/]+)\/grace-extensions$/);
+      if (graceMatch && method === "POST") {
+        return this.controllers.platformController.grantGraceExtension(req, nowMs, graceMatch[1]!);
+      }
+
+      if (cleanPath === "/v1/platform/metrics" && method === "GET") {
+        return this.controllers.platformController.getMetrics(req, nowMs);
+      }
+
+      if (cleanPath === "/v1/platform/dunning/evaluate" && method === "POST") {
+        return this.controllers.platformController.evaluateDunning(req, nowMs);
+      }
+
+      if (cleanPath === "/v1/platform/billing/invoices" && method === "GET") {
+        return this.controllers.platformController.listInvoices(req, nowMs, queryParams);
+      }
+
+      const manualPaymentMatch = cleanPath.match(/^\/v1\/platform\/billing\/invoices\/([^/]+)\/manual-payment$/);
+      if (manualPaymentMatch && method === "POST") {
+        return this.controllers.platformController.recordManualPayment(req, nowMs, manualPaymentMatch[1]!);
+      }
+
+      if (cleanPath === "/v1/platform/local-licenses") {
+        if (method === "POST") {
+          return this.controllers.platformController.issueLocalLicense(req, nowMs);
+        }
+        if (method === "GET") {
+          return this.controllers.platformController.listLocalLicenses(req);
+        }
+      }
+
+      if (cleanPath === "/v1/platform/support-access" && method === "POST") {
+        return this.controllers.platformController.grantJitSupportAccess(req, nowMs);
+      }
+
+      return {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "PLATFORM_ROUTE_NOT_FOUND", path: cleanPath }
+      };
+    }
+
     const tenantId = claims.tid ?? undefined;
-    if (!tenantId && claims.aud !== "platform") {
+    if (!tenantId) {
       return {
         status: 403,
         headers: { "Content-Type": "application/json" },

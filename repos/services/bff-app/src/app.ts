@@ -1,5 +1,5 @@
 import { CircuitBreaker } from "@tiendita/service-kit";
-import { TenantService } from "@tiendita/tenant-service";
+import { TenantService, PlatformBillingAndDunningService } from "@tiendita/tenant-service";
 import { IdentityService } from "@tiendita/identity-service";
 import { DeviceService } from "@tiendita/device-service";
 import { CatalogService } from "@tiendita/catalog-service";
@@ -36,6 +36,7 @@ import { SalesController } from "./controllers/sales.controller.js";
 import { CustomersController } from "./controllers/customers.controller.js";
 import { NotificationsController } from "./controllers/notifications.controller.js";
 import { SyncController } from "./controllers/sync.controller.js";
+import { PlatformController } from "./controllers/platform.controller.js";
 
 export class BffApp {
   public readonly tenantService: TenantService;
@@ -51,6 +52,7 @@ export class BffApp {
   public readonly einvoicingService: EinvoicingService;
   public readonly notificationService: NotificationService;
   public readonly syncService: CloudSyncService;
+  public readonly platformBillingService: PlatformBillingAndDunningService;
 
   public readonly rateLimiter = new RateLimiter();
   public readonly idempotencyStore = new IdempotencyStore();
@@ -76,6 +78,9 @@ export class BffApp {
     this.einvoicingService = deps.einvoicingService ?? new EinvoicingService();
     this.notificationService = deps.notificationService ?? new NotificationService();
     this.syncService = deps.syncService ?? new CloudSyncService();
+    this.platformBillingService =
+      deps.platformBillingService ??
+      new PlatformBillingAndDunningService(this.tenantService);
 
     // Circuit breakers por servicio
     this.breakers.set("tenant-service", new CircuitBreaker({ name: "tenant-service" }));
@@ -113,6 +118,12 @@ export class BffApp {
       reportingService: this.reportingService,
       recordSaleAndConsolidate: (params) => this.recordSaleAndConsolidate(params)
     });
+    const platformController = new PlatformController({
+      tenantService: this.tenantService,
+      platformBillingService: this.platformBillingService,
+      identityService: this.identityService,
+      deviceService: this.deviceService
+    });
 
     this.router = new BffRouter({
       authController,
@@ -126,7 +137,8 @@ export class BffApp {
       salesController,
       customersController,
       notificationsController,
-      syncController
+      syncController,
+      platformController
     });
   }
 
