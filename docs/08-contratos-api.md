@@ -148,7 +148,15 @@ Solo `GET`. Parámetros comunes: `branch_id`, `terminal_id`, `from`, `to`, `grou
 | `POST` | `/v1/app/einvoicing/test-set` | Ejecuta el Set de Pruebas de Habilitación DIAN con TestSetId oficial (HU-463) |
 | `POST` | `/v1/app/einvoicing/fiscal-mode` | Conmuta en caliente el modo fiscal (NONE <-> DIAN_POS) sin alterar comprobantes anteriores (HU-464) |
 
-## 3c. Activación de la Edición Local — `device-service` (`/v1/local-activation/*`)
+### 3c. Notificaciones Multicanal, Comprobantes Digitales y Ley 2300 (`/v1/app/notifications/*`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/v1/app/notifications/invoice-receipt` | Envío digital de comprobante de venta o Documento Equivalente Electrónico POS por WhatsApp o Email con CUDE SHA-384 y enlace QR oficial de la DIAN (HU-327) |
+| `POST` | `/v1/app/notifications/debt-reminder` | Despacho de recordatorio de cobro de cartera a deudores con verificación previa de horarios legales y generación automática de evidencia auditable ante la SIC (HU-109, HU-364 & Ley 2300 de 2023) |
+| `GET` | `/v1/app/notifications` | Historial auditable de notificaciones despachadas y encoladas por el establecimiento |
+
+## 3d. Activación de la Edición Local — `device-service` (`/v1/local-activation/*`)
 
 Públicos (sin sesión), con rate limit estricto (5 intentos/hora por IP y por serial), TLS con *pinning* y respuestas firmadas. Solo se usan cuando el usuario pulsa el botón correspondiente.
 

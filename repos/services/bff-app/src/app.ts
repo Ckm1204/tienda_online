@@ -33,6 +33,7 @@ import { CatalogController } from "./controllers/catalog.controller.js";
 import { InventoryController } from "./controllers/inventory.controller.js";
 import { SalesController } from "./controllers/sales.controller.js";
 import { CustomersController } from "./controllers/customers.controller.js";
+import { NotificationsController } from "./controllers/notifications.controller.js";
 
 export class BffApp {
   public readonly tenantService: TenantService;
@@ -97,6 +98,10 @@ export class BffApp {
     const inventoryController = new InventoryController(this.inventoryService);
     const salesController = new SalesController(this.salesService);
     const customersController = new CustomersController(this.customerService);
+    const notificationsController = new NotificationsController(
+      this.notificationService,
+      this.customerService
+    );
 
     this.router = new BffRouter({
       authController,
@@ -108,7 +113,8 @@ export class BffApp {
       catalogController,
       inventoryController,
       salesController,
-      customersController
+      customersController,
+      notificationsController
     });
   }
 

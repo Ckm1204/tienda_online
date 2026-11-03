@@ -141,5 +141,90 @@ describe("NotificationService & Ley 2300 Unit Tests (ÉPICA 11: FT-11.2)", () =>
       expect(notif.channel).toBe("EMAIL");
       expect(notif.provider).toBe("fallback_backup");
     });
+
+    it("renderiza plantillas multicanal con sustitución de variables (renderTemplate)", () => {
+      const rendered = service.renderTemplate("debt.reminder", "WHATSAPP", "es-CO", {
+        customer_name: "Don Pedro",
+        tenant_name: "Tienda Don Pedro",
+        amount: "$45.000"
+      });
+
+      expect(rendered.body).toContain("Don Pedro");
+      expect(rendered.body).toContain("Tienda Don Pedro");
+      expect(rendered.body).toContain("$45.000");
+      expect(rendered.subject).toBe("Recordatorio de Saldo Pendiente");
+    });
+
+    it("despacha comprobante de factura electrónica por WhatsApp con CUDE y QR DIAN (HU-327 & DIAN)", async () => {
+      const wednesday = new Date("2026-10-28T15:00:00Z").getTime();
+      const cude = "8934a8422763fb44a44ade61bd97945bc7b0270b38121f9056f4a9587940837d5c6307f35471a670264dfd6a57caa698";
+      const qrUrl = "https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=" + cude;
+
+      const record = await service.sendElectronicInvoiceReceipt({
+        tenantId: "tenant-co-01",
+        invoiceNumber: "SETT-000001",
+        customerName: "Doña Martha Gómez",
+        recipient: "+573104458821",
+        channel: "WHATSAPP",
+        totalCents: 930000,
+        cude,
+        qrUrl,
+        tenantName: "Tienda La Esmeralda",
+        nowMs: wednesday
+      });
+
+      expect(record.status).toBe("SENT");
+      expect(record.channel).toBe("WHATSAPP");
+      expect(record.renderedBody).toContain("Doña Martha Gómez");
+      expect(record.renderedBody).toContain("SETT-000001");
+      expect(record.renderedBody).toContain("$9.300");
+      expect(record.renderedBody).toContain(cude);
+      expect(record.renderedBody).toContain(qrUrl);
+
+      // Verificación de deduplicación: no reenviar si ya se despachó el mismo recibo a la misma persona
+      const dupRecord = await service.sendElectronicInvoiceReceipt({
+        tenantId: "tenant-co-01",
+        invoiceNumber: "SETT-000001",
+        customerName: "Doña Martha Gómez",
+        recipient: "+573104458821",
+        channel: "WHATSAPP",
+        totalCents: 930000,
+        cude,
+        qrUrl,
+        tenantName: "Tienda La Esmeralda",
+        nowMs: wednesday
+      });
+      expect(dupRecord.id).toBe(record.id);
+
+      // Listado por tenant
+      const list = service.listNotifications("tenant-co-01");
+      expect(list.length).toBeGreaterThanOrEqual(1);
+      expect(list.some((n) => n.id === record.id)).toBe(true);
+    });
+
+    it("despacha comprobante de factura electrónica por EMAIL con UBL 2.1", async () => {
+      const wednesday = new Date("2026-10-28T15:00:00Z").getTime();
+      const cude = "abc384hash";
+      const qrUrl = "https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=" + cude;
+
+      const record = await service.sendElectronicInvoiceReceipt({
+        tenantId: "tenant-co-01",
+        invoiceNumber: "SETT-000002",
+        customerName: "Carlos Ramirez",
+        recipient: "carlos@taller.co",
+        channel: "EMAIL",
+        totalCents: 15000000, // $150.000 COP
+        cude,
+        qrUrl,
+        tenantName: "Tienda La Esmeralda",
+        nowMs: wednesday
+      });
+
+      expect(record.status).toBe("SENT");
+      expect(record.channel).toBe("EMAIL");
+      expect(record.renderedSubject).toContain("SETT-000002");
+      expect(record.renderedBody).toContain("XML UBL 2.1");
+      expect(record.renderedBody).toContain("$150.000");
+    });
   });
 });

@@ -52,7 +52,8 @@ async function runSimulation() {
     tid: tenantId,
     aud: "mgmt-app",
     role: "OWNER",
-    permissions: ["reports.read", "sales.read", "catalog.read"]
+    roles: ["OWNER"],
+    perms: ["reports.read", "sales.read", "catalog.read", "customer.credit_manage", "customer.read", "sales.create"]
   };
 
   const authHeaders = {
@@ -187,8 +188,12 @@ async function runSimulation() {
       environment_type: "1"
     }
   };
+  let lastCude = "";
+  let lastQrUrl = "";
   const cudeRes = await bff.handleRequest(cudeReq, nowMs + 3600000);
   if (cudeRes.status === 200) {
+    lastCude = cudeRes.body.cude;
+    lastQrUrl = cudeRes.body.qr_url;
     printStep("🔐", `CUDE SHA-384 generado (96 caracteres): ${cudeRes.body.cude.slice(0, 32)}...`);
     printStep("📱", `URL QR DIAN: ${cudeRes.body.qr_url}`);
   }
@@ -452,6 +457,78 @@ async function runSimulation() {
   printStep("🔒", `Almacenamiento S3 Object Lock (Modo COMPLIANCE): Retención legal garantizada.`);
   printStep("🛡️", `Contingencias pendientes de transmisión: ${contRes.body.pendingCount ?? 0}.`);
   printStep("✓", `Canal con proveedor tecnológico DIAN: 100% OPERATIVO.`);
+
+  // 16. Envío Digital de Factura Electrónica por WhatsApp — HU-327 & DIAN
+  printSection("PASO 16: ENVÍO DIGITAL DE FACTURA ELECTRÓNICA POR WHATSAPP (HU-327)");
+  const waReceiptReq = {
+    method: "POST",
+    path: "/v1/app/notifications/invoice-receipt",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      invoiceNumber: "SETT-000002",
+      customerName: "Doña Martha Gómez",
+      recipient: "+573104458821",
+      channel: "WHATSAPP",
+      totalCents: 5_300_00,
+      cude: lastCude || "8934a8422763fb44a44ade61bd97945bc7b0270b38121f9056f4a9587940837d5c6307f35471a670264dfd6a57caa698",
+      qrUrl: lastQrUrl || "https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=8934a8422763fb44a44ade61bd97945b",
+      tenantName: "Tienda La Esmeralda"
+    }
+  };
+  const waReceiptRes = await bff.handleRequest(waReceiptReq, nowMs + 11500000);
+  if (waReceiptRes.status !== 200 || !waReceiptRes.body.success) {
+    throw new Error(`Fallo al despachar recibo WhatsApp: ${JSON.stringify(waReceiptRes.body)}`);
+  }
+  printStep("📱", `Comprobante digital enviado por WhatsApp a Doña Martha Gómez (+57 310 445 8821).`);
+  printStep("✓", `CUDE y Enlace QR DIAN validados en plantilla oficial: ESTADO ${waReceiptRes.body.status}.`);
+
+  // 17. Cartera y Cobranza Ley 2300 de 2023 ("Dejen de Fregar") & Trazabilidad SIC — HU-109, HU-364 & HU-446
+  printSection("PASO 17: CARTERA & COBRANZA LEY 2300 DE 2023 (TRAZABILIDAD SIC)");
+  const debtorCustomer = bff.customerService.upsertCustomerWithOptionalInitialBalance({
+    tenantId,
+    fullName: "Don Carlos Ramírez (Taller)",
+    docType: "CC",
+    docNumber: "19340590",
+    phone: "+573012349910",
+    creditEnabled: true,
+    creditLimitCents: 35_000_000,
+    initialBalanceCents: 14_500_000, // $145.000 COP de fiado
+    nowMs
+  });
+
+  // Intento fuera de horario legal (3:00 AM)
+  const nightTimeMs = new Date("2026-11-03T03:00:00-05:00").getTime();
+  const nightCheck = await bff.handleRequest({
+    method: "POST",
+    path: `/v1/app/customers/${debtorCustomer.id}/contact-check`,
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: { targetIsDebtorOrCodebtor: true, nowMs: nightTimeMs }
+  }, nightTimeMs);
+  printStep("⚖️", `Validación nocturna (03:00 AM): ${nightCheck.body.allowed ? "AUTORIZADO" : "BLOQUEADO"} [${nightCheck.body.code}] — ${nightCheck.body.reason.slice(0, 50)}...`);
+
+  // Despacho en horario hábil diurno (10:30 AM)
+  const dayReminderRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/notifications/debt-reminder",
+    ip: "127.0.0.1",
+    headers: { ...authHeaders, "content-type": "application/json" },
+    claims,
+    body: {
+      customerId: debtorCustomer.id,
+      recipient: "+573012349910",
+      channel: "WHATSAPP",
+      customMessage: "Don Carlos, cordial saludo. Le recordamos su saldo pendiente en Tienda La Esmeralda."
+    }
+  }, nowMs + 12000000);
+  if (dayReminderRes.status !== 200 || !dayReminderRes.body.success) {
+    throw new Error(`Fallo al enviar recordatorio Ley 2300: ${JSON.stringify(dayReminderRes.body)}`);
+  }
+  printStep("✓", `Recordatorio legal despachado a Don Carlos Ramírez (Saldo: $145.000 COP).`);
+  printStep("🛡️", `Contacto auditado ante la SIC con ID: ${dayReminderRes.body.sicAuditContactId}. Contactos esta semana: ${dayReminderRes.body.currentWeeklyContactsCount} de máx 2.`);
 
   const durationMs = Date.now() - startTime;
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

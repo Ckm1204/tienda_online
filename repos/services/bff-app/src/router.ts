@@ -10,6 +10,7 @@ import type { InventoryController } from "./controllers/inventory.controller.js"
 import type { SalesController } from "./controllers/sales.controller.js";
 import type { CustomersController } from "./controllers/customers.controller.js";
 import type { EinvoicingController } from "./controllers/einvoicing.controller.js";
+import type { NotificationsController } from "./controllers/notifications.controller.js";
 
 export interface RouterControllers {
   authController: AuthController;
@@ -22,6 +23,7 @@ export interface RouterControllers {
   salesController: SalesController;
   customersController: CustomersController;
   einvoicingController?: EinvoicingController;
+  notificationsController?: NotificationsController;
 }
 
 export class BffRouter {
@@ -285,6 +287,35 @@ export class BffRouter {
     const matchContactAudit = cleanPath.match(/^\/v1\/app\/customers\/([a-zA-Z0-9_-]+)\/contact-audit$/);
     if (method === "GET" && matchContactAudit) {
       return this.controllers.customersController.getContactAudit(matchContactAudit[1]!, req);
+    }
+
+    // --- Notificaciones Multicanal y Ley 2300 ---
+    if (method === "POST" && cleanPath === "/v1/app/notifications/invoice-receipt") {
+      return (
+        this.controllers.notificationsController?.sendInvoiceReceipt(req, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "NOTIFICATIONS_UNAVAILABLE" }
+        }
+      );
+    }
+    if (method === "POST" && cleanPath === "/v1/app/notifications/debt-reminder") {
+      return (
+        this.controllers.notificationsController?.sendDebtReminder(req, nowMs) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "NOTIFICATIONS_UNAVAILABLE" }
+        }
+      );
+    }
+    if (method === "GET" && cleanPath === "/v1/app/notifications") {
+      return (
+        this.controllers.notificationsController?.listNotifications(req) ?? {
+          status: 501,
+          headers: { "Content-Type": "application/json" },
+          body: { error: "NOTIFICATIONS_UNAVAILABLE" }
+        }
+      );
     }
 
     return {

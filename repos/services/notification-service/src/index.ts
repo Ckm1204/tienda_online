@@ -59,6 +59,8 @@ export interface NotificationRecord {
   sentAtMs: number | null;
   error?: string;
   isDebtCollection?: boolean;
+  renderedSubject?: string;
+  renderedBody?: string;
 }
 
 export interface ColombianDateComponents {
@@ -269,6 +271,52 @@ export class NotificationService {
       subject: "Comprobante de Compra",
       body: "Gracias por su compra en {{tenant_name}}. Total pagado: {{total_amount}}."
     });
+    this.templates.set("einvoice.receipt:WHATSAPP:es-CO", {
+      code: "einvoice.receipt",
+      channel: "WHATSAPP",
+      locale: "es-CO",
+      subject: "Documento Equivalente Electrónico POS",
+      body: "Apreciado/a {{customer_name}}, {{tenant_name}} le adjunta su Documento Equivalente Electrónico POS No. {{invoice_number}} por valor de {{total_amount}} COP. CUDE: {{cude}}. Consulte la validez DIAN en: {{qr_url}}"
+    });
+    this.templates.set("einvoice.receipt:EMAIL:es-CO", {
+      code: "einvoice.receipt",
+      channel: "EMAIL",
+      locale: "es-CO",
+      subject: "Documento Equivalente Electrónico POS {{invoice_number}} - {{tenant_name}}",
+      body: "Estimado/a {{customer_name}}:\n\nAdjuntamos la representación gráfica y XML UBL 2.1 de su Documento Equivalente Electrónico POS No. {{invoice_number}} emitido por {{tenant_name}}.\n\nTotal: {{total_amount}} COP\nCUDE: {{cude}}\nConsulta oficial DIAN: {{qr_url}}\n\nGracias por su compra."
+    });
+  }
+
+  renderTemplate(
+    templateCode: string,
+    channel: NotificationChannel,
+    locale: string = "es-CO",
+    payload: Record<string, unknown> = {}
+  ): { subject?: string; body: string } {
+    const key = `${templateCode}:${channel}:${locale}`;
+    const fallbackKey = `${templateCode}:${channel}:es-CO`;
+    const template = this.templates.get(key) || this.templates.get(fallbackKey);
+
+    if (!template) {
+      return {
+        subject: `Notificación ${templateCode}`,
+        body: JSON.stringify(payload)
+      };
+    }
+
+    let body = template.body;
+    let subject = template.subject;
+
+    for (const [k, v] of Object.entries(payload)) {
+      const placeholder = new RegExp(`\\{\\{${k}\\}\\}`, "g");
+      const valStr = v !== null && v !== undefined ? String(v) : "";
+      body = body.replace(placeholder, valStr);
+      if (subject) {
+        subject = subject.replace(placeholder, valStr);
+      }
+    }
+
+    return { subject, body };
   }
 
   registerPushDevice(params: {
@@ -343,6 +391,8 @@ export class NotificationService {
       }
     }
 
+    const rendered = this.renderTemplate(params.templateCode, params.channel, "es-CO", params.payload);
+
     const notificationId = newId();
     const notif: NotificationRecord = {
       id: notificationId,
@@ -357,7 +407,9 @@ export class NotificationService {
       provider: "primary",
       scheduledForMs,
       sentAtMs: null,
-      isDebtCollection: params.isDebtCollection
+      isDebtCollection: params.isDebtCollection,
+      renderedSubject: rendered.subject,
+      renderedBody: rendered.body
     };
 
     this.notifications.set(notificationId, notif);
@@ -408,5 +460,44 @@ export class NotificationService {
         notif.error = String(err);
       }
     }
+  }
+
+  async sendElectronicInvoiceReceipt(params: {
+    tenantId: string;
+    invoiceNumber: string;
+    customerName: string;
+    recipient: string;
+    channel: "WHATSAPP" | "EMAIL";
+    totalCents: number;
+    cude: string;
+    qrUrl: string;
+    tenantName?: string;
+    nowMs?: number;
+  }): Promise<NotificationRecord> {
+    const formattedTotal = `$${(params.totalCents / 100).toLocaleString("es-CO")}`;
+    const dedupeKey = `einvoice:${params.tenantId}:${params.invoiceNumber}:${params.recipient}`;
+    return this.queueNotification({
+      tenantId: params.tenantId,
+      userId: null,
+      recipient: params.recipient,
+      channel: params.channel,
+      templateCode: "einvoice.receipt",
+      payload: {
+        customer_name: params.customerName,
+        tenant_name: params.tenantName ?? "TienditaOnline",
+        invoice_number: params.invoiceNumber,
+        total_amount: formattedTotal,
+        cude: params.cude,
+        qr_url: params.qrUrl
+      },
+      dedupeKey,
+      nowMs: params.nowMs
+    });
+  }
+
+  listNotifications(tenantId?: string | null): NotificationRecord[] {
+    const all = Array.from(this.notifications.values());
+    if (!tenantId) return all;
+    return all.filter((n) => n.tenantId === tenantId);
   }
 }

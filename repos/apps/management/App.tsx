@@ -49,6 +49,10 @@ import {
   FiscalDaySummary,
   DianResolutionInfo
 } from "./src/components/FiscalReportsScreen";
+import {
+  CustomerContactModal,
+  FiadoCustomerContactData
+} from "./src/components/CustomerContactModal";
 import { ManagementAuthService, ManagementUser } from "./src/auth/auth-state";
 
 // Datos iniciales de demostración para tienda de barrio típica colombiana
@@ -341,6 +345,8 @@ export default function App() {
   const [fiscalDays, setFiscalDays] = useState<FiscalDaySummary[]>(DEFAULT_FISCAL_DAYS);
   const [dianResolution, setDianResolution] = useState<DianResolutionInfo>(DEFAULT_DIAN_RESOLUTION);
   const [fiscalMode, setFiscalMode] = useState<"NONE" | "DIAN_POS">("DIAN_POS");
+  const [contactingCustomer, setContactingCustomer] = useState<FiadoCustomerContactData | null>(null);
+  const [customerWeeklyContacts, setCustomerWeeklyContacts] = useState<Record<string, number>>({});
 
   // Datos en vivo
   const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
@@ -494,6 +500,20 @@ export default function App() {
     }
     setCustomers((prev) => prev.filter((c) => c.id !== customerId));
     setFeedMessage("Datos del cliente anonimizados según Ley 1581.");
+  };
+
+  const handleSendCustomerReminder = async (params: {
+    customerId: string;
+    channel: "WHATSAPP" | "SMS";
+    message: string;
+  }) => {
+    setCustomerWeeklyContacts((prev) => ({
+      ...prev,
+      [params.customerId]: (prev[params.customerId] || 0) + 1
+    }));
+    setFeedMessage(
+      `Recordatorio despachado a cliente por ${params.channel}. Evidencia registrada ante la SIC (Ley 2300).`
+    );
   };
 
   // Toggle de bloqueo de cajero
@@ -813,15 +833,36 @@ export default function App() {
 
                                 <View style={styles.customerActionRow}>
                                   {hasDebt ? (
-                                    <TouchableOpacity
-                                      style={styles.writeOffBtn}
-                                      onPress={() => handleCustomerWriteOff(c.id)}
-                                      accessibilityRole="button"
-                                      accessibilityLabel="Condonar Deuda con MFA"
-                                    >
-                                      <ShieldAlert size={14} color="#dc2626" aria-hidden />
-                                      <Text style={styles.writeOffBtnText}>Condonar Deuda (MFA)</Text>
-                                    </TouchableOpacity>
+                                    <>
+                                      <TouchableOpacity
+                                        style={styles.contactBtn}
+                                        onPress={() =>
+                                          setContactingCustomer({
+                                            id: c.id,
+                                            name: c.name,
+                                            docNumber: c.docNumber,
+                                            phone: c.phone,
+                                            balanceCents: c.balanceCents
+                                          })
+                                        }
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Recordar Deuda Ley 2300"
+                                        testID={`btn-contact-${c.id}`}
+                                      >
+                                        <MessageCircle size={14} color="#166534" aria-hidden />
+                                        <Text style={styles.contactBtnText}>Recordar (Ley 2300)</Text>
+                                      </TouchableOpacity>
+
+                                      <TouchableOpacity
+                                        style={styles.writeOffBtn}
+                                        onPress={() => handleCustomerWriteOff(c.id)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Condonar Deuda con MFA"
+                                      >
+                                        <ShieldAlert size={14} color="#dc2626" aria-hidden />
+                                        <Text style={styles.writeOffBtnText}>Condonar (MFA)</Text>
+                                      </TouchableOpacity>
+                                    </>
                                   ) : null}
 
                                   <TouchableOpacity
@@ -1180,6 +1221,17 @@ export default function App() {
           </View>
         ) : null}
 
+        {/* MODAL 6: Recordatorio de Cobro Ley 2300 */}
+        {contactingCustomer ? (
+          <CustomerContactModal
+            visible={Boolean(contactingCustomer)}
+            customer={contactingCustomer}
+            weeklyContactsUsed={customerWeeklyContacts[contactingCustomer.id] || 0}
+            onClose={() => setContactingCustomer(null)}
+            onSendContact={handleSendCustomerReminder}
+          />
+        ) : null}
+
         {/* Pie de Página */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>TienditaOnline v1.2.0 • Edición Colombia</Text>
@@ -1468,6 +1520,18 @@ const styles = StyleSheet.create({
   textDebt: { color: "#dc2626" },
   textZero: { color: "#15803d" },
   customerActionRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+  contactBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6
+  },
+  contactBtnText: { fontFamily: "DMSans_600SemiBold", fontSize: 11, color: "#166534" },
   writeOffBtn: {
     flexDirection: "row",
     alignItems: "center",

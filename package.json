@@ -15,6 +15,7 @@
     "test:e2e": "pnpm -C repos/apps/management exec playwright test",
     "test:rust": "node repos/tools/run-cargo.mjs test --manifest-path repos/Cargo.toml",
     "simulate": "pnpm -C repos/tools/terminal-simulator simulate",
+    "simulate:day": "pnpm -C repos simulate:day",
     "db:migrate": "pnpm -C repos db:migrate",
     "db:verify": "pnpm -C repos db:verify",
     "contracts:check": "pnpm -C repos contracts:check",
