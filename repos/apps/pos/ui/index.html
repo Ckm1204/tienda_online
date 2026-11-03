@@ -626,11 +626,11 @@
     <button class="shortcut-btn" id="btn-f12"><span class="key-tag">F12</span> Bloquear Pantalla</button>
   </footer>
 
-  <!-- Modal de Cobro y Pagos Mixtos -->
-  <dialog id="modal-checkout">
+  <!-- Modal de Cobro y Pagos Mixtos (Modern Web Guidance: closedby="any" & aria-labelledby) -->
+  <dialog id="modal-checkout" closedby="any" aria-labelledby="modal-checkout-title">
     <div class="dialog-header">
-      <div class="dialog-title">Cobrar Venta</div>
-      <button class="close-btn" onclick="document.getElementById('modal-checkout').close()">&times;</button>
+      <h2 id="modal-checkout-title" class="dialog-title">Cobrar Venta</h2>
+      <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-checkout').close()">&times;</button>
     </div>
     <div class="dialog-body">
       <div style="font-size: 1.1rem; font-weight: bold; color: var(--text-muted);">
@@ -667,10 +667,10 @@
     </div>
   </dialog>
 
-  <!-- Modal de Bloqueo / Desbloqueo por PIN (HU-027..HU-032) -->
-  <dialog id="modal-pin-lock">
+  <!-- Modal de Bloqueo / Desbloqueo por PIN (HU-027..HU-032, closedby="none" de seguridad) -->
+  <dialog id="modal-pin-lock" closedby="none" aria-labelledby="modal-pin-title">
     <div class="dialog-header">
-      <div class="dialog-title">Terminal Bloqueada</div>
+      <h2 id="modal-pin-title" class="dialog-title">Terminal Bloqueada</h2>
     </div>
     <div class="dialog-body" style="text-align: center;">
       <p style="font-size: 0.9rem; color: var(--text-muted);">Ingrese su PIN de 4 dígitos para continuar</p>
@@ -930,6 +930,27 @@
       }
     }
 
+    // Seguridad: Prevenir bypass de pantalla bloqueada con tecla Esc (HU-027)
+    const pinModal = document.getElementById("modal-pin-lock");
+    pinModal.addEventListener("cancel", (e) => {
+      e.preventDefault();
+    });
+
+    // Fallback Light-Dismiss para navegadores sin soporte nativo a closedby="any"
+    if (!("closedBy" in HTMLDialogElement.prototype)) {
+      document.querySelectorAll('dialog[closedby="any"]').forEach(dlg => {
+        dlg.addEventListener("click", (e) => {
+          if (e.target !== dlg) return;
+          const rect = dlg.getBoundingClientRect();
+          const inside = (
+            rect.top <= e.clientY && e.clientY <= rect.bottom &&
+            rect.left <= e.clientX && e.clientX <= rect.right
+          );
+          if (!inside) dlg.close();
+        });
+      });
+    }
+
     // Atajos de Teclado Globales (F1..F12)
     window.addEventListener("keydown", (e) => {
       if (e.key === "F2") {
@@ -942,8 +963,11 @@
         e.preventDefault();
         openLock();
       } else if (e.key === "Escape") {
-        const dialogs = document.querySelectorAll("dialog[open]");
-        dialogs.forEach(d => d.close());
+        // Solo cerrar diálogos no protegidos (no cerrar modal-pin-lock)
+        const checkoutModal = document.getElementById("modal-checkout");
+        if (checkoutModal && checkoutModal.open) {
+          checkoutModal.close();
+        }
       }
     });
 

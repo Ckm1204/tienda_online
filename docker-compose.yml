@@ -1,6 +1,9 @@
 version: "3.8"
 
 services:
+  # ===========================================================================
+  # Infraestructura de Respaldo Local (Postgres, Redpanda, Redis, LocalStack)
+  # ===========================================================================
   postgres:
     image: postgres:16-alpine
     container_name: tiendita-postgres
@@ -73,6 +76,259 @@ services:
     volumes:
       - localstackdata:/var/lib/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
+
+  # ===========================================================================
+  # Malla de Microservicios Cloud (BFF, Sync, DIAN y Dominio)
+  # ===========================================================================
+  bff-app:
+    build:
+      context: ./repos
+      dockerfile: services/bff-app/Dockerfile
+    container_name: tiendita-bff-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      REDIS_URL: redis://redis:6379
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+
+  sync-service:
+    build:
+      context: ./repos
+      dockerfile: services/sync-service/Dockerfile
+    container_name: tiendita-sync-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+
+  einvoicing-service:
+    build:
+      context: ./repos
+      dockerfile: services/einvoicing-service/Dockerfile
+    container_name: tiendita-einvoicing-service
+    restart: unless-stopped
+    ports:
+      - "3012:3012"
+    environment:
+      NODE_ENV: production
+      PORT: 3012
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+
+  tenant-service:
+    build:
+      context: ./repos
+      dockerfile: services/tenant-service/Dockerfile
+    container_name: tiendita-tenant-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  identity-service:
+    build:
+      context: ./repos
+      dockerfile: services/identity-service/Dockerfile
+    container_name: tiendita-identity-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  device-service:
+    build:
+      context: ./repos
+      dockerfile: services/device-service/Dockerfile
+    container_name: tiendita-device-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  catalog-service:
+    build:
+      context: ./repos
+      dockerfile: services/catalog-service/Dockerfile
+    container_name: tiendita-catalog-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  sales-service:
+    build:
+      context: ./repos
+      dockerfile: services/sales-service/Dockerfile
+    container_name: tiendita-sales-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cash-service:
+    build:
+      context: ./repos
+      dockerfile: services/cash-service/Dockerfile
+    container_name: tiendita-cash-service
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    environment:
+      NODE_ENV: production
+      PORT: 3007
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  inventory-service:
+    build:
+      context: ./repos
+      dockerfile: services/inventory-service/Dockerfile
+    container_name: tiendita-inventory-service
+    restart: unless-stopped
+    ports:
+      - "3008:3008"
+    environment:
+      NODE_ENV: production
+      PORT: 3008
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  customer-service:
+    build:
+      context: ./repos
+      dockerfile: services/customer-service/Dockerfile
+    container_name: tiendita-customer-service
+    restart: unless-stopped
+    ports:
+      - "3009:3009"
+    environment:
+      NODE_ENV: production
+      PORT: 3009
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  reporting-service:
+    build:
+      context: ./repos
+      dockerfile: services/reporting-service/Dockerfile
+    container_name: tiendita-reporting-service
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+    environment:
+      NODE_ENV: production
+      PORT: 3010
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  audit-service:
+    build:
+      context: ./repos
+      dockerfile: services/audit-service/Dockerfile
+    container_name: tiendita-audit-service
+    restart: unless-stopped
+    ports:
+      - "3011:3011"
+    environment:
+      NODE_ENV: production
+      PORT: 3011
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./repos
+      dockerfile: services/notification-service/Dockerfile
+    container_name: tiendita-notification-service
+    restart: unless-stopped
+    ports:
+      - "3013:3013"
+    environment:
+      NODE_ENV: production
+      PORT: 3013
+      DATABASE_URL: postgres://tiendita_admin:tiendita_secret_local@postgres:5432/tiendita_dev
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   pgdata:

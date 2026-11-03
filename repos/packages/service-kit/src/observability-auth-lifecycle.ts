@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import http from "node:http";
 import { z } from "zod";
 
 /**
@@ -215,4 +216,68 @@ export class ServiceLifecycleManager {
       await cb();
     }
   }
+}
+
+// ============================================================================
+// HU-014 & HU-480: Standard Microservice HTTP Server Harness
+// ============================================================================
+
+export interface ServiceServerOptions {
+  serviceName: string;
+  port?: number;
+  host?: string;
+  lifecycle?: ServiceLifecycleManager;
+  handleRequest?: (req: http.IncomingMessage, res: http.ServerResponse) => Promise<boolean | void> | boolean | void;
+}
+
+export function createServiceServer(options: ServiceServerOptions): http.Server {
+  const {
+    serviceName,
+    port = parseInt(process.env.PORT || "3000", 10),
+    host = process.env.HOST || "0.0.0.0",
+    lifecycle = new ServiceLifecycleManager(),
+    handleRequest
+  } = options;
+
+  const server = http.createServer(async (req, res) => {
+    const traceCtx = createOrContinueTraceContext(req.headers["traceparent"] as string | undefined);
+    res.setHeader("traceparent", traceCtx.traceparent);
+
+    const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+
+    if (url.pathname === "/health/live" && req.method === "GET") {
+      const live = lifecycle.getLiveStatus();
+      res.writeHead(live.status, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...live.body, service: serviceName, uptime: process.uptime() }));
+      return;
+    }
+
+    if (url.pathname === "/health/ready" && req.method === "GET") {
+      const ready = lifecycle.getReadyStatus();
+      res.writeHead(ready.status, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...ready.body, service: serviceName }));
+      return;
+    }
+
+    if (handleRequest) {
+      try {
+        const handled = await lifecycle.trackInFlight(async () => handleRequest(req, res));
+        if (handled !== false && res.writableEnded) return;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Internal Error";
+        if (!res.headersSent) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "INTERNAL_ERROR", detail: message }));
+        }
+        return;
+      }
+    }
+
+    if (!res.writableEnded) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "NOT_FOUND", service: serviceName, path: url.pathname }));
+    }
+  });
+
+  return server;
 }

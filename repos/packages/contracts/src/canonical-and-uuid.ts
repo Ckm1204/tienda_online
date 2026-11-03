@@ -6,15 +6,31 @@ import crypto from "node:crypto";
 let lastTimestampMs = 0;
 let monotonicSeq = 0;
 
+function getRandomBytes(size: number): Uint8Array {
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
+    const arr = new Uint8Array(size);
+    globalThis.crypto.getRandomValues(arr);
+    return arr;
+  }
+  if (crypto && typeof crypto.randomBytes === "function") {
+    return new Uint8Array(crypto.randomBytes(size));
+  }
+  const arr = new Uint8Array(size);
+  for (let i = 0; i < size; i++) {
+    arr[i] = Math.floor(Math.random() * 256);
+  }
+  return arr;
+}
+
 export function newId(nowMs: number = Date.now()): string {
   if (nowMs === lastTimestampMs) {
     monotonicSeq = (monotonicSeq + 1) & 0x0fff;
   } else {
     lastTimestampMs = nowMs;
-    monotonicSeq = crypto.randomInt(0, 0x0fff);
+    monotonicSeq = Math.floor(Math.random() * 0x1000);
   }
 
-  const bytes = crypto.randomBytes(16);
+  const bytes = getRandomBytes(16);
   const tsBig = BigInt(nowMs);
 
   // 48-bit big-endian unix_ts_ms
@@ -32,7 +48,9 @@ export function newId(nowMs: number = Date.now()): string {
   // variant RFC 4122 / 9562 (10xx)
   bytes[8] = (bytes[8]! & 0x3f) | 0x80;
 
-  const hex = bytes.toString("hex");
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 

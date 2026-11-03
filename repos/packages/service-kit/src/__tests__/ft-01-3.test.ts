@@ -21,7 +21,8 @@ import {
   BaseServiceEnvSchema,
   validateStartupEnv,
   ServiceLifecycleManager,
-  generateServiceSkeleton
+  generateServiceSkeleton,
+  createServiceServer
 } from "../index.js";
 
 describe("FT-01.3 — packages/service-kit (RLS, Outbox/Inbox, Circuit Breaker, OTel, Auth, Lifecycle)", () => {
@@ -300,6 +301,32 @@ describe("FT-01.3 — packages/service-kit (RLS, Outbox/Inbox, Circuit Breaker, 
       expect(fs.existsSync(path.join(createdDir, "src/index.ts"))).toBe(true);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("HU-014 & HU-480: createServiceServer expone endpoints de health y propaga traceparent", async () => {
+    const server = createServiceServer({
+      serviceName: "test-service",
+      port: 0
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const addr = server.address() as { port: number };
+
+    try {
+      const resLive = await fetch(`http://127.0.0.1:${addr.port}/health/live`);
+      expect(resLive.status).toBe(200);
+      expect(resLive.headers.get("traceparent")).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/);
+      const jsonLive = (await resLive.json()) as { status: string; service: string };
+      expect(jsonLive.status).toBe("LIVE");
+      expect(jsonLive.service).toBe("test-service");
+
+      const resReady = await fetch(`http://127.0.0.1:${addr.port}/health/ready`);
+      expect(resReady.status).toBe(200);
+      const jsonReady = (await resReady.json()) as { status: string };
+      expect(jsonReady.status).toBe("READY");
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
     }
   });
 });
