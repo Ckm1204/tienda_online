@@ -719,4 +719,29 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     expect(reconRes.status).toBe(200);
     expect((reconRes.body as any).reconciledCount).toBe(1);
   });
+
+  it("HU-497: expone especificación OpenAPI 3.1 (/openapi.json) y portal de documentación interactiva (/docs)", async () => {
+    const specRes = await bff.handleRequest({
+      method: "GET",
+      path: "/openapi.json",
+      ip: "127.0.0.1",
+      headers: {}
+    });
+    expect(specRes.status).toBe(200);
+    expect(specRes.headers["Content-Type"]).toContain("application/json");
+    const openapi = specRes.body as any;
+    expect(openapi.openapi).toBe("3.1.0");
+    expect(openapi.info.title).toContain("TienditaOnline");
+    expect(openapi.paths["/v1/sync/push"]).toBeDefined();
+
+    const docsRes = await bff.handleRequest({
+      method: "GET",
+      path: "/docs",
+      ip: "127.0.0.1",
+      headers: {}
+    });
+    expect(docsRes.status).toBe(200);
+    expect(docsRes.headers["Content-Type"]).toContain("text/html");
+    expect(docsRes.body).toContain("api-reference");
+  });
 });

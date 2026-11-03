@@ -1,3 +1,4 @@
+import { generateOpenApiSpec } from "@tiendita/contracts";
 import type { HttpRequest, HttpResponse } from "./types.js";
 import type { AuthController } from "./controllers/auth.controller.js";
 import type { BootstrapController } from "./controllers/bootstrap.controller.js";
@@ -28,6 +29,34 @@ export class BffRouter {
     const { path, method, claims } = req;
 
     // --- Endpoints públicos ---
+    if (method === "GET" && path === "/openapi.json") {
+      return {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: generateOpenApiSpec()
+      };
+    }
+
+    if (method === "GET" && (path === "/docs" || path === "/api-docs")) {
+      const html = `<!doctype html>
+<html lang="es">
+  <head>
+    <title>TienditaOnline API Reference — OpenAPI 3.1</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <script id="api-reference" data-url="/openapi.json"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+  </body>
+</html>`;
+      return {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+        body: html
+      };
+    }
+
     if (method === "POST" && path === "/v1/auth/login") {
       return this.controllers.authController.login(req, nowMs);
     }
