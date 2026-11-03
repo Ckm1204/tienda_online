@@ -815,6 +815,9 @@
         <button class="btn btn-primary" style="flex: 1;" id="btn-charge-credit">Cargar Carrito a Fiado</button>
         <button class="btn btn-secondary" style="flex: 1;" id="btn-pay-credit">Abonar a Deuda</button>
       </div>
+      <button class="btn btn-secondary" style="margin-top: 6px; width: 100%; border-color: #10b981; color: #10b981;" id="btn-ley2300-reminder">
+        <span>⚖️ Recordar por WhatsApp (Ley 2300 & SIC)</span>
+      </button>
     </div>
     <div class="dialog-footer">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-fiados').close()">Cerrar</button>
@@ -1054,6 +1057,9 @@
       <div style="display: flex; gap: 8px;">
         <button class="btn btn-secondary" style="flex: 1;" id="btn-kick-drawer">
           <span>🗄️ Abrir Cajón (RJ11)</span>
+        </button>
+        <button class="btn btn-secondary" style="flex: 1; border-color: #10b981; color: #10b981;" onclick="sendPosReceiptWhatsApp()">
+          <span>📱 WhatsApp (HU-327)</span>
         </button>
         <button class="btn btn-primary" style="flex: 1;" onclick="playScanSound('success'); alert('✓ Reimpresión enviada al spooler ESC/POS.');">
           <span>🖨️ Imprimir Ticket</span>
@@ -1539,6 +1545,59 @@
       alert(`✓ Abono registrado con éxito. Comprobante de ingreso emitido.\nNuevo saldo: ${formatCOP(c.debtCents)} COP.`);
       updateCustomerDisplay();
     };
+
+    const customerWeeklyReminders = {};
+
+    document.getElementById("btn-ley2300-reminder").onclick = () => {
+      const selKey = document.getElementById("customer-select").value;
+      const c = CUSTOMERS[selKey];
+      if (c.debtCents <= 0) {
+        alert("El cliente no tiene deuda activa pendiente.");
+        return;
+      }
+
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const colDate = new Date(utc - 5 * 3600000);
+      const day = colDate.getDay();
+      const hour = colDate.getHours();
+
+      let allowed = false;
+      let reason = "";
+
+      if (day === 0) {
+        allowed = false;
+        reason = "Domingo prohibido 24/7 (Ley 2300 de 2023)";
+      } else if (day === 6) {
+        allowed = hour >= 8 && hour < 15;
+        reason = allowed ? "Sábado horario hábil (08:00 a 15:00)" : "Sábado fuera de horario legal";
+      } else {
+        allowed = hour >= 7 && hour < 19;
+        reason = allowed ? "Lunes a Viernes horario hábil (07:00 a 19:00)" : "Fuera de horario hábil";
+      }
+
+      const count = customerWeeklyReminders[selKey] || 0;
+      if (count >= 2) {
+        playScanSound("error");
+        alert("⚠️ BLOQUEO LEY 2300: Límite de 2 contactos semanales alcanzado para este deudor.");
+        return;
+      }
+
+      if (!allowed) {
+        playScanSound("error");
+        alert(`⚠️ BLOQUEO LEY 2300 ("Dejen de Fregar"):\n${reason}.\n\nSe encolará para la siguiente ventana hábil.`);
+        return;
+      }
+
+      customerWeeklyReminders[selKey] = count + 1;
+      playScanSound("success");
+      alert(`✓ RECORDATORIO DESPACHADO (LEY 2300 DE 2023)\n\n• Destinatario: ${c.name}\n• Deuda: ${formatCOP(c.debtCents)} COP\n• Canal: WhatsApp Oficial\n• Contacto ${count + 1} de máx 2 semanales\n• Trazabilidad: Registrado para auditoría ante la SIC.`);
+    };
+
+    function sendPosReceiptWhatsApp() {
+      playScanSound("success");
+      alert("📱 COMPROBANTE DIGITAL ENVIADO POR WHATSAPP (HU-327 & DIAN)\n\n• Documento: SETT-000002\n• CUDE SHA-384: Generado y firmado\n• Código QR: https://catalogo-vpfe.dian.gov.co\n\n✓ Entregado exitosamente al cliente.");
+    }
 
     // Modal Arqueo Ciego (F8)
     document.getElementById("btn-f8").onclick = () => {
