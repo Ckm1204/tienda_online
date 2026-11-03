@@ -273,6 +273,46 @@ export class EscPosPrinterAndPeripherals {
   /**
    * HU-348: Plantilla ESC/POS de Reporte Z de cierre de turno.
    */
+
+  /**
+   * HU-047: Plantilla ESC/POS de comprobante de cambio de producto mano a mano (Ley 1480 de 2011).
+   */
+  renderExchangeSlipText(params: {
+    exchangeCode: string;
+    returnedItemName: string;
+    returnedQtyMilli: number;
+    returnedValueCents: number;
+    newItemName: string;
+    newQtyMilli: number;
+    newValueCents: number;
+    differenceCents: number;
+    paymentMethod?: string;
+    supervisorName: string;
+    occurredAtIso: string;
+  }): string {
+    const diffDesc =
+      params.differenceCents > 0
+        ? `DIFERENCIA COBRADA: ${formatMoneyCents(params.differenceCents)} (${params.paymentMethod ?? "EFECTIVO"})`
+        : params.differenceCents < 0
+        ? `EXCEDENTE REEMBOLSADO: ${formatMoneyCents(Math.abs(params.differenceCents))}`
+        : "CAMBIO MANO A MANO: $0 COP (DIFERENCIA EXACTA)";
+
+    return [
+      "TIQUETE DE CAMBIO DE PRODUCTO",
+      "(Ley 1480 de 2011 - Estatuto del Consumidor)",
+      `No: ${sanitizeEscPosUserText(params.exchangeCode)} - ${sanitizeEscPosUserText(params.occurredAtIso)}`,
+      "--------------------------------",
+      "PRODUCTO DEVUELTO:",
+      `${params.returnedQtyMilli / 1000}x ${sanitizeEscPosUserText(params.returnedItemName)} - ${formatMoneyCents(params.returnedValueCents)}`,
+      "PRODUCTO NUEVO ENTREGADO:",
+      `${params.newQtyMilli / 1000}x ${sanitizeEscPosUserText(params.newItemName)} - ${formatMoneyCents(params.newValueCents)}`,
+      "--------------------------------",
+      diffDesc,
+      `Autorizado por: ${sanitizeEscPosUserText(params.supervisorName)}`,
+      "Firma cliente: __________________"
+    ].join("\n");
+  }
+
   renderReportZText(params: {
     terminalCode: string;
     cashierName: string;

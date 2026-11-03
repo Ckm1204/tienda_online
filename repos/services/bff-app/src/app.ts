@@ -107,7 +107,7 @@ export class BffApp {
     const usersController = new UsersController(this.identityService);
     const cashController = new CashController(this.cashService);
     const catalogController = new CatalogController(this.catalogService, this.reportCache);
-    const inventoryController = new InventoryController(this.inventoryService);
+    const inventoryController = new InventoryController(this.inventoryService, this.cashService);
     const salesController = new SalesController(this.salesService);
     const customersController = new CustomersController(this.customerService);
     const notificationsController = new NotificationsController(

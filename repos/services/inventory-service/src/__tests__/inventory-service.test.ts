@@ -243,4 +243,57 @@ describe("ÉPICA 09 (FT-09.3) — inventory-service: Kardex, Costeo Ponderado, A
 
     expect(svc.getOrCreateLevel(tenantId, warehouseId, "prod-panela").on_hand_milli).toBe(33_000);
   });
+  it("HU-089, HU-191 & HU-400: Gestiona proveedores y calcula pedidos sugeridos de preventa con texto para WhatsApp", () => {
+    // 1. Registrar proveedor con días de visita (Lunes, Miércoles, Viernes) y productos
+    const sup = svc.upsertSupplier({
+      tenantId,
+      name: "Distribuidora Los Andes",
+      phone: "3109876543",
+      visitDays: [1, 3, 5],
+      productIds: ["prod-leche", "prod-yogurt"]
+    });
+
+    expect(sup.id).toBeDefined();
+    expect(sup.name).toBe("Distribuidora Los Andes");
+    expect(svc.listSuppliers(tenantId).length).toBe(1);
+
+    // 2. Establecer inventario bajo (min_stock = 20 und, ideal = 50 und, on_hand = 8 und)
+    svc.recordInitialStock({
+      tenantId,
+      warehouseId,
+      productId: "prod-leche",
+      qtyMilli: 8_000,
+      unitCostCents: 3_200_00,
+      minStockMilli: 20_000,
+      idealStockMilli: 50_000,
+      occurredAtMs: t0
+    });
+
+    // prod-yogurt con stock suficiente (on_hand = 30 und > min_stock = 10 und)
+    svc.recordInitialStock({
+      tenantId,
+      warehouseId,
+      productId: "prod-yogurt",
+      qtyMilli: 30_000,
+      unitCostCents: 2_000_00,
+      minStockMilli: 10_000,
+      idealStockMilli: 40_000,
+      occurredAtMs: t0
+    });
+
+    // 3. Generar pedido sugerido
+    const suggestions = svc.getSuggestedOrders({ tenantId, warehouseId });
+    expect(suggestions.length).toBe(1);
+
+    const prop = suggestions[0]!;
+    expect(prop.supplierName).toBe("Distribuidora Los Andes");
+    expect(prop.items.length).toBe(1); // Solo prod-leche califica
+
+    const item = prop.items[0]!;
+    expect(item.productId).toBe("prod-leche");
+    expect(item.suggestedQtyMilli).toBe(42_000); // 50.000 ideal - 8.000 actual = 42.000 (42 unidades)
+    expect(item.estimatedLineCostCents).toBe(42 * 3_200_00);
+    expect(prop.whatsappOrderText).toContain("Hola Distribuidora Los Andes, pedido sugerido de Tiendita:");
+    expect(prop.whatsappOrderText).toContain("Ítem prod-leche: 42 und");
+  });
 });

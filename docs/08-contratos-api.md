@@ -428,6 +428,19 @@ Autoriza una sesión de soporte técnico con permisos de solo lectura o interven
 - `GET /v1/app/inventory/rebalancing-suggestions`:
   - Identifica automáticamente sedes con desabastecimiento (`on_hand_milli <= min_stock_milli`) y propone traslados óptimos desde bodegas con excedentes disponibles (`availableSurplusMilli`), priorizando `CRITICAL` ante quiebre de stock total.
 
+### 4.2.8 Proveedores, Preventa WhatsApp y Entradas de Almacén (Inventory & Cash — HU-089, HU-191, HU-304, HU-356, HU-400)
+- `GET /v1/app/inventory/suppliers`: Listado de proveedores del tenant con días de visita de preventista (Lunes a Domingo) y productos asociados.
+- `POST /v1/app/inventory/suppliers`: Creación o edición de proveedor con número de WhatsApp de contacto.
+- `GET /v1/app/inventory/suggested-orders?warehouseId={id}`: Propuestas automáticas de pedido calculando unidades faltantes hasta el `ideal_stock_milli` y generando mensaje listo para WhatsApp (`wa.me/57...`).
+- `POST /v1/app/inventory/receipts`: Entrada de almacén que actualiza `on_hand_milli`, recalcula algebraicamente el costo promedio ponderado (`avg_cost_cents`) y vincula opcionalmente egreso de efectivo directo al turno de caja activo (`paid_from_cash_session_id`).
+
+### 4.2.9 Devoluciones, Anulaciones y Cambios Mano a Mano (POS & Sales — HU-045, HU-046, HU-047, HU-215, HU-365)
+- Devolución parcial/total sobre tique original o referencia manual con PIN de supervisor (`requiresSupervisorApproval`).
+- Validación estricta que impide devolver más unidades que las vendidas originalmente (`RETURN_QTY_EXCEEDS_SOLD_QTY`).
+- Cambio mano a mano (`cmd_exchange_product`): Reintegra producto devuelto al inventario (`+N`), descuenta producto nuevo (`-N`), liquida diferencia neta a cobrar o reembolsar en mostrador y dispara solenoide RJ-11 (24V) si hay movimiento de efectivo.
+- Emisión de comprobantes térmicos ESC/POS (58mm / 80mm) con cláusula de garantía de la Ley 1480 de 2011 (Estatuto del Consumidor).
+
+
 ## 5. Webhooks entrantes
 
 | Origen | Ruta | Validación |

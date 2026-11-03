@@ -482,7 +482,7 @@ describe("ÉPICAS 03, 04, 05 y 06 — Ventas Offline, Periféricos ESC/POS, Turn
   });
 
   it("EP-03 (HU-033..HU-047, HU-168..HU-180, HU-210..HU-215, HU-278, HU-325, HU-353, HU-415, HU-417, HU-452, HU-454): escaneo paca/balanza, búsqueda FTS, genérico, descuentos, cobro atómico idempotente, pagos mixtos, corte de luz, devoluciones y cambios", () => {
-    const { storage, auth, cash, customers, sales, supId, cashierId } = setupPosContext();
+    const { storage, auth, printer, cash, customers, sales, supId, cashierId } = setupPosContext();
     const t0 = 1_760_000_000_000;
     const session = cash.cmdOpenCashSession({
       openedBy: cashierId,
@@ -686,7 +686,7 @@ describe("ÉPICAS 03, 04, 05 y 06 — Ventas Offline, Periféricos ESC/POS, Turn
       permissionCode: "sale.return",
       nowMs: t0 + 310
     });
-    expect(() =>
+        expect(() =>
       sales.cmdReturnOrVoidSale({
         originalSaleId: saleRes.sale.id,
         cashSessionId: session.id,
@@ -699,6 +699,50 @@ describe("ÉPICAS 03, 04, 05 y 06 — Ventas Offline, Periféricos ESC/POS, Turn
         nowMs: t0 + 310
       })
     ).toThrow("RETURN_QTY_EXCEEDS_SOLD_QTY");
+
+    // HU-047: Cambio mano a mano con cobro de diferencia en efectivo y pulso a cajón
+    const exchangeNonce = auth.cmdVerifyApproverPin({
+      requestedByUserId: cashierId,
+      approverUserId: supId,
+      approverPin: "5544",
+      permissionCode: "sale.return",
+      nowMs: t0 + 350
+    });
+
+    const exchRes = sales.cmdExchangeProduct({
+      returnedProductId: prodArrozId, // Devuelve 1 Arroz ($2.500)
+      returnedQtyMilli: 1000,
+      returnedPriceCents: 250_000,
+      newProductId: prodCervezaId, // Lleva 1 Cerveza ($3.000)
+      newQtyMilli: 1000,
+      newPriceCents: 300_000,
+      approvalNonce: exchangeNonce.approvalNonce,
+      cashSessionId: session.id,
+      paymentMethod: "CASH",
+      requestedBy: cashierId,
+      nowMs: t0 + 350
+    });
+
+    expect(exchRes.differenceToPayCents).toBe(50_000); // $500 COP de diferencia a cobrar
+    expect(exchRes.drawerOpened).toBe(true);
+
+    // Comprobante ESC/POS de cambio (Ley 1480 de 2011)
+    const exchSlip = printer.renderExchangeSlipText({
+      exchangeCode: exchRes.exchangeId,
+      returnedItemName: "Arroz Diana Bolsa 500g",
+      returnedQtyMilli: 1000,
+      returnedValueCents: 250_000,
+      newItemName: "Cerveza Águila 330ml Retornable",
+      newQtyMilli: 1000,
+      newValueCents: 300_000,
+      differenceCents: 50_000,
+      paymentMethod: "EFECTIVO",
+      supervisorName: "Luisa Supervisora",
+      occurredAtIso: "2026-11-02T15:30:00-05:00"
+    });
+    expect(exchSlip).toContain("TIQUETE DE CAMBIO DE PRODUCTO");
+    expect(exchSlip).toContain("(Ley 1480 de 2011 - Estatuto del Consumidor)");
+    expect(exchSlip).toContain("DIFERENCIA COBRADA: $ 500 (EFECTIVO)");
   });
 
   it("Art. 616 E.T.: Maqueta Reporte Z de Cierre Fiscal Diario en tirilla térmica de 80mm y 58mm", () => {

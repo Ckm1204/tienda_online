@@ -374,11 +374,20 @@ export class BffRouter {
     }
 
     // --- Inventario ---
+    if (method === "GET" && cleanPath === "/v1/app/inventory/suppliers") {
+      return this.controllers.inventoryController.listSuppliers(req);
+    }
+    if (method === "POST" && cleanPath === "/v1/app/inventory/suppliers") {
+      return this.controllers.inventoryController.upsertSupplier(req, nowMs);
+    }
+    if (method === "GET" && cleanPath === "/v1/app/inventory/suggested-orders") {
+      return this.controllers.inventoryController.getSuggestedOrders(req, queryParams);
+    }
+    if (method === "POST" && (cleanPath === "/v1/app/inventory/receipts" || cleanPath === "/v1/app/inventory/receptions")) {
+      return this.controllers.inventoryController.recordPurchaseReceptions(req, nowMs);
+    }
     if (method === "POST" && cleanPath === "/v1/app/inventory/counts") {
       return this.controllers.inventoryController.applyPhysicalCounts(req, nowMs);
-    }
-    if (method === "POST" && cleanPath === "/v1/app/inventory/receptions") {
-      return this.controllers.inventoryController.recordPurchaseReceptions(req, nowMs);
     }
     if (method === "POST" && cleanPath === "/v1/app/inventory/adjustments") {
       return this.controllers.inventoryController.recordAdjustment(req, nowMs);

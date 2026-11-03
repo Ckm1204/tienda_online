@@ -1,9 +1,10 @@
 import type { InventoryService } from "@tiendita/inventory-service";
+import type { CashService } from "@tiendita/cash-service";
 import type { HttpRequest, HttpResponse } from "../types.js";
 import { requirePermission } from "../middlewares/gateway-security.js";
 
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(private readonly inventoryService: InventoryService, private readonly cashService?: CashService) {}
 
   async applyPhysicalCounts(req: HttpRequest, nowMs: number): Promise<HttpResponse> {
     const claims = req.claims!;
@@ -28,7 +29,7 @@ export class InventoryController {
   async recordPurchaseReceptions(req: HttpRequest, nowMs: number): Promise<HttpResponse> {
     const claims = req.claims!;
     requirePermission(claims, "inventory.manage");
-    const { warehouseId, lines, paidFromCashSessionId } = (req.body as any) || {};
+        const { warehouseId, lines, paidFromCashSessionId } = (req.body as any) || {};
     const receipts = (lines || []).map((line: any) =>
       this.inventoryService.recordPurchaseReceipt({
         tenantId: claims.tid!,
@@ -40,10 +41,28 @@ export class InventoryController {
         occurredAtMs: nowMs
       })
     );
+
+    // HU-304: Vincular egreso de efectivo al turno de caja si fue pagado de caja
+    let cashMovementRecorded = false;
+    if (paidFromCashSessionId && this.cashService) {
+      const totalCostCents = (lines || []).reduce(
+        (acc: number, l: any) => acc + Math.round(((l.qtyMilli ?? 0) * (l.unitCostCents ?? 0)) / 1000),
+        0
+      );
+      if (totalCostCents > 0) {
+        try {
+          this.cashService.applyCashDeltaCents(paidFromCashSessionId, -totalCostCents);
+          cashMovementRecorded = true;
+        } catch {
+          // Si el turno no está abierto en nube se ignora
+        }
+      }
+    }
+
     return {
       status: 201,
       headers: { "Content-Type": "application/json" },
-      body: { received: receipts.length, receipts }
+      body: { received: receipts.length, receipts, cashMovementRecorded }
     };
   }
 
@@ -303,6 +322,74 @@ export class InventoryController {
     requirePermission(claims, "inventory.read");
     const tenantId = claims.tid!;
     const suggestions = this.inventoryService.getRebalancingSuggestions(tenantId);
+    return {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: { count: suggestions.length, items: suggestions }
+    };
+  }
+
+  /**
+   * HU-089 & HU-400: Listado de proveedores del tenant.
+   */
+  async listSuppliers(req: HttpRequest): Promise<HttpResponse> {
+    const claims = req.claims!;
+    requirePermission(claims, "inventory.read");
+    const items = this.inventoryService.listSuppliers(claims.tid!);
+    return {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: { count: items.length, items }
+    };
+  }
+
+  /**
+   * HU-089 & HU-400: Crear o actualizar proveedor.
+   */
+  async upsertSupplier(req: HttpRequest, _nowMs: number): Promise<HttpResponse> {
+    const claims = req.claims!;
+    requirePermission(claims, "inventory.manage");
+    const { supplierId, name, phone, visitDays, productIds } = (req.body as any) || {};
+
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "MISSING_REQUIRED_FIELDS", message: "Supplier name is required" }
+      };
+    }
+
+    const supplier = this.inventoryService.upsertSupplier({
+      tenantId: claims.tid!,
+      supplierId,
+      name: name.trim(),
+      phone: (phone || "").trim(),
+      visitDays: Array.isArray(visitDays) ? visitDays : [1, 3, 5],
+      productIds: Array.isArray(productIds) ? productIds : []
+    });
+
+    return {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+      body: { success: true, supplier }
+    };
+  }
+
+  /**
+   * HU-191 & HU-400: Pedidos sugeridos a proveedores para preventistas (stock mínimo/máximo y WhatsApp).
+   */
+  async getSuggestedOrders(req: HttpRequest, queryParams: URLSearchParams): Promise<HttpResponse> {
+    const claims = req.claims!;
+    requirePermission(claims, "inventory.read");
+    const warehouseId = queryParams.get("warehouseId") || "default-wh";
+    const supplierId = queryParams.get("supplierId") || undefined;
+
+    const suggestions = this.inventoryService.getSuggestedOrders({
+      tenantId: claims.tid!,
+      warehouseId,
+      supplierId
+    });
+
     return {
       status: 200,
       headers: { "Content-Type": "application/json" },

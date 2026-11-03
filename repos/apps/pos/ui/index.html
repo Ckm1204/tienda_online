@@ -1027,29 +1027,128 @@
     </div>
   </dialog>
 
-  <!-- Modal Devolución / Anulación (F7) -->
-  <dialog id="modal-return" closedby="any" aria-labelledby="modal-return-title">
+    <!-- Modal Devolución / Anulación / Cambios (F7) -->
+  <dialog id="modal-return" closedby="any" aria-labelledby="modal-return-title" style="max-width: 680px; width: 95%;">
     <div class="dialog-header">
-      <h2 id="modal-return-title" class="dialog-title">Devolución / Anulación de Comprobante</h2>
+      <h2 id="modal-return-title" class="dialog-title">🔄 Centro de Devoluciones y Cambios</h2>
       <button class="close-btn" aria-label="Cerrar modal" onclick="document.getElementById('modal-return').close()">&times;</button>
     </div>
-    <div class="dialog-body">
-      <label for="return-receipt-code" style="font-size: 0.85rem; color: var(--text-muted);">Código de Comprobante a Anular:</label>
-      <input type="text" id="return-receipt-code" class="search-input" placeholder="ej. C01-000042">
+    <div class="dialog-body" style="max-height: 75vh; overflow-y: auto;">
+      <!-- Buscador de Comprobante -->
+      <div style="background-color: var(--surface); padding: 12px; border-radius: 8px; border: 1px solid var(--surface-border); margin-bottom: 12px;">
+        <label for="return-receipt-code" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Buscar Comprobante:</label>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <input type="text" id="return-receipt-code" class="search-input" placeholder="ej. C01-000042" value="C01-000042" style="flex: 1;">
+          <button class="btn btn-secondary" id="btn-search-return-receipt" style="white-space: nowrap;">🔍 Buscar</button>
+        </div>
+        <div id="return-recent-pills" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Comprobantes recientes:</span>
+          <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="loadReceiptForReturn('C01-000042')">C01-000042 (Semilla)</button>
+        </div>
+      </div>
 
-      <label for="return-reason" style="font-size: 0.85rem; color: var(--text-muted);">Motivo:</label>
-      <select id="return-reason" class="search-input" style="height: 44px; padding: 0 10px; background-color: var(--surface);">
-        <option value="DEFECTIVE">Producto en mal estado / vencido</option>
-        <option value="TYPO">Error en digitación de venta</option>
-        <option value="DISSATISFACTION">Cambio o desistimiento del cliente</option>
-      </select>
+      <!-- Resumen de Venta Encontrada -->
+      <div id="return-sale-info" style="background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span id="return-info-receipt-code" style="font-weight: 700; color: var(--primary);">Comprobante: C01-000042</span>
+          <span id="return-info-date" style="font-size: 0.8rem; color: var(--text-muted);">Fecha: Hoy</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span>Medio original: <strong id="return-info-payment-mode">EFECTIVO</strong></span>
+          <span>Total pagado: <strong id="return-info-total" style="color: var(--success);">$22.200 COP</strong></span>
+        </div>
+        <div id="return-warranty-notice" style="margin-top: 8px; font-size: 0.75rem; color: #b45309; background-color: #fef3c7; padding: 4px 8px; border-radius: 4px;">
+          🛡️ <strong>Ley 1480 de 2011 (Estatuto del Consumidor):</strong> Garantía legal vigente para devoluciones y reclamos de calidad.
+        </div>
+      </div>
 
-      <label for="return-sup-pin" style="font-size: 0.85rem; color: var(--warning);">Autorización de Supervisor (PIN):</label>
-      <input type="password" id="return-sup-pin" class="search-input" placeholder="PIN Supervisor (9999)" maxlength="4">
+      <!-- Pestañas: Devolución vs Cambio Mano a Mano -->
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button type="button" class="btn btn-secondary" id="tab-btn-return-refund" style="flex: 1; font-weight: 700; border-color: var(--primary); color: var(--primary);" onclick="switchReturnTab('refund')">
+          💵 Devolución / Reembolso (HU-046)
+        </button>
+        <button type="button" class="btn btn-secondary" id="tab-btn-return-exchange" style="flex: 1; font-weight: 700;" onclick="switchReturnTab('exchange')">
+          🔄 Cambio Mano a Mano (HU-047)
+        </button>
+      </div>
+
+      <!-- Panel Modo: Devolución / Reembolso -->
+      <div id="panel-return-refund">
+        <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Líneas del Comprobante a Devolver:</label>
+        <div style="overflow-x: auto; margin-top: 6px; margin-bottom: 12px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="table-return-lines">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--surface-border); text-align: left; color: var(--text-muted);">
+                <th style="padding: 6px;">Producto</th>
+                <th style="padding: 6px; text-align: center;">Comprado</th>
+                <th style="padding: 6px; text-align: center;">Devuelto</th>
+                <th style="padding: 6px; text-align: center; width: 100px;">A Devolver</th>
+                <th style="padding: 6px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-return-lines">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+          <span style="font-weight: 600;">Total a Reembolsar:</span>
+          <span id="return-refund-total-text" style="font-size: 1.1rem; font-weight: 800; color: var(--danger);">$0 COP</span>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label for="return-refund-method" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Medio de Reembolso:</label>
+          <select id="return-refund-method" class="search-input" style="height: 40px; padding: 0 10px; background-color: var(--surface);">
+            <option value="CASH">💵 Efectivo (Abre cajón y resta del esperado de caja)</option>
+            <option value="CREDIT_ACCOUNT">💳 Saldo a Favor del Cliente / Abono a Deuda Fiado</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Panel Modo: Cambio Mano a Mano (HU-047) -->
+      <div id="panel-return-exchange" style="display: none;">
+        <div style="margin-bottom: 12px;">
+          <label for="exchange-returned-item-select" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Producto que entrega el cliente:</label>
+          <select id="exchange-returned-item-select" class="search-input" style="height: 40px; padding: 0 10px; background-color: var(--surface);" onchange="updateExchangeDifference()">
+            <!-- Opciones dinámicas de la venta -->
+          </select>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label for="exchange-new-product-select" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Producto nuevo que se lleva:</label>
+          <select id="exchange-new-product-select" class="search-input" style="height: 40px; padding: 0 10px; background-color: var(--surface);" onchange="updateExchangeDifference()">
+            <!-- Catálogo general -->
+          </select>
+        </div>
+
+        <!-- Indicador en vivo de diferencia -->
+        <div id="exchange-diff-box" style="background-color: var(--surface); border: 1px solid var(--surface-border); border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: center;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Diferencia a liquidar en mostrador:</div>
+          <div id="exchange-diff-amount-text" style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">$0 COP</div>
+          <div id="exchange-diff-desc-text" style="font-size: 0.85rem; margin-top: 4px; color: var(--text-muted);">Mano a mano exacto ($0 a pagar)</div>
+        </div>
+      </div>
+
+      <!-- Motivo Obligatorio y PIN de Supervisor -->
+      <div style="margin-bottom: 12px;">
+        <label for="return-reason" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Motivo de la Operación (Obligatorio):</label>
+        <select id="return-reason" class="search-input" style="height: 40px; padding: 0 10px; background-color: var(--surface);">
+          <option value="DEFECTIVE">Producto averiado / empaque roto / mal estado</option>
+          <option value="EXPIRED">Producto vencido</option>
+          <option value="DISSATISFACTION">Cambio por gusto o talla / desistimiento del cliente</option>
+          <option value="TYPO">Error de digitación en la venta original</option>
+        </select>
+      </div>
+
+      <div style="background-color: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 6px; padding: 10px;">
+        <label for="return-sup-pin" style="font-size: 0.85rem; color: #b45309; font-weight: 700;">PIN de Autorización de Supervisor (Requerido):</label>
+        <input type="password" id="return-sup-pin" class="search-input" placeholder="PIN Supervisor (ej. 9999 o 5544)" maxlength="4" style="margin-top: 4px;">
+      </div>
     </div>
     <div class="dialog-footer">
       <button class="btn btn-secondary" onclick="document.getElementById('modal-return').close()">Cancelar</button>
-      <button class="btn btn-danger" id="btn-confirm-return">Anular y Reembolsar</button>
+      <button class="btn btn-danger" id="btn-confirm-return" style="font-weight: 700;">Confirmar Operación e Imprimir</button>
     </div>
   </dialog>
 
@@ -1186,6 +1285,23 @@
     let failedPinAttempts = 0;
     let selectedPaperWidth = 58;
     let shiftExpectedCashCents = 15000000; // Base inicial $150.000 COP
+
+    // Registro Histórico Local de Comprobantes para Devoluciones y Cambios (HU-045, HU-046, HU-047)
+    const LOCAL_SALES = [
+      {
+        receiptNo: "C01-000042",
+        createdAt: new Date(Date.now() - 3600000).toLocaleString("es-CO"),
+        paymentMode: "CASH",
+        status: "COMPLETED",
+        lines: [
+          { productId: "PROD_ARROZ", name: "Arroz Diana 1kg", qtyMilli: 2000, priceCents: 480000, returnedMilli: 0 },
+          { productId: "PROD_LECHE", name: "Leche Alquería 1L", qtyMilli: 3000, priceCents: 420000, returnedMilli: 0 }
+        ],
+        totalCents: 2220000
+      }
+    ];
+    let currentReturnTab = "refund";
+    let currentReturnSale = null;
 
     // Clientes de Cartera Mock
     const CUSTOMERS = {
@@ -1610,6 +1726,15 @@
           customerName: c ? c.name : "",
           customerDebt: c ? c.debtCents : 0
         });
+        LOCAL_SALES.unshift({
+          receiptNo,
+          createdAt: nowStr,
+          paymentMode: "SPLIT",
+          status: "COMPLETED",
+          lines: cart.map(i => ({ productId: i.product.id, name: i.product.name, qtyMilli: i.qtyMilli, priceCents: i.product.priceCents, returnedMilli: 0 })),
+          totalCents: totals.totalCents
+        });
+        renderRecentReturnPills();
         cart = [];
         currentDiscountPercent = 0;
         renderCart();
@@ -1626,6 +1751,15 @@
         c.debtCents += totals.totalCents;
       }
 
+      LOCAL_SALES.unshift({
+        receiptNo: "C01-" + Math.floor(100000 + Math.random() * 900000),
+        createdAt: new Date().toLocaleString("es-CO"),
+        paymentMode: currentCheckoutMode,
+        status: "COMPLETED",
+        lines: cart.map(i => ({ productId: i.product.id, name: i.product.name, qtyMilli: i.qtyMilli, priceCents: i.product.priceCents, returnedMilli: 0 })),
+        totalCents: totals.totalCents
+      });
+      renderRecentReturnPills();
       playScanSound("success");
       document.getElementById("modal-checkout").close();
       showReceiptPreview(totals, currentCheckoutMode, refVal);
@@ -2080,26 +2214,305 @@
       document.getElementById("modal-discount").close();
     };
 
-    // Modal Devolución / Anulación (F7)
+    // Modal Devolución / Anulación / Cambios (F7)
+    function renderRecentReturnPills() {
+      const pillsBox = document.getElementById("return-recent-pills");
+      if (!pillsBox) return;
+      let html = '<span style="font-size: 0.75rem; color: var(--text-muted);">Comprobantes recientes:</span>';
+      LOCAL_SALES.slice(0, 5).forEach(s => {
+        html += `<button type="button" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="loadReceiptForReturn('${s.receiptNo}')">${s.receiptNo} (${formatCOP(s.totalCents)})</button>`;
+      });
+      pillsBox.innerHTML = html;
+    }
+
+    function switchReturnTab(tab) {
+      currentReturnTab = tab;
+      const btnRefund = document.getElementById("tab-btn-return-refund");
+      const btnExch = document.getElementById("tab-btn-return-exchange");
+      const panelRefund = document.getElementById("panel-return-refund");
+      const panelExch = document.getElementById("panel-return-exchange");
+
+      if (tab === "refund") {
+        btnRefund.style.borderColor = "var(--primary)";
+        btnRefund.style.color = "var(--primary)";
+        btnExch.style.borderColor = "var(--surface-border)";
+        btnExch.style.color = "var(--text-main)";
+        panelRefund.style.display = "block";
+        panelExch.style.display = "none";
+        document.getElementById("btn-confirm-return").textContent = "Confirmar Devolución e Imprimir";
+      } else {
+        btnExch.style.borderColor = "var(--primary)";
+        btnExch.style.color = "var(--primary)";
+        btnRefund.style.borderColor = "var(--surface-border)";
+        btnRefund.style.color = "var(--text-main)";
+        panelRefund.style.display = "none";
+        panelExch.style.display = "block";
+        document.getElementById("btn-confirm-return").textContent = "Confirmar Cambio Mano a Mano";
+        populateExchangeSelectors();
+        updateExchangeDifference();
+      }
+    }
+
+    function loadReceiptForReturn(receiptCode) {
+      const found = LOCAL_SALES.find(s => s.receiptNo.toUpperCase() === receiptCode.trim().toUpperCase());
+      if (!found) {
+        alert("⚠️ Comprobante " + receiptCode + " no encontrado en el registro local. Se creará una plantilla de referencia.");
+        currentReturnSale = {
+          receiptNo: receiptCode.trim(),
+          createdAt: new Date().toLocaleString("es-CO"),
+          paymentMode: "CASH",
+          status: "MANUAL",
+          lines: [
+            { productId: "PROD_ARROZ", name: "Producto de Referencia Externa", qtyMilli: 1000, priceCents: 500000, returnedMilli: 0 }
+          ],
+          totalCents: 500000
+        };
+      } else {
+        currentReturnSale = found;
+      }
+
+      document.getElementById("return-receipt-code").value = currentReturnSale.receiptNo;
+      document.getElementById("return-info-receipt-code").textContent = "Comprobante: " + currentReturnSale.receiptNo;
+      document.getElementById("return-info-date").textContent = "Fecha: " + currentReturnSale.createdAt;
+      document.getElementById("return-info-payment-mode").textContent = currentReturnSale.paymentMode;
+      document.getElementById("return-info-total").textContent = formatCOP(currentReturnSale.totalCents) + " COP";
+
+      renderReturnLines();
+      if (currentReturnTab === "exchange") {
+        populateExchangeSelectors();
+        updateExchangeDifference();
+      }
+    }
+
+    function renderReturnLines() {
+      if (!currentReturnSale) return;
+      const tbody = document.getElementById("tbody-return-lines");
+      tbody.innerHTML = "";
+
+      currentReturnSale.lines.forEach((line, idx) => {
+        const soldUnits = line.qtyMilli / 1000;
+        const returnedUnits = line.returnedMilli / 1000;
+        const maxReturnable = soldUnits - returnedUnits;
+
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--surface-border)";
+        tr.innerHTML = `
+          <td style="padding: 8px 6px;">
+            <div style="font-weight: 600;">${line.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">P.U. ${formatCOP(line.priceCents)}</div>
+          </td>
+          <td style="padding: 8px 6px; text-align: center;">${soldUnits}</td>
+          <td style="padding: 8px 6px; text-align: center; color: var(--danger);">${returnedUnits}</td>
+          <td style="padding: 8px 6px; text-align: center;">
+            <input type="number" min="0" max="${maxReturnable}" value="${maxReturnable > 0 ? 1 : 0}" step="1"
+                   class="search-input input-return-qty" data-line-index="${idx}" style="width: 70px; height: 32px; padding: 2px 6px; text-align: center;"
+                   oninput="updateRefundTotal()">
+          </td>
+          <td style="padding: 8px 6px; text-align: right; font-weight: 700;" id="line-refund-subtotal-${idx}">
+            ${formatCOP(maxReturnable > 0 ? line.priceCents : 0)}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updateRefundTotal();
+    }
+
+    function updateRefundTotal() {
+      if (!currentReturnSale) return;
+      let totalRefundCents = 0;
+      const inputs = document.querySelectorAll(".input-return-qty");
+      inputs.forEach(input => {
+        const idx = parseInt(input.getAttribute("data-line-index"));
+        const line = currentReturnSale.lines[idx];
+        const qty = parseInt(input.value) || 0;
+        const maxReturnable = (line.qtyMilli - line.returnedMilli) / 1000;
+        const clampedQty = Math.min(maxReturnable, Math.max(0, qty));
+        if (clampedQty !== qty) input.value = clampedQty;
+
+        const subtotal = clampedQty * line.priceCents;
+        totalRefundCents += subtotal;
+        const subtotalCell = document.getElementById("line-refund-subtotal-" + idx);
+        if (subtotalCell) subtotalCell.textContent = formatCOP(subtotal);
+      });
+      document.getElementById("return-refund-total-text").textContent = formatCOP(totalRefundCents) + " COP";
+    }
+
+    function populateExchangeSelectors() {
+      if (!currentReturnSale) return;
+      const returnedSel = document.getElementById("exchange-returned-item-select");
+      returnedSel.innerHTML = "";
+      currentReturnSale.lines.forEach((l, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = `${l.name} - Valor: ${formatCOP(l.priceCents)} COP`;
+        returnedSel.appendChild(opt);
+      });
+
+      const newSel = document.getElementById("exchange-new-product-select");
+      newSel.innerHTML = "";
+      CATALOG.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.name} - Precio: ${formatCOP(p.priceCents)} COP`;
+        newSel.appendChild(opt);
+      });
+    }
+
+    function updateExchangeDifference() {
+      if (!currentReturnSale) return;
+      const returnedIdx = parseInt(document.getElementById("exchange-returned-item-select").value) || 0;
+      const returnedLine = currentReturnSale.lines[returnedIdx] || currentReturnSale.lines[0];
+      const newProdId = document.getElementById("exchange-new-product-select").value;
+      const newProd = CATALOG.find(p => p.id === newProdId) || CATALOG[0];
+
+      if (!returnedLine || !newProd) return;
+
+      const returnedVal = returnedLine.priceCents;
+      const newVal = newProd.priceCents;
+      const diffCents = newVal - returnedVal;
+
+      const diffAmountTxt = document.getElementById("exchange-diff-amount-text");
+      const diffDescTxt = document.getElementById("exchange-diff-desc-text");
+
+      if (diffCents > 0) {
+        diffAmountTxt.textContent = "+" + formatCOP(diffCents) + " COP";
+        diffAmountTxt.style.color = "var(--success)";
+        diffDescTxt.textContent = "🟢 El cliente debe pagar la diferencia (en efectivo o digital)";
+      } else if (diffCents < 0) {
+        diffAmountTxt.textContent = "-" + formatCOP(Math.abs(diffCents)) + " COP";
+        diffAmountTxt.style.color = "var(--danger)";
+        diffDescTxt.textContent = "🔴 Devolver excedente al cliente (en efectivo o saldo a favor)";
+      } else {
+        diffAmountTxt.textContent = "$0 COP";
+        diffAmountTxt.style.color = "var(--primary)";
+        diffDescTxt.textContent = "⚪ Cambio mano a mano exacto ($0 a pagar)";
+      }
+    }
+
     document.getElementById("btn-f7").onclick = () => {
       document.getElementById("modal-return").showModal();
+      loadReceiptForReturn("C01-000042");
+    };
+
+    document.getElementById("btn-search-return-receipt").onclick = () => {
+      const code = document.getElementById("return-receipt-code").value.trim();
+      if (!code) {
+        alert("Digita el código del comprobante a buscar.");
+        return;
+      }
+      loadReceiptForReturn(code);
     };
 
     document.getElementById("btn-confirm-return").onclick = () => {
       const pin = document.getElementById("return-sup-pin").value;
-      const code = document.getElementById("return-receipt-code").value.trim();
-      if (pin !== "9999") {
+      if (pin !== "9999" && pin !== "5544") {
         playScanSound("error");
-        alert("❌ Se requiere PIN de supervisor válido (9999) para anular ventas.");
+        alert("❌ Se requiere PIN de supervisor válido (9999 o 5544) para autorizar devoluciones y cambios.");
         return;
       }
-      if (!code) {
-        alert("Ingrese el código del comprobante a devolver.");
-        return;
+
+      const reason = document.getElementById("return-reason").value;
+
+      if (currentReturnTab === "refund") {
+        // Validación de cantidades
+        const inputs = document.querySelectorAll(".input-return-qty");
+        const linesToRefund = [];
+        let totalRefund = 0;
+
+        inputs.forEach(inp => {
+          const idx = parseInt(inp.getAttribute("data-line-index"));
+          const qty = parseInt(inp.value) || 0;
+          if (qty > 0) {
+            const line = currentReturnSale.lines[idx];
+            linesToRefund.push({ line, qty, subtotal: qty * line.priceCents });
+            totalRefund += qty * line.priceCents;
+            line.returnedMilli += qty * 1000;
+          }
+        });
+
+        if (linesToRefund.length === 0 || totalRefund === 0) {
+          alert("Indica al menos 1 unidad de producto a devolver.");
+          return;
+        }
+
+        const refundMethod = document.getElementById("return-refund-method").value;
+        if (refundMethod === "CASH") {
+          shiftExpectedCashCents -= totalRefund;
+          triggerDrawerKick();
+        }
+
+        // Tique térmico de Nota de Crédito / Devolución
+        const cols = selectedPaperWidth === 58 ? 32 : 48;
+        let slip = centerText("TIENDA LA GRAN ESQUINA", cols) + "\n";
+        slip += centerText("NOTA DE CRÉDITO / DEVOLUCIÓN", cols) + "\n";
+        slip += centerText("(Ley 1480 de 2011 - Estatuto Consumidor)", cols) + "\n";
+        slip += centerText("Sobre Comprobante: " + currentReturnSale.receiptNo, cols) + "\n";
+        slip += centerText("Fecha: " + new Date().toLocaleString("es-CO"), cols) + "\n";
+        slip += "-".repeat(cols) + "\n";
+        linesToRefund.forEach(item => {
+          slip += formatTwoCols(`${item.qty}x ${item.line.name}`, "-" + formatCOP(item.subtotal), cols) + "\n";
+        });
+        slip += "-".repeat(cols) + "\n";
+        slip += formatTwoCols("TOTAL REEMBOLSO:", formatCOP(totalRefund), cols) + "\n";
+        slip += formatTwoCols("MEDIO REEMBOLSO:", refundMethod === "CASH" ? "EFECTIVO" : "SALDO A FAVOR", cols) + "\n";
+        slip += formatTwoCols("MOTIVO:", reason, cols) + "\n";
+        slip += formatTwoCols("AUTORIZÓ:", "Luisa (Supervisor)", cols) + "\n";
+        slip += "-".repeat(cols) + "\n";
+        slip += centerText("Stock repuesto en kardex", cols) + "\n";
+
+        document.getElementById("receipt-preview-text").textContent = slip;
+        document.getElementById("modal-return").close();
+        document.getElementById("modal-receipt").showModal();
+        playScanSound("success");
+      } else {
+        // Modo Cambio Mano a Mano (HU-047)
+        const returnedIdx = parseInt(document.getElementById("exchange-returned-item-select").value) || 0;
+        const returnedLine = currentReturnSale.lines[returnedIdx];
+        const newProdId = document.getElementById("exchange-new-product-select").value;
+        const newProd = CATALOG.find(p => p.id === newProdId);
+
+        const returnedVal = returnedLine.priceCents;
+        const newVal = newProd.priceCents;
+        const diffCents = newVal - returnedVal;
+
+        returnedLine.returnedMilli += 1000;
+
+        if (diffCents > 0) {
+          shiftExpectedCashCents += diffCents;
+          triggerDrawerKick();
+        } else if (diffCents < 0) {
+          shiftExpectedCashCents -= Math.abs(diffCents);
+          triggerDrawerKick();
+        }
+
+        const cols = selectedPaperWidth === 58 ? 32 : 48;
+        let slip = centerText("TIENDA LA GRAN ESQUINA", cols) + "\n";
+        slip += centerText("TIQUETE DE CAMBIO DE PRODUCTO", cols) + "\n";
+        slip += centerText("(Ley 1480 de 2011 - Estatuto Consumidor)", cols) + "\n";
+        slip += centerText("Ref: " + currentReturnSale.receiptNo, cols) + "\n";
+        slip += centerText("Fecha: " + new Date().toLocaleString("es-CO"), cols) + "\n";
+        slip += "-".repeat(cols) + "\n";
+        slip += centerText("ENTRA POR CAMBIO:", cols) + "\n";
+        slip += formatTwoCols("1x " + returnedLine.name, formatCOP(returnedVal), cols) + "\n";
+        slip += centerText("SALE NUEVO PRODUCTO:", cols) + "\n";
+        slip += formatTwoCols("1x " + newProd.name, formatCOP(newVal), cols) + "\n";
+        slip += "-".repeat(cols) + "\n";
+        if (diffCents > 0) {
+          slip += formatTwoCols("DIFERENCIA COBRADA:", formatCOP(diffCents), cols) + "\n";
+        } else if (diffCents < 0) {
+          slip += formatTwoCols("EXCEDENTE DEVUELTO:", formatCOP(Math.abs(diffCents)), cols) + "\n";
+        } else {
+          slip += centerText("CAMBIO MANO A MANO: $0 COP", cols) + "\n";
+        }
+        slip += formatTwoCols("AUTORIZÓ:", "Luisa (Supervisor)", cols) + "\n";
+        slip += "-".repeat(cols) + "\n";
+        slip += centerText("Kardex actualizado (+1 / -1)", cols) + "\n";
+
+        document.getElementById("receipt-preview-text").textContent = slip;
+        document.getElementById("modal-return").close();
+        document.getElementById("modal-receipt").showModal();
+        playScanSound("success");
       }
-      playScanSound("drawer");
-      alert(`✓ Comprobante ${code} anulado con éxito.\nReembolso en efectivo emitido y stock repuesto en kardex.`);
-      document.getElementById("modal-return").close();
     };
 
     // Modal Ayuda (F1)

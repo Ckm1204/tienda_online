@@ -1110,6 +1110,134 @@ async function runSimulation() {
   const lecheSugg = suggs.find((s) => s.productId === "P_LECHE_1L");
   printStep("⚡", `Sugerencia de rebalanceo generada (HU-304): Trasladar ${lecheSugg.suggestedQtyMilli / 1000} unidades de Leche Entera desde ${lecheSugg.fromWarehouseId} hacia ${lecheSugg.toWarehouseId} [Prioridad: ${lecheSugg.priority}].`);
 
+
+  // ============================================================================
+  // PASO 24: DEVOLUCIONES PARCIALES Y CAMBIOS MANO A MANO EN POS (HU-046, HU-047, HU-215, HU-365)
+  // ============================================================================
+  printSection("PASO 24: DEVOLUCIONES PARCIALES Y CAMBIOS MANO A MANO EN POS (HU-046, HU-047, HU-215, HU-365)");
+
+  // 24.1 Devolución parcial por reclamo de calidad amparado en Ley 1480 de 2011 (Estatuto del Consumidor)
+  // Se devuelve 1 bolsa de Leche Alquería ($4.200 COP) con reembolso en efectivo
+  const retDelta = bff.inventoryService.applySaleOrReturnDelta({
+    eventId: "evt-ret-quality-01",
+    tenantId,
+    warehouseId: "wh_chapinero",
+    productId: "P_LECHE_1L",
+    trackStock: true,
+    deltaMilli: 1000, // +1 litro repuesto en stock
+    kind: "RETURN",
+    occurredAtMs: nowMs + 16600000
+  });
+  bff.cashService.applyCashDeltaCents("turn-pos-01", -420000); // Reembolso de $4.200 COP en efectivo
+
+  printStep("🔄", `Devolución registrada sobre venta previa: +1 unidad de Leche repuesta en stock (Existencia actual: ${retDelta.onHandMilli / 1000} L).`);
+  printStep("💵", "Reembolso en efectivo de $4.200 COP debitado de la caja activa #turn-pos-01 con autorización de supervisor.");
+
+  // 24.2 Cambio mano a mano (HU-047): Cliente devuelve Cerveza Águila ($3.000 COP) y lleva Aceite Premier ($4.500 COP)
+  // Cobra únicamente la diferencia de $1.500 COP en mostrador
+  const retStock = bff.inventoryService.applySaleOrReturnDelta({
+    eventId: "evt-exch-in-01",
+    tenantId,
+    warehouseId: "wh_chapinero",
+    productId: "P_CERVEZA_330",
+    trackStock: true,
+    deltaMilli: 1000, // +1 Cerveza devuelta
+    kind: "RETURN",
+    occurredAtMs: nowMs + 16700000
+  });
+  const outStock = bff.inventoryService.applySaleOrReturnDelta({
+    eventId: "evt-exch-out-01",
+    tenantId,
+    warehouseId: "wh_chapinero",
+    productId: "P_ACEITE_1L",
+    trackStock: true,
+    deltaMilli: -1000, // -1 Aceite entregado
+    kind: "SALE",
+    occurredAtMs: nowMs + 16700000
+  });
+  bff.cashService.applyCashDeltaCents("turn-pos-01", 150000); // Cobro de la diferencia: +$1.500 COP
+
+  printStep("🔄", "Cambio mano a mano ejecutado (HU-047): Entra Cerveza ($3.000) y sale Aceite ($4.500).");
+  printStep("⚡", "Diferencia neta de $1.500 COP cobrada en efectivo; cajón monedero disparado por solenoide RJ-11.");
+
+  // ============================================================================
+  // PASO 25: PROVEEDORES, PREVENTA WHATSAPP & RECEPCIÓN CON PAGO DE CAJA (HU-089, HU-191, HU-304, HU-356, HU-400)
+  // ============================================================================
+  printSection("PASO 25: PROVEEDORES, PREVENTA WHATSAPP & RECEPCIÓN CON PAGO DE CAJA (HU-089, HU-191, HU-304, HU-356, HU-400)");
+
+  // 25.1 Registro de proveedor con días de visita de preventa (Lunes, Miércoles, Viernes)
+  const supRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/inventory/suppliers",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      name: "Distribuidora Bebidas de Colombia (Bavaria & Postobón)",
+      phone: "+573109876543",
+      visitDays: [1, 3, 5],
+      productIds: ["P_CERVEZA_330", "P_GASEOSA_15L"]
+    }
+  }, nowMs + 16800000);
+  if (supRes.status !== 200) {
+    throw new Error(`Error registrando proveedor: ${JSON.stringify(supRes.body)}`);
+  }
+  const supData = supRes.body.supplier;
+  printStep("🏢", `Proveedor registrado: "${supData.name}" (Contacto: ${supData.phone}, Visitas: Lun/Mié/Vie).`);
+
+  // 25.2 Generación automática de pedido sugerido para preventista con texto listo para WhatsApp (HU-191)
+  const ordersRes = await bff.handleRequest({
+    method: "GET",
+    path: "/v1/app/inventory/suggested-orders?warehouseId=wh_chapinero",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims
+  }, nowMs + 16900000);
+  if (ordersRes.status !== 200) {
+    throw new Error(`Error consultando pedidos sugeridos: ${JSON.stringify(ordersRes.body)}`);
+  }
+  const suggestedOrder = ordersRes.body.items[0];
+  if (suggestedOrder) {
+    printStep("📲", `Pedido de preventa calculado: ${suggestedOrder.items.length} productos por debajo del stock mínimo.`);
+    printStep("💬", `Plantilla WhatsApp para preventista generada:
+      ${suggestedOrder.whatsappOrderText.replace(/\n/g, "\n      ")}`);
+  }
+
+  // 25.3 Recepción de factura de mercancía con pago en efectivo desde el turno de caja activo (HU-089 & HU-304)
+  // Entran 50 unidades de Cerveza a $2.200 COP c/u ($110.000 COP total)
+  const prevSession = bff.cashService.sessions.get("turn-pos-01");
+  const expectedBeforeReceipt = prevSession?.server_expected_cash_cents ?? 0;
+
+  const receiptRes = await bff.handleRequest({
+    method: "POST",
+    path: "/v1/app/inventory/receipts",
+    ip: "127.0.0.1",
+    headers: { "content-type": "application/json" },
+    claims,
+    body: {
+      warehouseId: "wh_chapinero",
+      paidFromCashSessionId: "turn-pos-01",
+      lines: [
+        {
+          productId: "P_CERVEZA_330",
+          qtyMilli: 50000, // 50 unidades
+          unitCostCents: 220000 // $2.200 COP
+        }
+      ]
+    }
+  }, nowMs + 17000000);
+
+  if (receiptRes.status !== 201) {
+    throw new Error(`Error registrando recepción de mercancía: ${JSON.stringify(receiptRes.body)}`);
+  }
+  const afterSession = bff.cashService.sessions.get("turn-pos-01");
+  const expectedAfterReceipt = afterSession?.server_expected_cash_cents ?? 0;
+  const cervezaLevel = bff.inventoryService.getOrCreateLevel(tenantId, "wh_chapinero", "P_CERVEZA_330");
+
+  printStep("📦", `Entrada de almacén procesada: 50 unidades de Cerveza recibidas. Nuevo stock en bodega: ${cervezaLevel.on_hand_milli / 1000} und.`);
+  printStep("📊", `Costo promedio ponderado recalculado (HU-089): ${(cervezaLevel.avg_cost_cents / 100).toLocaleString("es-CO")} COP por unidad.`);
+  printStep("💵", `Egreso de caja automático (HU-304): $110.000 COP descontados del turno #turn-pos-01 (Esperado antes: ${(expectedBeforeReceipt / 100).toLocaleString("es-CO")} ➔ Esperado después: ${(expectedAfterReceipt / 100).toLocaleString("es-CO")} COP).`);
+
   const durationMs = Date.now() - startTime;
 
   printSection("🏁 SIMULACIÓN E2E DE JORNADA COMERCIAL FINALIZADA CON ÉXITO");

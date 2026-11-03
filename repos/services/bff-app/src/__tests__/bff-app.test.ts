@@ -1357,4 +1357,106 @@ describe("ÉPICA 10 — bff-app: Gateway, Seguridad, Agregador y Administración
     expect(lecheSugg.suggestedQtyMilli).toBe(28000); // 30.000 ideal - 2.000 actual = 28.000 unidades
     expect(lecheSugg.availableSurplusMilli).toBe(80000); // 100.000 - 20.000 = 80.000
   });
+  it("HU-089, HU-191, HU-304 & HU-400: Gestión de proveedores, pedidos sugeridos de preventa y recepción de mercancía con cargo a turno de caja", async () => {
+    const claims = {
+      sub: ownerId,
+      tid: tenantId,
+      roles: ["OWNER"],
+      perms: ["inventory.read", "inventory.manage", "cash.session.manage"],
+      aud: "mgmt-app"
+    };
+
+    // 1. Crear proveedor (Panificadora La Espiga)
+    const createSupRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/inventory/suppliers",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        name: "Panificadora La Espiga",
+        phone: "3114445566",
+        visitDays: [1, 3, 5],
+        productIds: ["prod-pan-tajado", "prod-tostadas"]
+      }
+    }, t0 + 100);
+    expect(createSupRes.status).toBe(200);
+    const sup = (createSupRes.body as any).supplier;
+    expect(sup.name).toBe("Panificadora La Espiga");
+
+    // 2. Listar proveedores
+    const listSupRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/inventory/suppliers",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 200);
+    expect(listSupRes.status).toBe(200);
+    expect((listSupRes.body as any).count).toBeGreaterThanOrEqual(1);
+
+    // 3. Establecer inventario bajo para pan tajado
+    bff.inventoryService.recordInitialStock({
+      tenantId,
+      warehouseId: "wh-main",
+      productId: "prod-pan-tajado",
+      qtyMilli: 5000,
+      unitCostCents: 250000,
+      minStockMilli: 15000,
+      idealStockMilli: 35000
+    });
+
+    // 4. Consultar pedidos sugeridos para preventistas
+    const ordersRes = await bff.handleRequest({
+      method: "GET",
+      path: "/v1/app/inventory/suggested-orders?warehouseId=wh-main",
+      ip: "127.0.0.1",
+      headers: {},
+      claims
+    }, t0 + 300);
+    expect(ordersRes.status).toBe(200);
+    const ordersBody = ordersRes.body as any;
+    expect(ordersBody.count).toBe(1);
+    expect(ordersBody.items[0].supplierName).toBe("Panificadora La Espiga");
+    expect(ordersBody.items[0].whatsappOrderText).toContain("Hola Panificadora La Espiga, pedido sugerido de Tiendita:");
+
+    // 5. Abrir turno de caja para pagar la factura del repartidor
+    const sessId = "sess-pago-prov-01";
+    bff.cashService.openSession({
+      cashSessionId: sessId,
+      tenantId,
+      branchId: "branch-01",
+      terminalId: "term-01",
+      cashierId: "cashier-01",
+      openingFloatCents: 10000000 // $100.000 COP
+    });
+
+    // 6. Registrar entrada de almacén con pago de caja ($2.500 x 30 unidades = $75.000 COP)
+    const receiptRes = await bff.handleRequest({
+      method: "POST",
+      path: "/v1/app/inventory/receipts",
+      ip: "127.0.0.1",
+      headers: {},
+      claims,
+      body: {
+        warehouseId: "wh-main",
+        paidFromCashSessionId: sessId,
+        lines: [
+          {
+            productId: "prod-pan-tajado",
+            qtyMilli: 30000,
+            unitCostCents: 250000
+          }
+        ]
+      }
+    }, t0 + 400);
+
+    expect(receiptRes.status).toBe(201);
+    expect((receiptRes.body as any).received).toBe(1);
+    expect((receiptRes.body as any).cashMovementRecorded).toBe(true);
+
+    // Verificar que el efectivo esperado de caja disminuyó de $100.000 a $25.000 COP ($100k - $75k)
+    const updatedSess = bff.cashService.sessions.get(sessId);
+    expect(updatedSess?.server_expected_cash_cents).toBe(2500000);
+  });
 });

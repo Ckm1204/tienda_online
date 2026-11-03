@@ -1062,6 +1062,7 @@ export class PosSalesAndCartEngine {
 
   /**
    * HU-047: Cambio mano a mano de producto (entra el devuelto +1, sale el nuevo -1, cobra diferencia incluso si es $0).
+   * Si se especifica cashSessionId y pago en efectivo, registra el movimiento de efectivo y abre cajón.
    */
   cmdExchangeProduct(params: {
     returnedProductId: string;
@@ -1071,10 +1072,14 @@ export class PosSalesAndCartEngine {
     newQtyMilli: number;
     newPriceCents: number;
     approvalNonce: string;
+    cashSessionId?: string;
+    paymentMethod?: "CASH" | "NEQUI" | "CREDIT" | "NONE";
+    reason?: string;
+    requestedBy?: string;
     nowMs?: number;
-  }): { differenceToPayCents: number } {
+  }): { differenceToPayCents: number; drawerOpened: boolean; exchangeId: string } {
     const nowMs = params.nowMs ?? Date.now();
-    this.auth.consumeApprovalNonce(params.approvalNonce, "sale.return", nowMs);
+    const consumed = this.auth.consumeApprovalNonce(params.approvalNonce, "sale.return", nowMs);
 
     const exchangeId = newId(nowMs);
     this.localStockMovements.push(
@@ -1100,8 +1105,45 @@ export class PosSalesAndCartEngine {
 
     const returnedVal = Math.round((params.returnedQtyMilli * params.returnedPriceCents) / 1000);
     const newVal = Math.round((params.newQtyMilli * params.newPriceCents) / 1000);
+    const differenceToPayCents = newVal - returnedVal;
+
+    let drawerOpened = false;
+    if (params.cashSessionId && (params.paymentMethod === "CASH" || (!params.paymentMethod && differenceToPayCents !== 0))) {
+      if (differenceToPayCents > 0) {
+        // El cliente paga la diferencia en efectivo
+        this.cash.movements.push({
+          id: newId(nowMs),
+          cash_session_id: params.cashSessionId,
+          kind: "SALE_CASH",
+          amount_cents: differenceToPayCents,
+          reason: `Diferencia cobrada cambio mano a mano ${exchangeId}`,
+          approved_by: consumed.approverId,
+          created_by: params.requestedBy ?? consumed.approverId,
+          occurred_at_ms: nowMs,
+          voided: false
+        });
+        drawerOpened = this.printer.pulseCashDrawerIfApplicable(true);
+      } else if (differenceToPayCents < 0) {
+        // La tienda devuelve el excedente en efectivo
+        this.cash.movements.push({
+          id: newId(nowMs),
+          cash_session_id: params.cashSessionId,
+          kind: "REFUND_CASH",
+          amount_cents: Math.abs(differenceToPayCents),
+          reason: `Excedente devuelto cambio mano a mano ${exchangeId}`,
+          approved_by: consumed.approverId,
+          created_by: params.requestedBy ?? consumed.approverId,
+          occurred_at_ms: nowMs,
+          voided: false
+        });
+        drawerOpened = this.printer.pulseCashDrawerIfApplicable(true);
+      }
+    }
+
     return {
-      differenceToPayCents: newVal - returnedVal
+      differenceToPayCents,
+      drawerOpened,
+      exchangeId
     };
   }
 }

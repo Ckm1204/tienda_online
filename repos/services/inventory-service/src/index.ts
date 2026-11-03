@@ -39,6 +39,37 @@ export interface StockMovementRow {
   occurred_at_ms: number;
 }
 
+
+export interface SupplierRecord {
+  id: string;
+  tenant_id: string;
+  name: string;
+  phone: string;
+  visit_days: number[]; // 1=Lunes .. 7=Domingo
+  product_ids: string[];
+}
+
+export interface SuggestedOrderItem {
+  productId: string;
+  onHandMilli: number;
+  minStockMilli: number;
+  idealStockMilli: number;
+  suggestedQtyMilli: number;
+  avgCostCents: number;
+  estimatedLineCostCents: number;
+}
+
+export interface SuggestedOrderProposal {
+  supplierId: string;
+  supplierName: string;
+  supplierPhone: string;
+  visitDays: number[];
+  warehouseId: string;
+  items: SuggestedOrderItem[];
+  totalEstimatedCostCents: number;
+  whatsappOrderText: string;
+}
+
 export interface WarehouseTransferRecord {
   id: string;
   tenant_id: string;
@@ -55,10 +86,7 @@ export class InventoryService {
   private readonly inboxProcessed = new Set<string>();
   public readonly stockLevels = new Map<string, StockLevelRow>(); // `${tenantId}:${warehouseId}:${productId}`
   public readonly movements: StockMovementRow[] = [];
-  public readonly suppliers = new Map<
-    string,
-    { id: string; tenant_id: string; name: string; phone: string; visit_days: number[]; product_ids: string[] }
-  >();
+  public readonly suppliers = new Map<string, SupplierRecord>();
   public readonly transfers = new Map<string, WarehouseTransferRecord>();
   public readonly publishedEvents: { topic: string; payload: unknown }[] = [];
 
@@ -438,6 +466,98 @@ export class InventoryService {
     }
 
     return suggestions;
+  }
+
+
+  /**
+   * HU-089 & HU-400: Registro y actualización de proveedores.
+   */
+  upsertSupplier(params: {
+    tenantId: string;
+    supplierId?: string;
+    name: string;
+    phone: string;
+    visitDays?: number[];
+    productIds?: string[];
+  }): SupplierRecord {
+    const id = params.supplierId || newId();
+    const rec: SupplierRecord = {
+      id,
+      tenant_id: params.tenantId,
+      name: params.name,
+      phone: params.phone,
+      visit_days: params.visitDays ?? [1, 3, 5],
+      product_ids: params.productIds ?? []
+    };
+    this.suppliers.set(id, rec);
+    return rec;
+  }
+
+  listSuppliers(tenantId: string): SupplierRecord[] {
+    return [...this.suppliers.values()].filter((s) => s.tenant_id === tenantId);
+  }
+
+  /**
+   * HU-191 & HU-400: Pedidos sugeridos a proveedores según stock mínimo/máximo y días de visita (Preventa).
+   */
+  getSuggestedOrders(params: {
+    tenantId: string;
+    warehouseId: string;
+    supplierId?: string;
+  }): SuggestedOrderProposal[] {
+    const proposals: SuggestedOrderProposal[] = [];
+    const targetSuppliers = [...this.suppliers.values()].filter((s) => {
+      if (s.tenant_id !== params.tenantId) return false;
+      if (params.supplierId && s.id !== params.supplierId) return false;
+      return true;
+    });
+
+    for (const sup of targetSuppliers) {
+      const items: SuggestedOrderItem[] = [];
+      for (const prodId of sup.product_ids) {
+        const lvl = this.getOrCreateLevel(params.tenantId, params.warehouseId, prodId);
+        if (lvl.min_stock_milli > 0 && lvl.on_hand_milli <= lvl.min_stock_milli) {
+          const targetQty = (lvl.ideal_stock_milli > 0 ? lvl.ideal_stock_milli : lvl.min_stock_milli * 2);
+          const deficit = targetQty - lvl.on_hand_milli;
+          const suggestedQtyMilli = Math.max(1000, deficit);
+          const estimatedLineCostCents = Math.round((suggestedQtyMilli * lvl.avg_cost_cents) / 1000);
+
+          items.push({
+            productId: prodId,
+            onHandMilli: lvl.on_hand_milli,
+            minStockMilli: lvl.min_stock_milli,
+            idealStockMilli: lvl.ideal_stock_milli,
+            suggestedQtyMilli,
+            avgCostCents: lvl.avg_cost_cents,
+            estimatedLineCostCents
+          });
+        }
+      }
+
+      if (items.length > 0) {
+        const totalEstimatedCostCents = items.reduce((acc, it) => acc + it.estimatedLineCostCents, 0);
+        const orderLinesText = items
+          .map((it) => `- Ítem ${it.productId}: ${it.suggestedQtyMilli / 1000} und (${Math.round(it.estimatedLineCostCents / 100).toLocaleString("es-CO")} COP)`)
+          .join("\n");
+        const whatsappOrderText =
+          `Hola ${sup.name}, pedido sugerido de Tiendita:\n` +
+          orderLinesText +
+          `\nTotal estimado: ${Math.round(totalEstimatedCostCents / 100).toLocaleString("es-CO")} COP`;
+
+        proposals.push({
+          supplierId: sup.id,
+          supplierName: sup.name,
+          supplierPhone: sup.phone,
+          visitDays: sup.visit_days,
+          warehouseId: params.warehouseId,
+          items,
+          totalEstimatedCostCents,
+          whatsappOrderText
+        });
+      }
+    }
+
+    return proposals;
   }
 
   rebuildStockLevelsFromMovements(tenantId: string): void {
