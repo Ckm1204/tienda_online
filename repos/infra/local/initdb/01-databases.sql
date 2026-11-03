@@ -11,3 +11,4 @@ CREATE DATABASE customer_db;
 CREATE DATABASE reporting_db;
 CREATE DATABASE audit_db;
 CREATE DATABASE notification_db;
+CREATE DATABASE einvoicing_db;
