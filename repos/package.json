@@ -19,7 +19,8 @@
     "contracts:openapi": "pnpm --filter @tiendita/contracts run openapi",
     "gen:service": "node tools/gen-service/index.mjs",
     "license:check": "pnpm --filter @tiendita/config run license-check",
-    "smoke:test": "pnpm --filter @tiendita/config run smoke-test"
+    "smoke:test": "pnpm --filter @tiendita/config run smoke-test",
+    "simulate:day": "node tools/simulate-day.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
